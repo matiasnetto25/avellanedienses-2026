@@ -1,4 +1,5 @@
 # Trabajo Final Integrador — App de Restaurant
+_Trabajo Final Integrador (TFI) de la Tecnicatura Universitaria en Programación (UTN Avellaneda) . App móvil de gestión para restaurante desarrollada en Angular, Ionic, Capacitor y Supabase_
 
 **Grupo:** Avellanedienses  
 **Año:** 2026  
@@ -10,12 +11,12 @@
 
 De acuerdo con lo acordado por el equipo, el desarrollo, planificación e implementación de los requerimientos funcionales (Puntos 1 al 22 de la primera entrega) se realizarán de manera conjunta y transversal por todos los integrantes.
 
-| Integrante (Orden Alfabético) | Módulos (Objetivos) a Desarrollar | Rama (Branch) |
-| :--- | :--- | :--- |
-| **Netto, Matias** | Desarrollo Transversal (Planificación, UI/UX, Supabase, Frontend) | `dev` / `feature/*` |
-| **Oliveto, Agustin** | Desarrollo Transversal (Planificación, UI/UX, Supabase, Frontend) | `dev` / `feature/*` |
-| **Pascual, Christian** | Desarrollo Transversal (Planificación, UI/UX, Supabase, Frontend) | `dev` / `feature/*` |
-| **Rodriguez, Thiago** | Desarrollo Transversal (Planificación, UI/UX, Supabase, Frontend) | `dev` / `feature/*` |
+| Integrante (Orden Alfabético) | Módulos (Objetivos) a Desarrollar |
+| :--- | :--- |
+| **Netto, Matias** | Desarrollo Transversal (Planificación, UI/UX, Supabase, Frontend) | 
+| **Oliveto, Agustin** | Desarrollo Transversal (Planificación, UI/UX, Supabase, Frontend) | 
+| **Pascual, Christian** | Desarrollo Transversal (Planificación, UI/UX, Supabase, Frontend) |
+| **Rodriguez, Thiago** | Desarrollo Transversal (Planificación, UI/UX, Supabase, Frontend) |
 
 ---
 
