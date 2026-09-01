@@ -1,0 +1,795 @@
+<title>De la Web al APK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#F3F5F7;
+    --surface:#FFFFFF;
+    --surface-2:#EAEEF2;
+    --ink:#1B2430;
+    --muted:#5B6672;
+    --line:#D9E0E6;
+    --line-strong:#C3CCD4;
+    --angular:#C3002F;
+    --angular-soft:rgba(195,0,47,0.09);
+    --ionic:#2E63C9;
+    --ionic-soft:rgba(46,99,201,0.09);
+    --capacitor:#0B7A75;
+    --capacitor-soft:rgba(11,122,117,0.10);
+    --android:#1E9E5A;
+    --android-soft:rgba(30,158,90,0.10);
+    --code-bg:#1B2430;
+    --code-ink:#E7ECF1;
+    --code-muted:#93A2B3;
+    --shadow:0 1px 2px rgba(27,36,48,0.06), 0 10px 26px -14px rgba(27,36,48,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10151C;
+      --surface:#171E27;
+      --surface-2:#1F2833;
+      --ink:#E7ECF1;
+      --muted:#9AA7B4;
+      --line:#2B3542;
+      --line-strong:#3A4756;
+      --angular:#FF6B86;
+      --angular-soft:rgba(255,107,134,0.14);
+      --ionic:#7FA8FF;
+      --ionic-soft:rgba(127,168,255,0.14);
+      --capacitor:#3FD1C7;
+      --capacitor-soft:rgba(63,209,199,0.14);
+      --android:#4ADE80;
+      --android-soft:rgba(74,222,128,0.14);
+      --code-bg:#0B1015;
+      --code-ink:#E7ECF1;
+      --code-muted:#8593A2;
+      --shadow:0 1px 2px rgba(0,0,0,0.35), 0 10px 26px -14px rgba(0,0,0,0.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10151C;
+    --surface:#171E27;
+    --surface-2:#1F2833;
+    --ink:#E7ECF1;
+    --muted:#9AA7B4;
+    --line:#2B3542;
+    --line-strong:#3A4756;
+    --angular:#FF6B86;
+    --angular-soft:rgba(255,107,134,0.14);
+    --ionic:#7FA8FF;
+    --ionic-soft:rgba(127,168,255,0.14);
+    --capacitor:#3FD1C7;
+    --capacitor-soft:rgba(63,209,199,0.14);
+    --android:#4ADE80;
+    --android-soft:rgba(74,222,128,0.14);
+    --code-bg:#0B1015;
+    --code-ink:#E7ECF1;
+    --code-muted:#8593A2;
+    --shadow:0 1px 2px rgba(0,0,0,0.35), 0 10px 26px -14px rgba(0,0,0,0.55);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    line-height:1.65;
+    font-size:16px;
+  }
+  ::selection{ background: var(--ionic-soft); }
+
+  a{ color:var(--ionic); text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible{
+    outline: 2px solid var(--ionic);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  code, .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
+
+  h1,h2,h3{ font-family:"IBM Plex Sans", sans-serif; text-wrap: balance; margin: 0; }
+  h1{ font-size: clamp(1.9rem, 1.5rem + 1.6vw, 2.5rem); font-weight:700; letter-spacing:-0.01em; }
+  h2{ font-size: 1.5rem; font-weight:700; letter-spacing:-0.005em; }
+  h3{ font-size: 1.05rem; font-weight:600; }
+  p{ margin: 0 0 1em; max-width: 68ch; }
+  p:last-child{ margin-bottom:0; }
+
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem;
+    font-weight:600;
+    letter-spacing:0.09em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  /* ---- top nav ---- */
+  .topnav{
+    position: sticky; top:0; z-index:20;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topnav-row{
+    max-width: 920px; margin:0 auto;
+    display:flex; align-items:center; gap:1rem;
+    padding: 0.65rem 1.25rem;
+    overflow-x:auto;
+    scrollbar-width: thin;
+  }
+  .topnav-brand{
+    font-family:"IBM Plex Mono", monospace;
+    font-weight:600; font-size:0.85rem;
+    color:var(--ink); white-space:nowrap;
+    display:flex; align-items:center; gap:0.4em;
+  }
+  .topnav-brand .dot{ width:7px; height:7px; border-radius:50%; background:var(--capacitor); display:inline-block; }
+  .topnav-links{ display:flex; gap:0.35rem; white-space:nowrap; }
+  .topnav-links a{
+    color:var(--muted); text-decoration:none;
+    font-size:0.85rem; font-weight:500;
+    padding:0.3rem 0.6rem; border-radius:6px;
+  }
+  .topnav-links a:hover{ color:var(--ink); background:var(--surface-2); }
+
+  /* ---- shell ---- */
+  .shell{ max-width: 720px; margin: 0 auto; padding: 2.75rem 1.25rem 5rem; }
+  .wide{ max-width: 880px; }
+
+  header.hero{ padding-bottom: 2.25rem; border-bottom:1px solid var(--line); margin-bottom:2.5rem; }
+  header.hero .eyebrow{ margin-bottom:0.85rem; }
+  header.hero h1{ margin-bottom:0.9rem; }
+  header.hero p{ color:var(--muted); font-size:1.05rem; max-width:60ch; }
+
+  .stack-chips{ display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:1.5rem; }
+  .chip{
+    display:inline-flex; align-items:center; gap:0.45em;
+    font-family:"IBM Plex Mono", monospace; font-size:0.78rem; font-weight:500;
+    padding:0.4rem 0.75rem; border-radius:999px;
+    border:1px solid var(--line-strong); text-decoration:none; color:var(--ink);
+  }
+  .chip .sw{ width:8px; height:8px; border-radius:2px; }
+
+  section.block{ margin-bottom:3.25rem; scroll-margin-top: 4.5rem; }
+  .block-head{ display:flex; align-items:baseline; gap:0.75rem; margin-bottom:1.1rem; }
+  .block-head .idx{
+    font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:0.85rem;
+    color:var(--muted);
+  }
+
+  .lede{ color:var(--muted); margin-bottom:1.5rem; }
+
+  /* ---- steps ---- */
+  .steps{ display:flex; flex-direction:column; gap:0; border-top:1px solid var(--line); }
+  .step{ display:grid; grid-template-columns: 2.5rem 1fr; gap:1rem; padding:1.15rem 0; border-bottom:1px solid var(--line); }
+  .step-num{
+    font-family:"IBM Plex Mono", monospace; font-weight:600; font-size:0.95rem;
+    color:var(--capacitor);
+  }
+  .step h3{ margin-bottom:0.35rem; }
+  .step p{ color:var(--muted); margin-bottom:0.6rem; font-size:0.95rem; }
+  .step .why{ font-size:0.88rem; color:var(--muted); }
+  .step .why b{ color:var(--ink); font-weight:600; }
+
+  pre{
+    background:var(--code-bg); color:var(--code-ink);
+    border-radius:10px; padding:0.85rem 1rem;
+    overflow-x:auto; font-size:0.84rem; line-height:1.6;
+    margin:0.5rem 0 0;
+  }
+  pre code{ font-family:"IBM Plex Mono", monospace; }
+  pre .c{ color: var(--code-muted); }
+  code.inline{
+    background:var(--surface-2); border:1px solid var(--line);
+    padding:0.1em 0.4em; border-radius:5px; font-size:0.88em;
+  }
+
+  .callout{
+    border:1px solid var(--line-strong); border-left:3px solid var(--capacitor);
+    background:var(--capacitor-soft);
+    border-radius:8px; padding:1rem 1.15rem; margin:1.5rem 0;
+  }
+  .callout .eyebrow{ color:var(--capacitor); margin-bottom:0.4rem; }
+  .callout p{ margin-bottom:0.5em; font-size:0.95rem; }
+  .callout p:last-child{ margin-bottom:0; }
+
+  /* ---- layer cards for section 2 explanation ---- */
+  .layer-cards{ display:flex; flex-direction:column; gap:0.85rem; margin:1.75rem 0; }
+  .layer-card{
+    display:grid; grid-template-columns: 3px 1fr; gap:1rem;
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:1.1rem 1.25rem; box-shadow: var(--shadow);
+  }
+  .layer-card .bar{ border-radius:3px; }
+  .layer-card h3{ display:flex; align-items:center; gap:0.6em; margin-bottom:0.4rem; }
+  .layer-card .tag{ font-family:"IBM Plex Mono",monospace; font-weight:500; font-size:0.72rem; color:var(--muted); }
+  .layer-card p{ font-size:0.94rem; color:var(--muted); margin-bottom:0.5em;}
+  .layer-card p:last-child{ margin-bottom:0; }
+  .layer-card p b{ color:var(--ink); font-weight:600; }
+
+  figure{ margin:2rem 0; }
+  figure.diagram{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:1.25rem 1rem 0.9rem; box-shadow: var(--shadow);
+    overflow-x:auto;
+  }
+  figure.diagram svg{ display:block; margin:0 auto; max-width:100%; height:auto; color:var(--ink); }
+  figure.diagram svg text{ fill: currentColor; }
+  figcaption{ font-size:0.85rem; color:var(--muted); margin-top:0.9rem; text-align:center; }
+
+  table{ width:100%; border-collapse:collapse; margin:1.5rem 0; font-size:0.92rem; }
+  caption{ caption-side:bottom; }
+  th, td{ text-align:left; padding:0.65rem 0.85rem; border-bottom:1px solid var(--line); vertical-align:top; }
+  thead th{ font-family:"IBM Plex Mono", monospace; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); font-weight:600; border-bottom:1px solid var(--line-strong); }
+  tbody tr:last-child td{ border-bottom:none; }
+  td.yes{ color:var(--android); font-weight:600; }
+  td.no{ color:var(--muted); }
+  .table-wrap{ overflow-x:auto; }
+
+  ul.plain{ margin:0 0 1em; padding-left:1.1rem; }
+  ul.plain li{ margin-bottom:0.45rem; color:var(--ink); }
+  ul.plain li::marker{ color:var(--muted); }
+
+  .cheat{ background:var(--code-bg); border-radius:12px; padding:1.5rem 1.5rem 1.6rem; box-shadow: var(--shadow); }
+  .cheat h3{ color:var(--code-ink); margin-bottom:0.25rem; }
+  .cheat .eyebrow{ color:var(--code-muted); }
+  .cheat-group{ margin-top:1.1rem; }
+  .cheat-group h4{ font-family:"IBM Plex Mono",monospace; color:var(--code-muted); font-size:0.76rem; text-transform:uppercase; letter-spacing:0.06em; font-weight:600; margin:0 0 0.5rem; }
+  .cheat pre{ background:transparent; padding:0; margin:0; }
+
+  ol.steps-ol{ padding-left:1.2rem; margin:0.5rem 0 0.75rem; color:var(--muted); font-size:0.95rem; }
+  ol.steps-ol li{ margin-bottom:0.4rem; }
+  ol.steps-ol li:last-child{ margin-bottom:0; }
+  ol.steps-ol b{ color:var(--ink); font-weight:600; }
+
+  .compare-col{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:1.1rem 1.15rem 1.25rem; box-shadow: var(--shadow); margin:0.75rem 0 1.5rem; }
+  .filecap{ font-family:"IBM Plex Mono",monospace; font-size:0.72rem; font-weight:600; color:var(--muted); margin:0.9rem 0 0.15rem; }
+  .filecap:first-child{ margin-top:0; }
+
+  footer.page-foot{ margin-top:3.5rem; padding-top:1.5rem; border-top:1px solid var(--line); color:var(--muted); font-size:0.85rem; }
+
+  @media (max-width: 600px){
+    .step{ grid-template-columns: 1fr; }
+    .step-num{ font-size:0.8rem; }
+  }
+</style>
+
+<div class="topnav">
+  <nav class="topnav-row" aria-label="Secciones de la guía">
+    <span class="topnav-brand"><span class="dot" aria-hidden="true"></span>De la Web al APK</span>
+    <div class="topnav-links">
+      <a href="#instalacion">Instalación</a>
+      <a href="#proyecto">Inicializar proyecto</a>
+      <a href="#relacion">Angular · Ionic · Capacitor</a>
+      <a href="#android-studio">Android Studio</a>
+      <a href="#chuleta">Chuleta</a>
+      <a href="#ejemplo">Ejemplo</a>
+    </div>
+  </nav>
+</div>
+
+<div class="shell">
+
+  <header class="hero">
+    <div class="eyebrow">Guía del equipo · TFI app de restaurant</div>
+    <h1>De la web al APK: cómo se arma una app híbrida</h1>
+    <p>Ya conocen JavaScript, TypeScript y Angular básico. Lo que cambia acá no es el lenguaje — es que el código termina corriendo dentro de un teléfono Android real, con cámara, GPS y notificaciones incluidos. Esta guía cubre qué instalar, cómo se reparten el trabajo Angular, Ionic y Capacitor, y para qué sirve Android Studio en todo esto.</p>
+    <div class="stack-chips">
+      <a class="chip" href="#relacion"><span class="sw" style="background:var(--angular)"></span>Angular</a>
+      <a class="chip" href="#relacion"><span class="sw" style="background:var(--ionic)"></span>Ionic</a>
+      <a class="chip" href="#relacion"><span class="sw" style="background:var(--capacitor)"></span>Capacitor</a>
+      <a class="chip" href="#android-studio"><span class="sw" style="background:var(--android)"></span>Android Studio</a>
+    </div>
+  </header>
+
+  <section class="block" id="instalacion">
+    <div class="block-head"><span class="idx">01</span><h2>Qué instalar en el entorno de desarrollo</h2></div>
+    <p class="lede">El orden importa: cada herramienta depende de la anterior. Esto es para Windows, que es lo que usa el equipo; en Mac/Linux los pasos son casi iguales, solo cambia cómo se configuran las variables de entorno.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h3>Node.js (versión LTS)</h3>
+          <p>Es el motor que ejecuta JavaScript fuera del navegador. Angular CLI, Ionic CLI y todos los paquetes de <code class="inline">npm</code> corren sobre Node. Sin esto no se puede instalar nada más.</p>
+          <pre><code><span class="c"># verificar instalación</span>
+node -v
+npm -v</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h3>Git</h3>
+          <p>Ya lo usan para el repositorio del grupo en GitHub. Nada nuevo acá, solo confirmá que esté instalado y configurado con tu usuario/mail.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h3>Angular CLI</h3>
+          <p>La herramienta de línea de comandos que ya conocen (<code class="inline">ng generate</code>, <code class="inline">ng serve</code>). Ionic la usa por debajo cuando el proyecto es Angular.</p>
+          <pre><code>npm install -g @angular/cli</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <h3>Ionic CLI</h3>
+          <p>Crea el proyecto, agrega Capacitor, sirve la app en el navegador para probar rápido, y sincroniza con los proyectos nativos.</p>
+          <pre><code>npm install -g @ionic/cli
+ionic start restaurant-app tabs --type=angular</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div>
+          <h3>JDK 17 (Java Development Kit)</h3>
+          <p>Rareza aparente, pero necesaria: el sistema de compilación de Android (<b>Gradle</b>) corre sobre la JVM. No van a escribir una línea de Java, pero Gradle lo necesita instalado para compilar el proyecto nativo.</p>
+          <p class="why"><b>Opción rápida en Windows (con winget):</b></p>
+          <pre><code><span class="c"># Eclipse Temurin es la distribución gratuita más usada de OpenJDK</span>
+winget install EclipseAdoptium.Temurin.17.JDK</code></pre>
+          <p class="why"><b>Opción manual:</b> bajar el instalador <code class="inline">.msi</code> (Windows x64) desde <span class="mono">adoptium.net/temurin/releases/?version=17</span>, ejecutarlo y, si el asistente lo ofrece, tildar <span class="mono">"Set JAVA_HOME variable"</span> para que configure la variable de entorno automáticamente.</p>
+          <pre><code><span class="c"># abrir una terminal NUEVA y verificar</span>
+java -version
+javac -version</code></pre>
+          <p class="why">Debería mostrar algo como <code class="inline">openjdk version "17..."</code>. Si <code class="inline">JAVA_HOME</code> no quedó configurado solo, se hace a mano en el paso 7.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">6</div>
+        <div>
+          <h3>Android Studio</h3>
+          <p>Instala de una todo el combo nativo: el <b>Android SDK</b> (las APIs de Android contra las que se compila), <b>Platform Tools</b> (incluye <code class="inline">adb</code>, para hablar con el celular por USB), <b>Gradle</b> y el <b>emulador</b> (AVD Manager). Es un requisito, no una opción: sin esto no hay forma de generar un APK.</p>
+          <ol class="steps-ol">
+            <li>Descargar el instalador desde <span class="mono">developer.android.com/studio</span> ("Download Android Studio").</li>
+            <li>Ejecutarlo y elegir la instalación <b>"Standard"</b> en el asistente — instala el SDK, el emulador y una imagen de sistema por defecto sin tener que elegir nada a mano.</li>
+            <li>Al terminar, abrir <span class="mono">More Actions → SDK Manager</span> y confirmar que haya al menos una versión reciente de Android marcada (ej. Android 14, API 34) junto con <span class="mono">Android SDK Build-Tools</span>.</li>
+            <li>Crear un emulador en <span class="mono">More Actions → Virtual Device Manager → Create Device</span>: elegir un dispositivo (ej. Pixel 6), descargar una imagen de sistema y finalizar.</li>
+            <li>Anotar la ruta del SDK en <span class="mono">Settings → Languages &amp; Frameworks → Android SDK</span> ("Android SDK Location") — es la que va a <code class="inline">ANDROID_HOME</code> en el próximo paso.</li>
+          </ol>
+          <p class="why">Android Studio trae su propio JDK embebido para uso interno del IDE, pero igual instalen el JDK 17 del paso 5: la terminal (Capacitor CLI, Gradle desde consola) lo busca por fuera del IDE.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">7</div>
+        <div>
+          <h3>Variables de entorno</h3>
+          <p>Windows necesita saber dónde quedaron instalados el JDK y el SDK de Android. Se configuran en <span class="mono">Variables de entorno del sistema</span>:</p>
+          <pre><code>JAVA_HOME = C:\Program Files\Java\jdk-17
+ANDROID_HOME = C:\Users\&lt;usuario&gt;\AppData\Local\Android\Sdk
+
+<span class="c"># agregar al PATH:</span>
+%ANDROID_HOME%\platform-tools
+%ANDROID_HOME%\tools</code></pre>
+          <p class="why">Si <code class="inline">npx cap sync android</code> o Android Studio no encuentran el SDK, casi siempre es esto.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">8</div>
+        <div>
+          <h3>VS Code (el que ya usan)</h3>
+          <p>Sigue siendo el editor principal para el 90% del código. Sumen las extensiones <span class="mono">Angular Language Service</span> e <span class="mono">Ionic</span> para autocompletado de componentes <code class="inline">ion-*</code>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">9</div>
+        <div>
+          <h3>Un celular Android con Depuración USB</h3>
+          <p>Activá <span class="mono">Opciones de desarrollador</span> (tocando 7 veces el número de compilación) y dentro <span class="mono">Depuración USB</span>. Para este TFI, cada uno de los 4 integrantes va a necesitar probar en su propio dispositivo, así que hagan esto desde ya en los cuatro celulares.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="eyebrow">Tip para el TFI</div>
+      <p>El trabajo prohíbe explícitamente el <b>modo oscuro</b>. Ionic trae, por defecto, un bloque en <code class="inline">variables.scss</code> que activa colores oscuros automáticamente según el sistema del usuario (<code class="inline">@media (prefers-color-scheme: dark)</code>). Bórrenlo o coméntenlo apenas generen el proyecto — si no, alguien va a probar la app de noche con el celular en modo oscuro y la pantalla va a salir "incorrecta" justo en la demo.</p>
+    </div>
+  </section>
+
+  <section class="block" id="proyecto">
+    <div class="block-head"><span class="idx">02</span><h2>Inicializar el proyecto con todo lo necesario</h2></div>
+    <p class="lede">Esto se hace una sola vez — lo puede correr el líder — y después cada uno clona el repo. El objetivo: terminar con Angular + Ionic + Capacitor funcionando, la plataforma Android agregada, las librerías nativas que este TFI va a necesitar sí o sí, y el repo conectado a GitHub.</p>
+
+    <h3 style="margin-bottom:0.75rem;">1. Crear el proyecto</h3>
+    <pre><code><span class="c"># "tabs" es una plantilla de Ionic con navegación por pestañas ya armada</span>
+<span class="c"># --type=angular le dice que use Angular (no React/Vue) por debajo</span>
+ionic start restaurant-app tabs --type=angular
+
+cd restaurant-app</code></pre>
+    <p class="why">El asistente pregunta si querés integrar Capacitor: decile que sí. También corre <code class="inline">git init</code> y hace el primer commit solo (a menos que uses <code class="inline">--no-git</code>).</p>
+
+    <h3 style="margin:1.75rem 0 0.75rem;">2. Agregar la plataforma Android</h3>
+    <pre><code>npx cap add android</code></pre>
+    <p class="why">Crea la carpeta <code class="inline">/android</code> — el proyecto nativo real que después se abre desde Android Studio.</p>
+
+    <h3 style="margin:1.75rem 0 0.75rem;">3. Backend</h3>
+    <pre><code>npm install @supabase/supabase-js</code></pre>
+
+    <h3 style="margin:1.75rem 0 0.75rem;">4. Plugins nativos que este TFI va a necesitar</h3>
+    <p>Se instalan como paquetes <code class="inline">npm</code> normales: cada uno trae su parte TypeScript (lo que llamás desde Angular) y su parte nativa Android, que Capacitor conecta solo al sincronizar.</p>
+    <pre><code><span class="c"># cámara (fotos de empleados, platos, bebidas, mesas)</span>
+npm install @capacitor/camera
+
+<span class="c"># ubicación (mapas para delivery, tercera entrega)</span>
+npm install @capacitor/geolocation
+
+<span class="c"># notificaciones push (todo el flujo de mesas y pedidos)</span>
+npm install @capacitor/push-notifications
+
+<span class="c"># vibración — excluyente: vibrar en TODOS los errores</span>
+npm install @capacitor/haptics
+
+<span class="c"># acelerómetro y giroscopio (punto 31: navegar el menú por movimiento)</span>
+npm install @capacitor/motion
+
+<span class="c"># guardar sesión/preferencias del usuario en el dispositivo</span>
+npm install @capacitor/preferences
+
+<span class="c"># generar y compartir archivos (las facturas en PDF)</span>
+npm install @capacitor/filesystem @capacitor/share</code></pre>
+
+    <div class="callout">
+      <div class="eyebrow">Leer un QR vs. generar un QR — no es lo mismo</div>
+      <p><b>Leer</b> un QR necesita la cámara → es hardware → hace falta un plugin nativo de Capacitor:</p>
+      <pre><code>npm install @capacitor-mlkit/barcode-scanning</code></pre>
+      <p><b>Generar</b> un QR es dibujar una imagen a partir de un texto → es matemática pura → alcanza con una librería de JavaScript, sin nada nativo:</p>
+      <pre><code>npm install qrcode</code></pre>
+    </div>
+
+    <h3 style="margin:1.75rem 0 0.75rem;">5. Sincronizar todo con el proyecto nativo</h3>
+    <pre><code>ionic build
+npx cap sync android</code></pre>
+    <p class="why">Hay que repetir este paso cada vez que se instala un plugin nuevo — si no, Android Studio compila sin enterarse de que existe.</p>
+
+    <h3 style="margin:1.75rem 0 0.75rem;">6. Conectar el repositorio del grupo</h3>
+    <pre><code><span class="c"># ionic start ya corrió "git init" y el primer commit;</span>
+<span class="c"># solo falta apuntarlo al repo del grupo en GitHub</span>
+git remote add origin https://github.com/&lt;usuario-lider&gt;/grupo-2026.git
+git branch -M main
+git push -u origin main
+
+<span class="c"># cada integrante trabaja en su propia rama</span>
+git checkout -b feature/alta-empleado</code></pre>
+    <p class="why">La consigna pide documentar la <b>branch</b> de cada tarea en el README — nombrar las ramas por funcionalidad (<code class="inline">feature/alta-empleado</code>, <code class="inline">feature/qr-mesa</code>) hace ese README mucho más fácil de mantener.</p>
+  </section>
+
+  <section class="block" id="relacion">
+    <div class="block-head"><span class="idx">03</span><h2>Angular, Ionic y Capacitor: quién hace qué</h2></div>
+    <p class="lede">No son tres alternativas que compiten entre sí — son tres capas que se apilan, cada una responsable de una parte distinta del problema.</p>
+
+    <div class="layer-cards">
+      <div class="layer-card">
+        <div class="bar" style="background:var(--angular)"></div>
+        <div>
+          <h3>Angular <span class="tag">lógica y estructura de la app</span></h3>
+          <p>Es el framework de aplicación: <b>componentes, servicios, routing, formularios, HttpClient/RxJS</b>. Define qué pantallas existen, cómo navegan entre sí, cómo se guarda el estado (el carrito del pedido, el usuario logueado) y cómo se habla con Supabase. Todo lo que ya saben de Angular se aplica tal cual.</p>
+        </div>
+      </div>
+
+      <div class="layer-card">
+        <div class="bar" style="background:var(--ionic)"></div>
+        <div>
+          <h3>Ionic <span class="tag">componentes de interfaz + CLI</span></h3>
+          <p>No reemplaza los templates de Angular: se usa <b>adentro</b> de ellos. En vez de <code class="inline">&lt;button&gt;</code> y <code class="inline">&lt;div&gt;</code> sueltos, usan componentes ya pensados para mobile: <code class="inline">&lt;ion-header&gt;</code>, <code class="inline">&lt;ion-list&gt;</code>, <code class="inline">&lt;ion-modal&gt;</code>, <code class="inline">&lt;ion-fab&gt;</code>. La UI se sigue armando en Angular (HTML + SCSS); Ionic aporta el <b>vocabulario visual</b> (que además se adapta solo entre estilo iOS/Android) y su CLI (<code class="inline">ionic serve</code>, <code class="inline">ionic build</code>, <code class="inline">ionic generate</code>).</p>
+        </div>
+      </div>
+
+      <div class="layer-card">
+        <div class="bar" style="background:var(--capacitor)"></div>
+        <div>
+          <h3>Capacitor <span class="tag">el puente hacia lo nativo</span></h3>
+          <p>Acá está el cambio real respecto a lo que ya hicieron. Capacitor toma el build web (el HTML/CSS/JS que compilan Angular + Ionic) y lo <b>empaqueta dentro de una app Android de verdad</b>, corriendo adentro de un WebView. Expone <b>plugins</b> (<code class="inline">@capacitor/camera</code>, <code class="inline">@capacitor/geolocation</code>, <code class="inline">@capacitor/push-notifications</code>) que son funciones de TypeScript que, por detrás, llaman código nativo Android. Ustedes llaman <code class="inline">await Camera.getPhoto()</code> desde un service de Angular como si fuera una promesa cualquiera.</p>
+        </div>
+      </div>
+    </div>
+
+    <figure class="diagram" aria-hidden="false">
+      <svg viewBox="0 0 640 560" role="img" aria-label="Diagrama de capas: el código Angular e Ionic llama a Capacitor mediante una función async; Capacitor invoca el plugin nativo del proyecto Android; el proyecto nativo llama a la API del sistema operativo y el hardware; el resultado vuelve por el mismo camino hasta el código original.">
+        <defs>
+          <marker id="arrow-down" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,0 L5,10 Z" fill="currentColor"></path>
+          </marker>
+          <marker id="arrow-up" viewBox="0 0 10 10" refX="5" refY="1" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,10 L10,10 L5,0 Z" fill="var(--capacitor)"></path>
+          </marker>
+        </defs>
+
+        <!-- Layer 1: Angular + Ionic -->
+        <rect x="100" y="10" width="380" height="80" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+        <text x="290" y="42" text-anchor="middle" font-size="15" font-weight="600">Tu código — Angular + Ionic</text>
+        <text x="290" y="62" text-anchor="middle" font-size="11.5" opacity="0.62">componentes, servicios, HTML/SCSS</text>
+
+        <line x1="290" y1="90" x2="290" y2="146" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow-down)"></line>
+        <text x="308" y="122" font-size="11.5" opacity="0.7">await Camera.getPhoto()</text>
+
+        <!-- Layer 2: Capacitor (highlighted) -->
+        <rect x="100" y="150" width="380" height="80" rx="10" fill="var(--capacitor-soft)" stroke="var(--capacitor)" stroke-width="2"></rect>
+        <text x="290" y="182" text-anchor="middle" font-size="15" font-weight="600">Capacitor — puente y plugins</text>
+        <text x="290" y="202" text-anchor="middle" font-size="11.5" opacity="0.62">@capacitor/camera, geolocation, push…</text>
+
+        <line x1="290" y1="230" x2="290" y2="286" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow-down)"></line>
+        <text x="308" y="262" font-size="11.5" opacity="0.7">invoca el plugin nativo</text>
+
+        <!-- Layer 3: native Android project -->
+        <rect x="100" y="290" width="380" height="80" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+        <text x="290" y="322" text-anchor="middle" font-size="15" font-weight="600">Proyecto nativo Android (WebView)</text>
+        <text x="290" y="342" text-anchor="middle" font-size="11.5" opacity="0.62">carpeta /android, generada por Capacitor</text>
+
+        <line x1="290" y1="370" x2="290" y2="426" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow-down)"></line>
+        <text x="308" y="402" font-size="11.5" opacity="0.7">API Android (Camera2, GPS, FCM…)</text>
+
+        <!-- Layer 4: OS + hardware -->
+        <rect x="100" y="430" width="380" height="80" rx="10" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+        <text x="290" y="462" text-anchor="middle" font-size="15" font-weight="600">Sistema Operativo Android + Hardware</text>
+        <text x="290" y="482" text-anchor="middle" font-size="11.5" opacity="0.62">cámara, GPS, sensores, notificaciones</text>
+
+        <!-- return path -->
+        <path d="M480,470 H556 V50 H480" fill="none" stroke="var(--capacitor)" stroke-width="1.5" marker-end="url(#arrow-up)"></path>
+        <text x="565" y="264" font-size="11.5" fill="var(--capacitor)" opacity="0.9" transform="rotate(90 565 264)">resultado / callback (foto, coordenadas…)</text>
+      </svg>
+      <figcaption>El llamado baja capa por capa hasta el hardware; el dato (una foto, una coordenada GPS) vuelve por el mismo camino hasta el componente que lo pidió.</figcaption>
+    </figure>
+
+    <h3 style="margin-bottom:0.75rem;">El flujo de comandos, de código a app corriendo</h3>
+    <p>Cada vez que tocan algo que Capacitor necesita ver (agregan un plugin nativo, cambian el ícono, etc.) hay que reconstruir y sincronizar. Para cambios de solo HTML/TS/SCSS alcanza con <code class="inline">ionic serve</code> en el navegador — pero ojo, ahí los plugins nativos (cámara, QR, vibración) no funcionan; para probarlos de verdad hace falta un dispositivo o emulador.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 1080 150" role="img" aria-label="Flujo: el código en VS Code se compila con ionic build a la carpeta www; npx cap sync android copia esa carpeta al proyecto nativo android y actualiza los plugins; npx cap open android abre Android Studio; Gradle compila y corre la app en el emulador o el celular.">
+        <defs>
+          <marker id="arrow-right" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 Z" fill="currentColor"></path>
+          </marker>
+        </defs>
+
+        <rect x="10" y="25" width="150" height="65" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+        <text x="85" y="52" text-anchor="middle" font-size="13" font-weight="600">VS Code</text>
+        <text x="85" y="70" text-anchor="middle" font-size="10.5" opacity="0.62">Angular + Ionic</text>
+
+        <line x1="160" y1="57" x2="234" y2="57" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow-right)"></line>
+        <text x="197" y="45" text-anchor="middle" font-size="10.5" font-family="IBM Plex Mono, monospace" opacity="0.75">ionic build</text>
+
+        <rect x="238" y="25" width="150" height="65" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+        <text x="313" y="52" text-anchor="middle" font-size="13" font-weight="600">carpeta www/</text>
+        <text x="313" y="70" text-anchor="middle" font-size="10.5" opacity="0.62">HTML/CSS/JS compilado</text>
+
+        <line x1="388" y1="57" x2="462" y2="57" stroke="var(--capacitor)" stroke-width="1.5" marker-end="url(#arrow-right)"></line>
+        <text x="425" y="45" text-anchor="middle" font-size="10" font-family="IBM Plex Mono, monospace" fill="var(--capacitor)">npx cap sync android</text>
+
+        <rect x="466" y="25" width="150" height="65" rx="9" fill="var(--capacitor-soft)" stroke="var(--capacitor)" stroke-width="2"></rect>
+        <text x="541" y="52" text-anchor="middle" font-size="13" font-weight="600">proyecto /android</text>
+        <text x="541" y="70" text-anchor="middle" font-size="10.5" opacity="0.62">actualizado con plugins</text>
+
+        <line x1="616" y1="57" x2="690" y2="57" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow-right)"></line>
+        <text x="653" y="45" text-anchor="middle" font-size="10" font-family="IBM Plex Mono, monospace" opacity="0.75">npx cap open android</text>
+
+        <rect x="694" y="25" width="150" height="65" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+        <text x="769" y="52" text-anchor="middle" font-size="13" font-weight="600">Android Studio</text>
+        <text x="769" y="70" text-anchor="middle" font-size="10.5" opacity="0.62">Gradle + SDK</text>
+
+        <line x1="844" y1="57" x2="918" y2="57" stroke="currentColor" stroke-width="1.5" marker-end="url(#arrow-right)"></line>
+        <text x="881" y="45" text-anchor="middle" font-size="11" opacity="0.75">▶ Run</text>
+
+        <rect x="922" y="25" width="150" height="65" rx="9" fill="none" stroke="currentColor" stroke-width="1.5"></rect>
+        <text x="997" y="52" text-anchor="middle" font-size="13" font-weight="600">App corriendo</text>
+        <text x="997" y="70" text-anchor="middle" font-size="10.5" opacity="0.62">emulador o celular</text>
+      </svg>
+      <figcaption>El paso resaltado es el que hace Capacitor: sincronizar el build web con el proyecto nativo. Hay que repetirlo cada vez que cambian algo relacionado a plugins, ícono o splash screen.</figcaption>
+    </figure>
+  </section>
+
+  <section class="block" id="android-studio">
+    <div class="block-head"><span class="idx">04</span><h2>Para qué sirve Android Studio</h2></div>
+    <p class="lede">No reemplaza a VS Code: es el panel de control de la <b>capa nativa</b>, la que vive en la carpeta <code class="inline">/android</code> que genera Capacitor. La mayoría del código del día a día se sigue escribiendo en VS Code, exactamente como ya vienen trabajando.</p>
+
+    <p>Se abre puntualmente para:</p>
+    <ul class="plain">
+      <li><b>Correr la app en el emulador</b> (AVD Manager) sin necesitar un celular a mano — útil para probar rápido entre los cuatro.</li>
+      <li><b>Ver Logcat</b>: el log nativo en tiempo real. Cuando un plugin de Capacitor falla (cámara que no abre, permiso no concedido), el error casi nunca aparece en la consola del navegador — aparece acá.</li>
+      <li><b>Declarar permisos nativos</b> en <code class="inline">AndroidManifest.xml</code> (cámara, ubicación, vibración, notificaciones). Muchos plugins los agregan solos al instalarlos, pero conviene saber dónde mirar cuando algo se niega en tiempo de ejecución.</li>
+      <li><b>Generar el APK/AAB firmado</b>, necesario para instalar exactamente la misma versión en los cuatro celulares del grupo antes de cada entrega.</li>
+      <li><b>Ajustar recursos gráficos</b> por densidad de pantalla: el ícono adaptativo y los splash screens estático/animado que pide la consigna se configuran acá si el generador automático de Capacitor no alcanza.</li>
+    </ul>
+
+    <div class="callout">
+      <div class="eyebrow">No hace falta saber Java/Kotlin</div>
+      <p>Casi todo lo que necesita este TFI (cámara, QR, geolocalización, notificaciones push, vibración, acelerómetro) ya existe como plugin oficial de Capacitor. Android Studio se usa como consola de control nativo — no como editor principal de código.</p>
+    </div>
+
+    <h3 style="margin:2rem 0 1rem;">VS Code vs. Android Studio: quién hace qué</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Tarea</th><th>VS Code</th><th>Android Studio</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Escribir componentes, servicios, templates</td><td class="yes">Sí — es el editor principal</td><td class="no">No se usa para esto</td></tr>
+          <tr><td>Emulador de Android (AVD)</td><td class="no">No tiene</td><td class="yes">Sí, integrado</td></tr>
+          <tr><td>Logcat (logs nativos, crashes)</td><td class="no">No tiene acceso</td><td class="yes">Sí, en tiempo real</td></tr>
+          <tr><td>Compilar con Gradle / generar APK</td><td class="no">No puede</td><td class="yes">Sí, es su función central</td></tr>
+          <tr><td>Editar permisos (AndroidManifest.xml)</td><td class="no">Se puede editar el archivo, sin validación</td><td class="yes">Con autocompletado y validación</td></tr>
+          <tr><td>Firmar app para distribución/Play Store</td><td class="no">No</td><td class="yes">Sí (Generate Signed Bundle/APK)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block" id="chuleta">
+    <div class="block-head"><span class="idx">05</span><h2>Chuleta de comandos</h2></div>
+    <div class="cheat">
+      <div class="eyebrow">Referencia rápida</div>
+      <h3>Los comandos que van a repetir todo el cuatrimestre</h3>
+
+      <div class="cheat-group">
+        <h4>Crear el proyecto (una sola vez)</h4>
+        <pre><code>ionic start restaurant-app tabs --type=angular
+cd restaurant-app
+ionic build
+npx cap add android</code></pre>
+      </div>
+
+      <div class="cheat-group">
+        <h4>Desarrollo rápido en el navegador (sin plugins nativos)</h4>
+        <pre><code>ionic serve</code></pre>
+      </div>
+
+      <div class="cheat-group">
+        <h4>Probar en el celular/emulador con recarga en vivo</h4>
+        <pre><code>ionic cap run android -l --external</code></pre>
+      </div>
+
+      <div class="cheat-group">
+        <h4>Después de instalar un plugin nuevo o tocar config nativa</h4>
+        <pre><code>ionic build
+npx cap sync android
+npx cap open android</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="ejemplo">
+    <div class="block-head"><span class="idx">06</span><h2>Un mismo componente, dos mundos</h2></div>
+    <p class="lede">Lo que las secciones anteriores explican en teoría, acá en código: la misma tarjeta de plato del menú, primero en Angular puro (como la escribirían para cualquier web) y después adaptada con Ionic más un toque de Capacitor.</p>
+
+    <h3 style="margin-bottom:0.75rem;">Versión A — Angular puro</h3>
+    <p>Esto corre en cualquier navegador. No sabe que puede terminar dentro de un celular.</p>
+    <div class="compare-col">
+      <p class="filecap">plato-card.component.ts</p>
+      <pre><code><span class="c">import</span> { Component, Input } <span class="c">from</span> '@angular/core';
+<span class="c">import</span> { CommonModule } <span class="c">from</span> '@angular/common';
+
+@Component({
+  selector: 'app-plato-card',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './plato-card.component.html',
+  styleUrls: ['./plato-card.component.scss']
+})
+<span class="c">export class</span> PlatoCardComponent {
+  @Input() nombre = '';
+  @Input() descripcion = '';
+  @Input() precio = 0;
+  @Input() imagenUrl = '';
+
+  cantidad = 0;
+
+  agregar() {
+    this.cantidad++;
+  }
+}</code></pre>
+
+      <p class="filecap">plato-card.component.html</p>
+      <pre><code>&lt;div class="card"&gt;
+  &lt;img [src]="imagenUrl" [alt]="nombre" class="card-img" /&gt;
+  &lt;div class="card-body"&gt;
+    &lt;h3&gt;{{ nombre }}&lt;/h3&gt;
+    &lt;p&gt;{{ descripcion }}&lt;/p&gt;
+    &lt;div class="card-footer"&gt;
+      &lt;span class="precio"&gt;${{ precio }}&lt;/span&gt;
+      &lt;button (click)="agregar()"&gt;Agregar ({{ cantidad }})&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+
+      <p class="filecap">plato-card.component.scss</p>
+      <pre><code>.card { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+.card-img { width: 100%; height: 160px; object-fit: cover; }
+.card-body { padding: 12px; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; }
+button { background: #2e63c9; color: white; border: none; padding: 8px 12px; border-radius: 6px; }</code></pre>
+    </div>
+
+    <h3 style="margin:2.25rem 0 0.75rem;">Versión B — con Ionic, pensada para Android</h3>
+    <p>Mismo componente, misma lógica. Cambia el vocabulario del template (etiquetas <code class="inline">ion-*</code> en vez de HTML plano) y aparece una sola línea que ya no es ni Angular ni Ionic: es Capacitor hablando directo con el motor de vibración del teléfono.</p>
+    <div class="compare-col">
+      <p class="filecap">plato-card.component.ts</p>
+      <pre><code><span class="c">import</span> { Component, Input } <span class="c">from</span> '@angular/core';
+<span class="c">import</span> { CommonModule } <span class="c">from</span> '@angular/common';
+<span class="c">import</span> {
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent,
+  IonImg, IonButton, IonBadge, IonIcon
+} <span class="c">from</span> '@ionic/angular/standalone';
+<span class="c">import</span> { addIcons } <span class="c">from</span> 'ionicons';
+<span class="c">import</span> { addOutline } <span class="c">from</span> 'ionicons/icons';
+<span class="c">import</span> { Haptics, ImpactStyle } <span class="c">from</span> '@capacitor/haptics';
+
+@Component({
+  selector: 'app-plato-card',
+  standalone: true,
+  imports: [CommonModule, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonImg, IonButton, IonBadge, IonIcon],
+  templateUrl: './plato-card.component.html',
+  styleUrls: ['./plato-card.component.scss']
+})
+<span class="c">export class</span> PlatoCardComponent {
+  @Input() nombre = '';
+  @Input() descripcion = '';
+  @Input() precio = 0;
+  @Input() imagenUrl = '';
+
+  cantidad = 0;
+
+  constructor() {
+    addIcons({ addOutline });
+  }
+
+  <span class="c">async</span> agregar() {
+    this.cantidad++;
+    <span class="c">await</span> Haptics.impact({ style: ImpactStyle.Light }); <span class="c">// vibración corta al tocar</span>
+  }
+}</code></pre>
+
+      <p class="filecap">plato-card.component.html</p>
+      <pre><code>&lt;ion-card&gt;
+  &lt;ion-img [src]="imagenUrl" [alt]="nombre"&gt;&lt;/ion-img&gt;
+  &lt;ion-card-header&gt;
+    &lt;ion-card-title&gt;{{ nombre }}&lt;/ion-card-title&gt;
+  &lt;/ion-card-header&gt;
+  &lt;ion-card-content&gt;
+    &lt;p&gt;{{ descripcion }}&lt;/p&gt;
+    &lt;div class="footer"&gt;
+      &lt;ion-badge color="tertiary"&gt;${{ precio }}&lt;/ion-badge&gt;
+      &lt;ion-button (click)="agregar()"&gt;
+        &lt;ion-icon slot="start" name="add-outline"&gt;&lt;/ion-icon&gt;
+        Agregar ({{ cantidad }})
+      &lt;/ion-button&gt;
+    &lt;/div&gt;
+  &lt;/ion-card-content&gt;
+&lt;/ion-card&gt;</code></pre>
+
+      <p class="filecap">plato-card.component.scss</p>
+      <pre><code>.footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }</code></pre>
+    </div>
+
+    <h3 style="margin:2.25rem 0 1rem;">Qué cambió, en concreto</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Parte del código</th><th>Angular puro</th><th>Con Ionic</th></tr></thead>
+        <tbody>
+          <tr><td>Lógica (TypeScript)</td><td colspan="2">Prácticamente idéntica: sigue siendo un componente standalone con <code class="inline">@Input</code> y un método de click. Ionic no le agrega complejidad a la lógica.</td></tr>
+          <tr><td>Etiquetas del template</td><td><code class="inline">&lt;div&gt;</code>, <code class="inline">&lt;button&gt;</code> genéricos</td><td><code class="inline">&lt;ion-card&gt;</code>, <code class="inline">&lt;ion-button&gt;</code>: ya traen efecto ripple y feedback táctil, y se adaptan solas al estilo de Android</td></tr>
+          <tr><td>Colores/estilos</td><td>Hex hardcodeado (<code class="inline">#2e63c9</code>) repetido por componente</td><td><code class="inline">color="tertiary"</code> lee la paleta global de <code class="inline">variables.scss</code>: cambiás un color una vez y se actualiza en toda la app</td></tr>
+          <tr><td>Acceso al hardware</td><td class="no">No existe — un navegador no vibra</td><td class="yes">Una línea de Capacitor (<code class="inline">Haptics.impact()</code>) que ni Angular ni Ionic saben hacer por su cuenta</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <div class="eyebrow">La idea para quedarse</div>
+      <p>El componente sigue siendo Angular de punta a punta. Ionic solo le cambia el vocabulario visual al template. Capacitor es la única línea que de verdad toca el teléfono. Ese patrón — <b>lógica en Angular, presentación en Ionic, hardware en Capacitor</b> — se repite en las 31 funcionalidades del TFI.</p>
+    </div>
+  </section>
+
+  <footer class="page-foot">
+    Guía de referencia para el equipo — Trabajo Final Integrador, app de gestión de restaurant. Actualizala en <code class="inline">doc/</code> a medida que aparezcan casos nuevos.
+  </footer>
+</div>
