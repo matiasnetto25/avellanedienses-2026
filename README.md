@@ -41,7 +41,8 @@ Por cada punto funcional de la consigna o tarea específica, se creará una rama
 
 ### 🎨 Identidad Visual y Splash Screens
 * **Ícono de la aplicación:**
-  *[Pendiente captura]*
+  ![Ícono de la app](restaurant-app/src/assets/icon/icon.png)
+  *(Imagen del ícono fuente. Falta reemplazar por una captura real del launcher en dispositivo/emulador — ver tarea 13 de [`planning/2-icono-de-app.md`](planning/2-icono-de-app.md)).*
 * **Splash Screen Estática:**
   *[Pendiente captura]*
 * **Splash Screen Animada:**
