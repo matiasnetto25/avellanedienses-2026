@@ -19,6 +19,21 @@
 
   --brand-font-logo: 'Cinzel', serif;
   --brand-font-subtitle: 'Tenor Sans', sans-serif;
+
+  /*
+   * Ionic calcula los estados "presionado"/"foco"/ripple de cualquier
+   * ion-button (y otros controles) a partir de --ion-color-primary, incluso
+   * si el botón no tiene el atributo [color] y aunque se le pise
+   * --background/--color a mano. Sin esto, esos estados siguen mostrando el
+   * azul default de Ionic. Se redefine acá, una sola vez, para que todo
+   * control de la app use el acento de marca por default.
+   */
+  --ion-color-primary: var(--brand-accent);
+  --ion-color-primary-rgb: 197, 34, 51;
+  --ion-color-primary-contrast: var(--brand-floral-white);
+  --ion-color-primary-contrast-rgb: 255, 249, 236;
+  --ion-color-primary-shade: var(--brand-ruby-red);
+  --ion-color-primary-tint: #CB3847;
 }
 
 @font-face {

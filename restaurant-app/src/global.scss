@@ -35,3 +35,22 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+
+/*
+ * Fondo de marca para todo ion-content de la app (requisito transversal: sin
+ * fondo blanco/negro puro). Definido acá para no repetirlo página por página.
+ */
+ion-content {
+  --background: var(--brand-background);
+}
+
+/*
+ * Mismo motivo: los overlays de Ionic (action sheet, etc.) traen fondo claro
+ * por default. Se sobreescribe acá para que cualquier overlay futuro respete
+ * la paleta sin tener que acordarse de hacerlo página por página.
+ */
+ion-action-sheet {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+  --button-color: var(--brand-text);
+}
