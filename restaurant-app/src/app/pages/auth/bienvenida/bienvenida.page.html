@@ -1,0 +1,15 @@
+<ion-content [fullscreen]="true" [scrollY]="false" class="bienvenida-content">
+  <div class="bienvenida-container">
+    <div class="bienvenida-centro">
+      <app-marca-header />
+
+      <div class="bienvenida-acciones">
+        <ion-button expand="block" class="bienvenida-boton-principal" routerLink="/login">Iniciar sesión</ion-button>
+        <ion-button expand="block" fill="outline" class="bienvenida-boton-secundario" (click)="registrarse()">Registrarse</ion-button>
+        <ion-button expand="block" fill="clear" class="bienvenida-boton-terciario" routerLink="/principal" [replaceUrl]="true">Continuar sin registro</ion-button>
+      </div>
+    </div>
+
+    <footer class="bienvenida-footer">{{ nombreGrupo }}</footer>
+  </div>
+</ion-content>

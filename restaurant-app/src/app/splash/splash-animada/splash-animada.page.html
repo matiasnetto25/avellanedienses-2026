@@ -9,7 +9,9 @@
       <div class="splash-grupo-integrantes">
         <h2 class="splash-nombre-grupo">{{ nombreGrupo }}</h2>
         <ul class="splash-integrantes">
-          <li *ngFor="let integrante of integrantes">{{ integrante }}</li>
+          @for (integrante of integrantes; track integrante) {
+            <li>{{ integrante }}</li>
+          }
         </ul>
       </div>
     </div>

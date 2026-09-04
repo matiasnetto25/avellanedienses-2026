@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonContent } from '@ionic/angular';
 import { timer } from 'rxjs';
@@ -11,14 +10,14 @@ const DURACION_MS = 3000;
 @Component({
   selector: 'app-splash-estatica',
   standalone: true,
-  imports: [CommonModule, IonContent],
+  imports: [IonContent],
   templateUrl: './splash-estatica.page.html',
   styleUrls: ['./splash-estatica.page.scss'],
 })
 export class SplashEstaticaPage implements OnInit {
-  readonly nombreApp = NOMBRE_APP;
+  private readonly router = inject(Router);
 
-  constructor(private readonly router: Router) {}
+  readonly nombreApp = NOMBRE_APP;
 
   ngOnInit(): void {
     timer(DURACION_MS).subscribe(() => {
