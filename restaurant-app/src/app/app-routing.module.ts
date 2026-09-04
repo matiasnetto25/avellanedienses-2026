@@ -25,11 +25,11 @@ const routes: Routes = [
   },
   {
     path: 'principal',
-    loadComponent: () => import('./principal/principal.page').then(m => m.PrincipalPage)
+    loadComponent: () => import('./pages/principal/principal.page').then(m => m.PrincipalPage)
   },
   {
-    path: '',
-    loadChildren: () => import('./tabs/tabs.module').then(m => m.TabsPageModule)
+    path: '**',
+    redirectTo: 'bienvenida'
   }
 ];
 @NgModule({

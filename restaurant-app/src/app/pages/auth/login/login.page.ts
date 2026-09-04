@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ActionSheetButton, IonActionSheet, IonButton, IonContent, IonInput, IonItem, IonLabel } from '@ionic/angular';
-import { MarcaHeaderComponent } from '../../../shared/marca-header/marca-header.component';
+import { MarcaHeaderComponent } from '../../../shared/components/marca-header/marca-header.component';
 import { USUARIOS_DEMO, UsuarioDemo } from '../../../core/usuarios-demo';
 
 @Component({

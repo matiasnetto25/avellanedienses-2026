@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NOMBRE_APP } from '../../core/identidad-app';
+import { NOMBRE_APP } from '../../../core/identidad-app';
 
 @Component({
   selector: 'app-marca-header',

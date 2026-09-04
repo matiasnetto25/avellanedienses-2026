@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonButton, IonContent, IonRouterLink, ToastController } from '@ionic/angular';
-import { MarcaHeaderComponent } from '../../../shared/marca-header/marca-header.component';
+import { MarcaHeaderComponent } from '../../../shared/components/marca-header/marca-header.component';
 import { NOMBRE_GRUPO } from '../../../core/identidad-app';
 
 @Component({
