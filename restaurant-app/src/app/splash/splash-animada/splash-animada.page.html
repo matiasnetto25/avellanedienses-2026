@@ -1,0 +1,18 @@
+<ion-content [fullscreen]="true" [scrollY]="false" class="splash-content">
+  <div class="splash-container">
+    <div class="splash-icon-wrap">
+      <img class="splash-icon" src="assets/icon/icon.png" alt="Ícono de {{ nombreApp }}" />
+    </div>
+    <div class="splash-rest">
+      <h1 class="splash-nombre-app">{{ nombreApp }}</h1>
+      <hr class="splash-divisor" />
+      <div class="splash-grupo-integrantes">
+        <h2 class="splash-nombre-grupo">{{ nombreGrupo }}</h2>
+        <ul class="splash-integrantes">
+          <li *ngFor="let integrante of integrantes">{{ integrante }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <audio #audioApertura src="assets/sounds/apertura.mp3" preload="auto"></audio>
+</ion-content>
