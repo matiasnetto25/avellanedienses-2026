@@ -37,12 +37,22 @@
   gap: 12px;
 }
 
+.login-campo {
+  display: flex;
+  flex-direction: column;
+}
+
 .login-item {
   --background: transparent;
   --border-color: var(--brand-text);
   --color: var(--brand-text);
   --highlight-color-focused: var(--brand-accent);
   font-family: var(--brand-font-subtitle);
+}
+
+.login-error {
+  font-size: 0.8rem;
+  padding: 4px 12px 0;
 }
 
 .login-submit {
