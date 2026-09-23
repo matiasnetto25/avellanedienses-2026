@@ -5,6 +5,7 @@ import { cocineroGuard } from './core/guards/cocinero.guard';
 import { cantineroGuard } from './core/guards/cantinero.guard';
 import { metreGuard } from './core/guards/metre.guard';
 import { clienteAprobadoGuard } from './core/guards/cliente-aprobado.guard';
+import { mozoGuard } from './core/guards/mozo.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
 
 const routes: Routes = [
@@ -124,10 +125,15 @@ const routes: Routes = [
     loadComponent: () => import('./pages/cliente-anonimo/escaneo-qr/escaneo-qr.page').then(m => m.EscaneoQrPage)
   },
 
-{
-  path: 'cliente-anonimo/escaneo-mesa',
-  loadComponent: () => import('./pages/cliente-anonimo/escaneo-mesa/escaneo-mesa.page').then(m => m.EscaneoMesaPage)
-},
+  {
+    path: 'cliente-anonimo/escaneo-mesa',
+    loadComponent: () => import('./pages/cliente-anonimo/escaneo-mesa/escaneo-mesa.page').then(m => m.EscaneoMesaPage)
+  },
+  {
+    path: 'mozo',
+    canActivate: [mozoGuard],
+    loadComponent: () => import('./pages/mozo/mozo.page').then(m => m.MozoPage)
+  },
   {
     path: 'cliente-anonimo/ver-mesas',
     loadComponent: () => import('./pages/cliente-anonimo/ver-mesas/ver-mesas.page').then(m => m.VerMesasPage)

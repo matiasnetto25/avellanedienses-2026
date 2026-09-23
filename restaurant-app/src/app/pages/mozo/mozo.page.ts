@@ -7,16 +7,16 @@ import { Auth } from '../../core/services/auth';
 import { NotificacionesService } from '../../core/services/notificaciones.service';
 
 @Component({
-  selector: 'app-metre',
+  selector: 'app-mozo',
   standalone: true,
   imports: [IonContent, IonButton, MarcaHeaderComponent],
-  templateUrl: './metre.page.html',
-  styleUrls: ['./metre.page.scss'],
+  templateUrl: './mozo.page.html',
+  styleUrls: ['./mozo.page.scss'],
 })
-export class MetrePage {
+export class MozoPage {
   private readonly auth = inject(Auth);
-  private readonly router = inject(Router);
   private readonly notificaciones = inject(NotificacionesService);
+  private readonly router = inject(Router);
   private readonly toastController = inject(ToastController);
 
   readonly sesion = this.auth.sesion;
@@ -30,30 +30,18 @@ export class MetrePage {
     return this.sesion()?.foto ?? null;
   }
 
-  registrarCliente(): void {
-    this.router.navigate(['/registrar-cliente']);
-  }
-
-  async asignarMesa(): Promise<void> {
-    await this.proximamente();
-  }
-
-  listaDeEspera(): void {
-    this.router.navigate(['/metre/lista-espera']);
+  async proximamente(): Promise<void> {
+    const toast = await this.toastController.create({
+      message: 'Próximo deploy.',
+      duration: 1800,
+      position: 'bottom',
+    });
+    await toast.present();
   }
 
   async cerrarSesion(): Promise<void> {
     await this.notificaciones.eliminarTokenAlCerrarSesion();
     await this.auth.logout();
     this.router.navigate(['/bienvenida'], { replaceUrl: true });
-  }
-
-  private async proximamente(): Promise<void> {
-    const toast = await this.toastController.create({
-      message: 'Esta sección se habilita en la próxima entrega.',
-      duration: 1800,
-      position: 'bottom',
-    });
-    await toast.present();
   }
 }

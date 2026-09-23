@@ -2,8 +2,8 @@ import { Puesto } from './empleado.model';
 
 /**
  * Centraliza "a dónde va cada puesto al loguearse". Si mañana se agrega
- * un panel para mozo/metre, se cambia UNA sola vez acá — no hay que salir
- * a buscar el if/else repetido en login.page.ts, guards, etc.
+ * un panel nuevo, se cambia UNA sola vez acá — no hay que salir a
+ * buscar el if/else repetido en login.page.ts, guards, etc.
  */
 export function rutaHomeSegunPuesto(puesto: Puesto): string {
   switch (puesto) {
@@ -17,8 +17,8 @@ export function rutaHomeSegunPuesto(puesto: Puesto): string {
     case 'metre':
       return '/metre';
     case 'mozo':
+      return '/mozo';
     default:
-      // Todavía no tiene panel propio construido.
       return '/principal';
   }
 }

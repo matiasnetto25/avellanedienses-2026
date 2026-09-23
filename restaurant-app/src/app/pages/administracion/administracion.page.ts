@@ -56,6 +56,6 @@ export class AdministracionPage {
     await this.notificaciones.eliminarTokenAlCerrarSesion();
     await this.auth.logout();
     // replaceUrl: true → el botón "atrás" del navegador no puede volver a /administracion
-    this.router.navigate(['/login'], { replaceUrl: true });
+    this.router.navigate(['/bienvenida'], { replaceUrl: true });
   }
 }

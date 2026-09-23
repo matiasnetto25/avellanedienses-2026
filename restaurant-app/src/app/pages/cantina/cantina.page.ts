@@ -46,6 +46,6 @@ export class CantinaPage {
   async cerrarSesion(): Promise<void> {
     await this.notificaciones.eliminarTokenAlCerrarSesion();
     await this.auth.logout();
-    this.router.navigate(['/login'], { replaceUrl: true });
+    this.router.navigate(['/bienvenida'], { replaceUrl: true });
   }
 }

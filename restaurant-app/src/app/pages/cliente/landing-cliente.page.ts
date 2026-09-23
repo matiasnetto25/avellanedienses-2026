@@ -44,7 +44,7 @@ export class LandingClientePage implements OnInit {
 
   async cerrarSesion(): Promise<void> {
     await this.auth.logout();
-    this.router.navigate(['/login'], { replaceUrl: true });
+    this.router.navigate(['/bienvenida'], { replaceUrl: true });
   }
 
   private async proximamente(): Promise<void> {
