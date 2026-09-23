@@ -28,5 +28,13 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  }
+  },
+  // Saca las Edge Functions del proyecto de TypeScript de Angular/Node.
+  // Corren en Deno (imports por URL como https://esm.sh/...), que Node no
+  // sabe resolver; por eso VS Code marcaba "Cannot find module" ahí.
+  // Ese archivo lo maneja únicamente la extensión Deno (ver .vscode/settings.json).
+  "exclude": [
+    "node_modules",
+    "supabase/functions/**"
+  ]
 }

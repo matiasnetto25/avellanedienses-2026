@@ -1,0 +1,61 @@
+ion-content::part(scroll) {
+  scroll-snap-type: y mandatory;
+
+  /* La siguiente card queda alineada dejando los 16px
+     de margen visual superior */
+  scroll-padding-top: 16px;
+
+  /* Evita que el navegador deje posiciones intermedias */
+  scroll-padding-bottom: 16px;
+}
+
+.menu-lista {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 16px;
+
+  /*
+   * Separación visual entre cards.
+   */
+  gap: 16px;
+}
+
+.pagina-menu {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+
+  /*
+   * Cada página tiene exactamente el alto disponible.
+   */
+  height: calc(var(--altura-disponible) - 32px);
+  min-height: calc(var(--altura-disponible) - 32px);
+
+  flex: 0 0 calc(var(--altura-disponible) - 32px);
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+
+  /*
+   * CLAVE:
+   * cada producto es un punto de parada del scroll.
+   */
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.pagina-menu app-producto-card {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  min-height: 0;
+}

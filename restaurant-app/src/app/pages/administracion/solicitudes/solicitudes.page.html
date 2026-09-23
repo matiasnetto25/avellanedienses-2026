@@ -1,0 +1,59 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/administracion" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Solicitudes de clientes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="solicitudes-content">
+  @if (!cargandoLista() && clientes().length === 0) {
+    <div class="solicitudes-vacio">
+      <p>Actualmente no se encuentran solicitudes</p>
+    </div>
+  } @else {
+    <div class="solicitudes-lista">
+      @for (pagina of paginas(); track $index) {
+        <div class="pagina-solicitudes">
+          @for (cliente of pagina; track cliente.id) {
+            <ion-card class="cliente-card">
+              <div class="cliente-imagen-viewport">
+                @if (urlFoto(cliente); as url) {
+                  <img [src]="url" [alt]="'Foto de ' + cliente.nombre" class="cliente-imagen" loading="lazy" />
+                } @else {
+                  <span class="cliente-imagen-placeholder">Sin foto</span>
+                }
+              </div>
+
+              <ion-card-content class="cliente-info">
+                <h3 class="cliente-nombre">{{ cliente.nombre }} {{ cliente.apellido }}</h3>
+
+                <div class="cliente-acciones">
+                  <ion-button
+                    fill="solid"
+                    color="success"
+                    size="small"
+                    [disabled]="procesandoId() === cliente.id"
+                    (click)="aceptar(cliente)"
+                  >
+                    Aceptar
+                  </ion-button>
+                  <ion-button
+                    fill="outline"
+                    color="danger"
+                    size="small"
+                    [disabled]="procesandoId() === cliente.id"
+                    (click)="rechazar(cliente)"
+                  >
+                    Rechazar
+                  </ion-button>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          }
+        </div>
+      }
+    </div>
+  }
+</ion-content>

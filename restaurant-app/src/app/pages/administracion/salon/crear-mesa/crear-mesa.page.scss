@@ -1,0 +1,113 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+ion-toolbar {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+}
+
+.crear-mesa-content {
+  --background: var(--brand-background);
+}
+
+.crear-mesa-form {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  padding-bottom: 40px;
+  box-sizing: border-box;
+}
+
+.crear-mesa-campo {
+  margin-bottom: 14px;
+}
+
+.crear-mesa-item {
+  --background: transparent;
+  --border-color: color-mix(in srgb, var(--brand-text) 25%, transparent);
+}
+
+.crear-mesa-error {
+  display: block;
+  font-size: 0.78rem;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+.crear-mesa-campo-foto {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.crear-mesa-foto-preview {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-width: 320px;
+  margin: 8px auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--brand-text) 8%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+}
+
+.crear-mesa-submit {
+  --background: var(--brand-accent);
+  --color: var(--brand-background);
+  margin-top: 20px;
+}
+
+.crear-mesa-exito {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.crear-mesa-exito-titulo {
+  font-family: var(--brand-font-logo);
+  color: var(--brand-text);
+  margin: 0;
+}
+
+.crear-mesa-exito-nota {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  opacity: 0.8;
+  font-size: 0.9rem;
+  max-width: 320px;
+  margin: 0 0 8px;
+}
+
+.crear-mesa-qr-contenedor {
+  width: 240px;
+  height: 240px;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--brand-text) 15%, transparent);
+  margin-bottom: 12px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}

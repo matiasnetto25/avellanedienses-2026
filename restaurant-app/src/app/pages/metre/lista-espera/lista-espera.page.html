@@ -1,0 +1,68 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/metre" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Lista de espera</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="espera-content">
+  @if (!cargandoLista() && filas().length === 0) {
+    <div class="espera-vacio">
+      <p>No hay clientes en la lista de espera.</p>
+    </div>
+  } @else {
+    <div class="espera-lista">
+      @for (pagina of paginas(); track $index) {
+        <div class="pagina-espera">
+          @for (fila of pagina; track fila.id) {
+            <ion-card class="cliente-card">
+              <div class="cliente-imagen-viewport">
+                @if (urlFoto(fila.foto); as url) {
+                  <img [src]="url" [alt]="'Foto de ' + fila.nombre" class="cliente-imagen" loading="lazy" />
+                } @else {
+                  <span class="cliente-imagen-placeholder">Sin foto</span>
+                }
+              </div>
+
+              <ion-card-content class="cliente-info">
+                <h3 class="cliente-nombre">{{ fila.nombre }}{{ fila.apellido ? ' ' + fila.apellido : '' }}</h3>
+                <p class="cliente-mesa">
+                  Mesa {{ fila.numero_mesa }} — {{ etiquetaTipo(fila.tipo) }} — {{ fila.cant_comensales }} comensales
+                </p>
+                <p
+                  class="cliente-mesa-estado"
+                  [class.cliente-mesa-estado--ocupada]="fila.disponibilidad === 'Ocupada'"
+                >
+                  Mesa {{ fila.disponibilidad === 'Ocupada' ? 'ocupada en este momento' : 'libre' }}
+                </p>
+
+                <div class="cliente-acciones">
+                  <ion-button
+                    fill="solid"
+                    color="success"
+                    size="small"
+                    [disabled]="procesandoId() === fila.id || fila.disponibilidad === 'Ocupada'"
+                    (click)="aceptar(fila)"
+                  >
+                    Aceptar
+                  </ion-button>
+                  <ion-button
+                    fill="outline"
+                    color="danger"
+                    size="small"
+                    [disabled]="procesandoId() === fila.id"
+                    (click)="rechazar(fila)"
+                  >
+                    Rechazar
+                  </ion-button>
+                </div>
+              </ion-card-content>
+            </ion-card>
+          }
+        </div>
+      }
+    </div>
+  }
+</ion-content>

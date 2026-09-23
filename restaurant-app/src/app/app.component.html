@@ -1,3 +1,7 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
+
+  <div class="loading-overlay" *ngIf="loading.visible()">
+    <img src="assets/branding/loading.gif" alt="Cargando…" class="loading-overlay-logo" />
+  </div>
 </ion-app>

@@ -1,0 +1,44 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="volver()" aria-label="Volver">
+        <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Nuestro Menú</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment
+      [value]="categoriaSeleccionada"
+      (ionChange)="onCambioCategoria($event)"
+    >
+      <ion-segment-button value="comida">
+        <ion-icon name="restaurant-outline"></ion-icon>
+        <ion-label>Comida</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="bebida">
+        <ion-icon name="wine-outline"></ion-icon>
+        <ion-label>Bebidas</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="postre">
+        <ion-icon name="ice-cream-outline"></ion-icon>
+        <ion-label>Postres</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="menu-content">
+  <div class="menu-lista">
+    <div class="pagina-menu" *ngFor="let pagina of paginas">
+      <app-producto-card
+        *ngFor="let producto of pagina"
+        [producto]="producto"
+      ></app-producto-card>
+    </div>
+  </div>
+
+  <p class="menu-vacio" *ngIf="productosFiltrados.length === 0">
+    No hay productos disponibles en esta categoría por el momento.
+  </p>
+</ion-content>

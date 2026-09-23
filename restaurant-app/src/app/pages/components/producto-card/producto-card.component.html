@@ -1,0 +1,64 @@
+<ion-card class="producto-card">
+  <!-- Contenedor del carrusel: una imagen a la vez, centrada, sin recortes -->
+  <div class="producto-imagen-viewport">
+    <div
+      class="producto-imagen-track"
+      [style.transform]="'translateX(-' + (indiceActual * 100) + '%)'"
+    >
+      <div
+        class="producto-imagen-contenedor"
+        *ngFor="let img of producto.imagenes; let i = index"
+      >
+        <img
+          *ngIf="esUrl(img)"
+          [src]="img"
+          [alt]="producto.nombre + ' - imagen ' + (i + 1)"
+          class="producto-imagen"
+        />
+        <span *ngIf="!esUrl(img)" class="producto-imagen-emoji">{{ img }}</span>
+      </div>
+    </div>
+
+    <!-- Flechas para ver otra imagen -->
+    <button
+      class="producto-imagen-flecha producto-imagen-flecha--izq"
+      (click)="imagenAnterior($event)"
+      aria-label="Imagen anterior"
+      type="button"
+    >
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+    <button
+      class="producto-imagen-flecha producto-imagen-flecha--der"
+      (click)="imagenSiguiente($event)"
+      aria-label="Imagen siguiente"
+      type="button"
+    >
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+    </button>
+
+    <!-- Indicadores (dots) -->
+    <div class="producto-imagen-dots">
+      <span
+        *ngFor="let img of producto.imagenes; let i = index"
+        class="producto-imagen-dot"
+        [class.producto-imagen-dot--activo]="i === indiceActual"
+        (click)="irAImagen(i, $event)"
+      ></span>
+    </div>
+  </div>
+
+  <ion-card-content class="producto-info">
+    <div class="producto-info-header">
+      <h3 class="producto-nombre">{{ producto.nombre }}</h3>
+      <span class="producto-precio">${{ producto.precio | number: '1.0-0' }}</span>
+    </div>
+
+    <p class="producto-descripcion">{{ producto.descripcion }}</p>
+
+    <ion-badge class="producto-tiempo">
+      <ion-icon name="time-outline"></ion-icon>
+      {{ producto.tiempoElaboracion }}
+    </ion-badge>
+  </ion-card-content>
+</ion-card>

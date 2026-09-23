@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonContent } from '@ionic/angular';
+import { IonContent } from '@ionic/angular/standalone';
 import { timer } from 'rxjs';
 import { NOMBRE_APP } from '../../core/identidad-app';
 

@@ -1,6 +1,6 @@
 import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonContent } from '@ionic/angular';
+import { IonContent } from '@ionic/angular/standalone';
 import { timer } from 'rxjs';
 import { INTEGRANTES, NOMBRE_APP, NOMBRE_GRUPO } from '../../core/identidad-app';
 

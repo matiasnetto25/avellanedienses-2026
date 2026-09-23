@@ -7,5 +7,11 @@
   "typescript.preferences.autoImportFileExcludePatterns": [
     "@ionic/angular/types/ionic-angular.d.ts",
     "@ionic/angular/types/ionic-angular-common.d.ts"
-  ]
+  ],
+
+  // Activa el lenguaje/tipado de Deno SOLO para las Edge Functions de Supabase.
+  // El resto del proyecto (Angular/Ionic) sigue usando el TypeScript de Node,
+  // así que esto no rompe nada fuera de supabase/functions.
+  "deno.enable": false,
+  "deno.enablePaths": ["supabase/functions"]
 }

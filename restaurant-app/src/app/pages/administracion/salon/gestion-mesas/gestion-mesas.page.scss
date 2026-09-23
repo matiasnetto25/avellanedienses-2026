@@ -1,0 +1,234 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+ion-toolbar {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+}
+
+.gestion-mesas-content {
+  --background: var(--brand-background);
+}
+
+.gestion-mesas-content::part(scroll) {
+  scroll-snap-type: y mandatory;
+}
+
+ion-button {
+  --border-radius: 12px;
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 500;
+}
+
+.gestion-mesas-lista {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  padding-bottom: calc(64px + max(32px, env(safe-area-inset-bottom, 0px)));
+  box-sizing: border-box;
+}
+
+.pagina-mesas {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  /* Alto EXACTO medido con JS (no un mínimo): esto es lo que garantiza
+     que nunca se vea nada de la próxima página — cualquier sobrante se
+     recorta con overflow, en vez de "asomar". */
+  height: var(--altura-disponible, auto);
+  overflow: hidden;
+  padding-bottom: 16px;
+}
+
+.gestion-mesas-vacio {
+  text-align: center;
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  opacity: 0.7;
+  padding: 32px 16px;
+}
+
+.mesa-card {
+  margin: 0;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--brand-text) 15%, transparent);
+  background: var(--brand-background);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mesa-imagen-viewport {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 40px;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+  background: color-mix(in srgb, var(--brand-text) 6%, transparent);
+  cursor: pointer;
+}
+
+.mesa-imagen-qr {
+  background: white;
+  object-fit: contain !important;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.mesa-imagen-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.mesa-imagen-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.mesa-imagen-dot--activo {
+  background: var(--brand-accent);
+  transform: scale(1.3);
+}
+
+.mesa-imagen-etiqueta {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  font-family: var(--brand-font-subtitle);
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.mesa-imagen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.mesa-imagen-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  opacity: 0.5;
+  font-size: 0.85rem;
+}
+
+.mesa-info {
+  padding: 14px 16px 16px;
+  flex-shrink: 0;
+}
+
+.mesa-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mesa-nombre {
+  font-family: var(--brand-font-logo);
+  color: var(--brand-text);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.mesa-tipo-badge {
+  --background: color-mix(in srgb, var(--brand-accent) 15%, transparent);
+  --color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+  font-size: 0.72rem;
+  text-transform: capitalize;
+}
+
+.mesa-comensales {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  opacity: 0.85;
+  font-size: 0.88rem;
+  margin: 6px 0 12px;
+}
+
+.mesa-disponibilidad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+
+.mesa-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.mesa-form-edicion {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mesa-campo-edicion {
+  margin-bottom: 10px;
+}
+
+.mesa-item-edicion {
+  --background: transparent;
+  --border-color: color-mix(in srgb, var(--brand-text) 25%, transparent);
+}
+
+.mesa-error-edicion {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.mesa-foto-nueva-preview {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-width: 240px;
+  margin: 8px auto;
+  border-radius: 12px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.mesa-acciones-edicion {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}

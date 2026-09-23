@@ -1,0 +1,16 @@
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--brand-background) 85%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.loading-overlay-logo {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}

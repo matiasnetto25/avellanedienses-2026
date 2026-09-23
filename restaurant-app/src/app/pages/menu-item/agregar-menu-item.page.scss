@@ -1,0 +1,154 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+ion-toolbar {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+}
+
+ion-title {
+  font-family: var(--brand-font-logo);
+  color: var(--brand-text);
+  letter-spacing: 0.04em;
+}
+
+.menu-item-content {
+  --background: var(--brand-background);
+  /* El bug de "no llego al botón de crear" era por esto: sin scroll
+     explícito habilitado, en algunos layouts anidados ion-content no
+     scrollea el contenido que excede la pantalla. */
+  --overflow: auto;
+}
+
+.menu-item-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  /* Espacio extra al final + safe-area, para que el botón de crear
+     nunca quede pegado (o tapado) al borde inferior del dispositivo. */
+  padding-bottom: calc(48px + max(24px, env(safe-area-inset-bottom, 0px)));
+  box-sizing: border-box;
+}
+
+.menu-item-campo {
+  margin-bottom: 14px;
+}
+
+.menu-item-item {
+  --background: transparent;
+  --border-color: color-mix(in srgb, var(--brand-text) 25%, transparent);
+}
+
+ion-label {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+}
+
+ion-input,
+ion-textarea,
+ion-select {
+  font-family: var(--brand-font-subtitle);
+  --color: var(--brand-text);
+  --placeholder-color: color-mix(in srgb, var(--brand-text) 50%, transparent);
+  color: var(--brand-text);
+}
+
+.menu-item-error {
+  display: block;
+  font-family: var(--brand-font-subtitle);
+  font-size: 0.78rem;
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+.menu-item-fotos {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 8px 0 24px;
+}
+
+.menu-item-foto-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-item-foto-label {
+  font-weight: 500;
+}
+
+/* Contenedor individual por imagen: no se superponen, tamaño consistente, centrada */
+.menu-item-foto-contenedor {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-width: 320px;
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--brand-text) 6%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Mientras no hay foto, un borde punteado deja bien claro que es "tocable" */
+.menu-item-foto-contenedor--vacio {
+  border: 2px dashed color-mix(in srgb, var(--brand-accent) 45%, transparent);
+}
+
+.menu-item-foto-contenedor--vacio:active {
+  background: color-mix(in srgb, var(--brand-accent) 10%, transparent);
+}
+
+.menu-item-foto-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.menu-item-foto-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--brand-accent);
+  font-family: var(--brand-font-subtitle);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 0 20px;
+
+  ion-icon {
+    font-size: 2rem;
+  }
+}
+
+.menu-item-foto-boton {
+  --border-radius: 12px;
+  --border-color: var(--brand-accent);
+  --color: var(--brand-accent);
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 500;
+  max-width: 320px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.menu-item-submit {
+  --background: var(--brand-accent);
+  --color: var(--brand-background);
+  --border-radius: 12px;
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 500;
+  height: 48px;
+  margin-top: 12px;
+}

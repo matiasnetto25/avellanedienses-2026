@@ -1,0 +1,139 @@
+<ion-content class="registro-content" [scrollY]="true">
+
+  <div class="registro-hero">
+    @if (!registroExitoso()) {
+      <button type="button" class="registro-volver" (click)="volver()" aria-label="Volver">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+    }
+
+    <h1 class="registro-hero-titulo">Registrate en Merlot</h1>
+
+    @if (registroExitoso()) {
+      <p class="registro-hero-subtitulo">
+        Tu solicitud de registro se encuentra pendiente, te informaremos por la casilla de correo para que puedas ingresar.
+      </p>
+    }
+  </div>
+
+  @if (registroExitoso()) {
+    <div class="registro-exito">
+      <ion-button expand="block" class="registro-submit" (click)="volverAInicio()">
+        Volver al inicio
+      </ion-button>
+    </div>
+  } @else {
+  <form class="registro-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <section class="registro-seccion">
+      <p class="registro-seccion-titulo">Tus datos</p>
+      <p class="registro-seccion-ayuda">
+        ¿Tenés tu DNI a mano? Escaneá el código de barras y completamos nombre, apellido y DNI por vos.
+      </p>
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        class="registro-boton-dni"
+        type="button"
+        [disabled]="escaneando"
+        (click)="escanearDni()"
+      >
+        <ion-icon slot="start" name="scan-outline"></ion-icon>
+        {{ escaneando ? 'Escaneando…' : 'Escanear DNI' }}
+      </ion-button>
+
+      <div class="registro-campo">
+        <ion-item class="registro-item">
+          <ion-label position="stacked">Nombre</ion-label>
+          <ion-input formControlName="nombre" (ionBlur)="onBlurTexto('nombre')"></ion-input>
+        </ion-item>
+        @if (mensajeError('nombre'); as mensaje) {
+          <ion-text color="danger" class="registro-error">{{ mensaje }}</ion-text>
+        }
+      </div>
+
+      <div class="registro-campo">
+        <ion-item class="registro-item">
+          <ion-label position="stacked">Apellido</ion-label>
+          <ion-input formControlName="apellido" (ionBlur)="onBlurTexto('apellido')"></ion-input>
+        </ion-item>
+        @if (mensajeError('apellido'); as mensaje) {
+          <ion-text color="danger" class="registro-error">{{ mensaje }}</ion-text>
+        }
+      </div>
+
+      <div class="registro-campo">
+        <ion-item class="registro-item">
+          <ion-label position="stacked">DNI</ion-label>
+          <ion-input formControlName="dni" inputmode="numeric" (ionBlur)="onBlurTexto('dni')"></ion-input>
+        </ion-item>
+        @if (mensajeError('dni'); as mensaje) {
+          <ion-text color="danger" class="registro-error">{{ mensaje }}</ion-text>
+        }
+      </div>
+    </section>
+
+    <section class="registro-seccion">
+      <p class="registro-seccion-titulo">Acceso</p>
+
+      <div class="registro-campo">
+        <ion-item class="registro-item">
+          <ion-label position="stacked">Correo electrónico</ion-label>
+          <ion-input type="email" formControlName="email" (ionBlur)="onBlurTexto('email')"></ion-input>
+        </ion-item>
+        @if (mensajeError('email'); as mensaje) {
+          <ion-text color="danger" class="registro-error">{{ mensaje }}</ion-text>
+        }
+      </div>
+
+      <div class="registro-campo">
+        <ion-item class="registro-item">
+          <ion-label position="stacked">Contraseña</ion-label>
+          <ion-input type="password" formControlName="password" (ionBlur)="onBlurTexto('password')"></ion-input>
+        </ion-item>
+        @if (mensajeError('password'); as mensaje) {
+          <ion-text color="danger" class="registro-error">{{ mensaje }}</ion-text>
+        }
+      </div>
+    </section>
+
+    <section class="registro-seccion">
+      <p class="registro-seccion-titulo">Tu foto</p>
+
+      <div class="registro-foto-viewport" [class.registro-foto-viewport--vacio]="!fotoDataUrl()">
+        @if (fotoDataUrl(); as foto) {
+          <img [src]="foto" alt="Foto personal" class="registro-foto-img" />
+        } @else {
+          <div class="registro-foto-placeholder">
+            <ion-icon name="camera-outline"></ion-icon>
+            <span>{{ tomandoFoto ? 'Abriendo cámara…' : 'Tu foto va a aparecer acá' }}</span>
+          </div>
+        }
+      </div>
+
+      @if (fotoDataUrl()) {
+        <ion-button expand="block" fill="outline" class="registro-boton-foto" type="button" (click)="volverATomarFoto()">
+          Volver a tomar foto
+        </ion-button>
+      } @else {
+        <ion-button
+          expand="block"
+          fill="outline"
+          class="registro-boton-foto"
+          type="button"
+          [disabled]="tomandoFoto"
+          (click)="tomarFoto()"
+        >
+          <ion-icon slot="start" name="camera-outline"></ion-icon>
+          {{ tomandoFoto ? 'Abriendo cámara…' : 'Tomar foto' }}
+        </ion-button>
+      }
+    </section>
+
+    <ion-button expand="block" type="submit" class="registro-submit" [disabled]="cargando">
+      {{ cargando ? 'Registrando…' : 'Registrarme' }}
+    </ion-button>
+  </form>
+  }
+</ion-content>

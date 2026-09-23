@@ -1,0 +1,98 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/administracion" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Crear mesa</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="crear-mesa-content">
+
+  @if (mesaCreada(); as mesa) {
+    <!-- Vista de éxito: mesa creada + QR generado -->
+    <div class="crear-mesa-exito">
+      <h2 class="crear-mesa-exito-titulo">¡Mesa {{ mesa.numero_mesa }} creada!</h2>
+      <p class="crear-mesa-exito-nota">Este es el código QR de la mesa. Imprimilo y colocalo en la mesa correspondiente.</p>
+
+      @if (urlQr(); as qr) {
+        <div class="crear-mesa-qr-contenedor">
+          <img [src]="qr" alt="Código QR de la mesa" />
+        </div>
+      } @else {
+        <p class="crear-mesa-exito-nota">
+          La mesa se creó bien, pero hubo un problema generando el QR. Podés volver a intentarlo desde Gestión de mesas.
+        </p>
+      }
+
+      <ion-button expand="block" (click)="crearOtraMesa()">Crear otra mesa</ion-button>
+      <ion-button expand="block" fill="outline" routerLink="/administracion/salon/gestion">
+        Ir a Gestión de mesas
+      </ion-button>
+    </div>
+  } @else {
+    <form class="crear-mesa-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <div class="crear-mesa-campo">
+        <ion-item class="crear-mesa-item">
+          <ion-label position="stacked">Número de mesa</ion-label>
+          <ion-input type="number" formControlName="numero_mesa" (ionBlur)="onBlurNumero()"></ion-input>
+        </ion-item>
+        @if (mensajeError('numero_mesa'); as mensaje) {
+          <ion-text color="danger" class="crear-mesa-error">{{ mensaje }}</ion-text>
+        }
+      </div>
+
+      <div class="crear-mesa-campo">
+        <ion-item class="crear-mesa-item">
+          <ion-label position="stacked">Cantidad de comensales</ion-label>
+          <ion-input type="number" formControlName="cant_comensales"></ion-input>
+        </ion-item>
+        @if (mensajeError('cant_comensales'); as mensaje) {
+          <ion-text color="danger" class="crear-mesa-error">{{ mensaje }}</ion-text>
+        }
+      </div>
+
+      <div class="crear-mesa-campo">
+        <ion-item class="crear-mesa-item">
+          <ion-label position="stacked">Tipo</ion-label>
+          <ion-select formControlName="tipo" placeholder="Seleccioná un tipo" interface="popover">
+            @for (t of tiposMesa; track t.valor) {
+              <ion-select-option [value]="t.valor">{{ t.etiqueta }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+        @if (mensajeError('tipo'); as mensaje) {
+          <ion-text color="danger" class="crear-mesa-error">{{ mensaje }}</ion-text>
+        }
+      </div>
+
+      <div class="crear-mesa-campo crear-mesa-campo-foto">
+        <ion-label>Foto de la mesa</ion-label>
+
+        @if (fotoDataUrl(); as foto) {
+          <div class="crear-mesa-foto-preview">
+            <img [src]="foto" alt="Foto de la mesa" />
+          </div>
+          <ion-button expand="block" fill="outline" type="button" (click)="volverATomarFoto()">
+            Volver a tomar foto
+          </ion-button>
+        } @else {
+          <ion-button
+            expand="block"
+            fill="outline"
+            type="button"
+            [disabled]="tomandoFoto"
+            (click)="tomarFoto()"
+          >
+            {{ tomandoFoto ? 'Abriendo cámara…' : 'Tomar foto' }}
+          </ion-button>
+        }
+      </div>
+
+      <ion-button expand="block" type="submit" class="crear-mesa-submit" [disabled]="cargando">
+        {{ cargando ? 'Creando…' : 'Crear mesa' }}
+      </ion-button>
+    </form>
+  }
+</ion-content>
