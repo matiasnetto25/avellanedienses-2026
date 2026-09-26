@@ -1,0 +1,58 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+ion-toolbar {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+}
+
+.escaneo-content {
+  --background: var(--brand-background);
+}
+
+.escaneo-contenedor {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.escaneo-icono {
+  font-size: 4.5rem;
+  color: var(--brand-accent);
+  margin-bottom: 16px;
+}
+
+.escaneo-titulo {
+  font-family: var(--brand-font-logo);
+  color: var(--brand-text);
+  font-size: 1.3rem;
+  margin: 0 0 12px;
+}
+
+.escaneo-detalle {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  opacity: 0.75;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0 0 32px;
+  max-width: 320px;
+}
+
+.escaneo-boton {
+  --background: var(--brand-accent);
+  --color: var(--brand-background);
+  --border-radius: 12px;
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  width: 100%;
+  max-width: 320px;
+  height: 48px;
+}

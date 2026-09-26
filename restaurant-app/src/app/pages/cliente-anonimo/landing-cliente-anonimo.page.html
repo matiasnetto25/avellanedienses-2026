@@ -1,0 +1,53 @@
+<ion-content [fullscreen]="true" [scrollY]="false" class="cocina-content">
+  <div class="cocina-container">
+    <nav class="cocina-navbar">
+      <app-marca-header />
+      <div class="cocina-navbar-acciones">
+        <ion-button fill="solid" class="cocina-navbar-item" (click)="listaDeEspera()">
+          {{ mesaVinculadaId() ? 'Mi mesa' : 'Lista de espera' }}
+        </ion-button>
+        <ion-button fill="solid" class="cocina-navbar-item" (click)="menu()">
+          Menú
+        </ion-button>
+        <ion-button fill="solid" class="cocina-navbar-item" (click)="miPedido()">
+          Mi pedido
+        </ion-button>
+        <ion-button fill="solid" class="cocina-navbar-item" (click)="encuestas()">
+          Ver encuestas
+        </ion-button>
+        <ion-button fill="solid" class="cocina-navbar-item cocina-navbar-salir" (click)="cerrarSesion()">
+          Cerrar sesión
+        </ion-button>
+      </div>
+    </nav>
+
+    <div class="cocina-usuario-contenedor">
+      <div class="cocina-foto">
+        @if (fotoUrl()) {
+          <img [src]="fotoUrl()" [alt]="'Foto de ' + nombre()" width="120" height="120" />
+        }
+      </div>
+
+      <div class="cocina-cuerpo">
+        <p class="cocina-usuario">{{ nombre() }}</p>
+        <p class="cocina-puesto">Invitado</p>
+      </div>
+    </div>
+  </div>
+
+  @if (cartelAviso(); as aviso) {
+    @if (estadoCartel() === 'aceptado') {
+      <button type="button" class="cliente-anonimo-cartel cliente-anonimo-cartel--disponible" (click)="irAEscanearMesa()">
+        <p>{{ aviso }}</p>
+      </button>
+    } @else {
+      <div class="cliente-anonimo-cartel">
+        <p>{{ aviso }}</p>
+      </div>
+    }
+  } @else if (avisoMostrador()) {
+    <div class="cliente-anonimo-cartel cliente-anonimo-cartel--mostrador">
+      <p>Por favor, acérquese al mostrador.</p>
+    </div>
+  }
+</ion-content>

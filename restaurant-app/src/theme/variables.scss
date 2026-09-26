@@ -1,2 +1,61 @@
 // For information on how to create your own theme, please refer to:
 // https://ionicframework.com/docs/theming/
+
+/*
+ * Paleta e identidad de marca (Merlot / Avellanedienses).
+ * Definida acá porque la reutilizan varias specs (splash spec 3, login spec 4).
+ */
+:root {
+  --brand-floral-white: #FFF9EC;
+  --brand-intense-cherry: #C52233;
+  --brand-ruby-red: #A51C30;
+  --brand-brown-red: #A7333F;
+  --brand-burgundy: #74121D;
+  --brand-night-bordeaux: #580C1F;
+
+  --brand-background: var(--brand-floral-white);
+  --brand-text: var(--brand-night-bordeaux);
+  --brand-accent: var(--brand-intense-cherry);
+
+  --brand-font-logo: 'Cinzel', serif;
+  --brand-font-subtitle: 'Tenor Sans', sans-serif;
+
+  /*
+   * Ionic calcula los estados "presionado"/"foco"/ripple de cualquier
+   * ion-button (y otros controles) a partir de --ion-color-primary, incluso
+   * si el botón no tiene el atributo [color] y aunque se le pise
+   * --background/--color a mano. Sin esto, esos estados siguen mostrando el
+   * azul default de Ionic. Se redefine acá, una sola vez, para que todo
+   * control de la app use el acento de marca por default.
+   */
+  --ion-color-primary: var(--brand-accent);
+  --ion-color-primary-rgb: 197, 34, 51;
+  --ion-color-primary-contrast: var(--brand-floral-white);
+  --ion-color-primary-contrast-rgb: 255, 249, 236;
+  --ion-color-primary-shade: var(--brand-ruby-red);
+  --ion-color-primary-tint: #CB3847;
+}
+
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/assets/fonts/cinzel-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/assets/fonts/cinzel-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Tenor Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/assets/fonts/tenor-sans-400.woff2') format('woff2');
+}

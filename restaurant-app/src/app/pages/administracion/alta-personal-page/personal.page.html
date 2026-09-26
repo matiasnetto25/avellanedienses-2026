@@ -1,0 +1,162 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/administracion" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Administración del personal</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="personal-content">
+  <form class="personal-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <!-- Escaneo de DNI -->
+    <ion-button
+      expand="block"
+      fill="outline"
+      class="personal-boton-dni"
+      type="button"
+      [disabled]="escaneando"
+      (click)="escanearDni()"
+    >
+      {{ escaneando ? 'Escaneando…' : 'Escanear DNI' }}
+    </ion-button>
+
+    <!-- Nombre -->
+    <div class="personal-campo">
+      <ion-item class="personal-item">
+        <ion-label position="stacked">Nombre</ion-label>
+        <ion-input formControlName="nombre" (ionBlur)="onBlurTexto('nombre')"></ion-input>
+      </ion-item>
+      @if (mensajeError('nombre'); as mensaje) {
+        <ion-text color="danger" class="personal-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <!-- Apellido -->
+    <div class="personal-campo">
+      <ion-item class="personal-item">
+        <ion-label position="stacked">Apellido</ion-label>
+        <ion-input formControlName="apellido" (ionBlur)="onBlurTexto('apellido')"></ion-input>
+      </ion-item>
+      @if (mensajeError('apellido'); as mensaje) {
+        <ion-text color="danger" class="personal-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <!-- Sexo -->
+    <div class="personal-campo">
+      <ion-item class="personal-item">
+        <ion-label position="stacked">Sexo</ion-label>
+        <ion-select formControlName="sexo" placeholder="Seleccioná una opción" interface="popover">
+          @for (opcion of opcionesSexo; track opcion.valor) {
+            <ion-select-option [value]="opcion.valor">{{ opcion.etiqueta }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+      @if (mensajeError('sexo'); as mensaje) {
+        <ion-text color="danger" class="personal-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <!-- Fecha de nacimiento -->
+    <div class="personal-campo">
+      <ion-item class="personal-item">
+        <ion-label position="stacked">Fecha de nacimiento</ion-label>
+        <ion-input type="date" formControlName="fecha_nacimiento"></ion-input>
+      </ion-item>
+      @if (mensajeError('fecha_nacimiento'); as mensaje) {
+        <ion-text color="danger" class="personal-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <!-- CUIL -->
+    <div class="personal-campo">
+      <ion-item class="personal-item">
+        <ion-label position="stacked">CUIL</ion-label>
+        <ion-input formControlName="cuil" placeholder="20-35371754-6" (ionBlur)="onBlurTexto('cuil')"></ion-input>
+      </ion-item>
+      @if (mensajeError('cuil'); as mensaje) {
+        <ion-text color="danger" class="personal-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <!-- Email -->
+    <div class="personal-campo">
+      <ion-item class="personal-item">
+        <ion-label position="stacked">Correo electrónico</ion-label>
+        <ion-input type="email" formControlName="email" (ionBlur)="onBlurTexto('email')"></ion-input>
+      </ion-item>
+      @if (mensajeError('email'); as mensaje) {
+        <ion-text color="danger" class="personal-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <!-- Password -->
+    <div class="personal-campo">
+      <ion-item class="personal-item">
+        <ion-label position="stacked">Contraseña</ion-label>
+        <ion-input type="password" formControlName="password" (ionBlur)="onBlurTexto('password')"></ion-input>
+      </ion-item>
+      @if (mensajeError('password'); as mensaje) {
+        <ion-text color="danger" class="personal-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <!-- Repetir password -->
+    <div class="personal-campo">
+      <ion-item class="personal-item">
+        <ion-label position="stacked">Repetir contraseña</ion-label>
+        <ion-input type="password" formControlName="confirmarPassword" (ionBlur)="onBlurTexto('confirmarPassword')"></ion-input>
+      </ion-item>
+      @if (mensajeErrorPasswordsNoCoinciden(); as mensaje) {
+        <ion-text color="danger" class="personal-error">{{ mensaje }}</ion-text>
+      } @else if (mensajeError('confirmarPassword'); as mensaje) {
+        <ion-text color="danger" class="personal-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <!-- Puesto -->
+    <div class="personal-campo">
+      <ion-item class="personal-item">
+        <ion-label position="stacked">Puesto</ion-label>
+        <ion-select formControlName="puesto" placeholder="Seleccioná un puesto" interface="popover">
+          @for (puesto of puestosDisponibles; track puesto) {
+            <ion-select-option [value]="puesto">{{ puesto }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+      @if (mensajeError('puesto'); as mensaje) {
+        <ion-text color="danger" class="personal-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <!-- Foto -->
+    <div class="personal-campo personal-campo-foto">
+      <ion-label>Foto del empleado</ion-label>
+
+      @if (fotoDataUrl(); as foto) {
+        <div class="personal-foto-preview">
+          <img [src]="foto" alt="Foto del empleado" />
+        </div>
+        <ion-button expand="block" fill="outline" type="button" (click)="volverATomarFoto()">
+          Volver a tomar foto
+        </ion-button>
+      } @else {
+        <ion-button
+          expand="block"
+          fill="outline"
+          type="button"
+          [disabled]="tomandoFoto"
+          (click)="tomarFoto()"
+        >
+          {{ tomandoFoto ? 'Abriendo cámara…' : 'Tomar foto' }}
+        </ion-button>
+      }
+    </div>
+
+    <ion-button expand="block" type="submit" class="personal-submit" [disabled]="cargando">
+      {{ cargando ? 'Guardando…' : 'Crear empleado' }}
+    </ion-button>
+  </form>
+</ion-content>

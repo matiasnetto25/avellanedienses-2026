@@ -1,0 +1,42 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/mozo" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Consultas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="conv-content">
+  @if (!cargando()) {
+    @if (conversaciones().length === 0) {
+      <p class="conv-vacio">No hay mesas con clientes en este momento.</p>
+    } @else {
+      <ion-list class="conv-lista" lines="full">
+        @for (c of conversaciones(); track c.solicitud_id) {
+          <ion-item
+            button
+            detail="false"
+            class="conv-item"
+            [class.conv-item--sin-responder]="c.sin_responder"
+            (click)="abrir(c)"
+          >
+            <ion-label>
+              <h2 class="conv-mesa">
+                Mesa {{ c.numero_mesa }}
+                @if (c.sin_responder) {
+                  <ion-badge class="conv-badge">Sin responder</ion-badge>
+                }
+              </h2>
+              <p class="conv-cliente">{{ c.cliente_nombre }}</p>
+              <p class="conv-extracto">{{ c.ultimo_texto ?? 'Todavía no hay mensajes.' }}</p>
+            </ion-label>
+            @if (c.ultimo_created_at) {
+              <ion-note slot="end" class="conv-hora">{{ c.ultimo_created_at | date: 'dd/MM HH:mm' }}</ion-note>
+            }
+          </ion-item>
+        }
+      </ion-list>
+    }
+  }
+</ion-content>

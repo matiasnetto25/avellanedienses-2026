@@ -1,0 +1,67 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.login-container {
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+// Ocupa todo el espacio libre entre los bordes de la pantalla y el trigger de
+// accesos rápidos, y centra ahí adentro el logo + el formulario. Con
+// min-height: 0 puede encogerse si hace falta, así el trigger nunca queda
+// empujado fuera del alto de pantalla.
+.login-centro {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-campo {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-item {
+  --background: transparent;
+  --border-color: var(--brand-text);
+  --color: var(--brand-text);
+  --highlight-color-focused: var(--brand-accent);
+  font-family: var(--brand-font-subtitle);
+}
+
+.login-error {
+  font-size: 0.8rem;
+  padding: 4px 12px 0;
+}
+
+.login-submit {
+  --background: var(--brand-accent);
+  --color: var(--brand-background);
+  margin-top: 4px;
+}
+
+.login-accesos-trigger {
+  flex-shrink: 0;
+  --color: var(--brand-text);
+}

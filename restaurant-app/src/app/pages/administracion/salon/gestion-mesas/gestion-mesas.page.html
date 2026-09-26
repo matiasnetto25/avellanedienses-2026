@@ -1,0 +1,124 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/administracion" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Gestión de mesas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="gestion-mesas-content">
+  <div class="gestion-mesas-lista">
+    @for (pagina of paginas(); track $index) {
+      <div class="pagina-mesas">
+        @for (mesa of pagina; track mesa.id) {
+          <ion-card class="mesa-card">
+
+            <!-- Contenedor individual de la imagen: posición 1 = foto, posición 2 = QR -->
+            <div class="mesa-imagen-viewport" (click)="alternarImagen(mesa)">
+              @if (imagenActual(mesa) === 0) {
+                @if (urlFoto(mesa); as url) {
+                  <img [src]="url" [alt]="'Foto de la mesa ' + mesa.numero_mesa" class="mesa-imagen" loading="lazy" />
+                } @else {
+                  <span class="mesa-imagen-placeholder">Sin foto</span>
+                }
+              } @else {
+                @if (urlQr(mesa); as urlCodigoQr) {
+                  <img [src]="urlCodigoQr" [alt]="'QR de la mesa ' + mesa.numero_mesa" class="mesa-imagen mesa-imagen-qr" />
+                }
+              }
+
+              @if (mesa.qr) {
+                <div class="mesa-imagen-dots">
+                  <span class="mesa-imagen-dot" [class.mesa-imagen-dot--activo]="imagenActual(mesa) === 0"></span>
+                  <span class="mesa-imagen-dot" [class.mesa-imagen-dot--activo]="imagenActual(mesa) === 1"></span>
+                </div>
+                <span class="mesa-imagen-etiqueta">{{ imagenActual(mesa) === 0 ? 'Foto' : 'Código QR' }}</span>
+              }
+            </div>
+
+            <ion-card-content class="mesa-info">
+
+              @if (mesaEnEdicion() === mesa.id) {
+                <!-- Modo edición -->
+                <form [formGroup]="formEdicion" (ngSubmit)="guardarEdicion(mesa)" class="mesa-form-edicion">
+                  <div class="mesa-campo-edicion">
+                    <ion-item class="mesa-item-edicion">
+                      <ion-label position="stacked">Número de mesa</ion-label>
+                      <ion-input type="number" formControlName="numero_mesa" (ionBlur)="onBlurNumeroEdicion(mesa.id)"></ion-input>
+                    </ion-item>
+                    @if (mensajeErrorEdicion('numero_mesa'); as mensaje) {
+                      <ion-text color="danger" class="mesa-error-edicion">{{ mensaje }}</ion-text>
+                    }
+                  </div>
+
+                  <div class="mesa-campo-edicion">
+                    <ion-item class="mesa-item-edicion">
+                      <ion-label position="stacked">Comensales</ion-label>
+                      <ion-input type="number" formControlName="cant_comensales"></ion-input>
+                    </ion-item>
+                    @if (mensajeErrorEdicion('cant_comensales'); as mensaje) {
+                      <ion-text color="danger" class="mesa-error-edicion">{{ mensaje }}</ion-text>
+                    }
+                  </div>
+
+                  <div class="mesa-campo-edicion">
+                    <ion-item class="mesa-item-edicion">
+                      <ion-label position="stacked">Tipo</ion-label>
+                      <ion-select formControlName="tipo" interface="popover">
+                        @for (t of tiposMesa; track t.valor) {
+                          <ion-select-option [value]="t.valor">{{ t.etiqueta }}</ion-select-option>
+                        }
+                      </ion-select>
+                    </ion-item>
+                  </div>
+
+                  @if (fotoNuevaDataUrl(); as fotoNueva) {
+                    <div class="mesa-foto-nueva-preview">
+                      <img [src]="fotoNueva" alt="Nueva foto de la mesa" />
+                    </div>
+                  }
+                  <ion-button expand="block" fill="outline" type="button" [disabled]="tomandoFoto()" (click)="tomarNuevaFoto()">
+                    {{ tomandoFoto() ? 'Abriendo cámara…' : (fotoNuevaDataUrl() ? 'Volver a tomar foto' : 'Cambiar foto') }}
+                  </ion-button>
+
+                  <div class="mesa-acciones-edicion">
+                    <ion-button fill="clear" type="button" (click)="cancelarEdicion()">Cancelar</ion-button>
+                    <ion-button type="submit" [disabled]="guardandoEdicion()">
+                      {{ guardandoEdicion() ? 'Guardando…' : 'Guardar' }}
+                    </ion-button>
+                  </div>
+                </form>
+              } @else {
+                <!-- Modo lectura -->
+                <div class="mesa-info-header">
+                  <h3 class="mesa-nombre">Mesa {{ mesa.numero_mesa }}</h3>
+                  <ion-badge class="mesa-tipo-badge">{{ etiquetaTipo(mesa.tipo) }}</ion-badge>
+                </div>
+
+                <p class="mesa-comensales">{{ mesa.cant_comensales }} comensales</p>
+
+                <div class="mesa-disponibilidad">
+                  <ion-label>{{ mesa.disponibilidad === 'Ocupada' ? 'Ocupada' : 'Libre' }}</ion-label>
+                  <ion-toggle
+                    [checked]="mesa.disponibilidad === 'Ocupada'"
+                    (ionChange)="onCambioDisponibilidad(mesa, $event)"
+                  ></ion-toggle>
+                </div>
+
+                <div class="mesa-acciones">
+                  <ion-button fill="outline" size="small" (click)="iniciarEdicion(mesa)">Editar</ion-button>
+                  <ion-button fill="outline" color="danger" size="small" (click)="confirmarEliminar(mesa)">Eliminar</ion-button>
+                </div>
+              }
+            </ion-card-content>
+          </ion-card>
+        }
+      </div>
+    }
+
+    @if (!cargandoLista() && mesas().length === 0) {
+      <p class="gestion-mesas-vacio">Todavía no hay mesas creadas.</p>
+    }
+  </div>
+</ion-content>

@@ -1,0 +1,59 @@
+<ion-content class="principal-content" [scrollY]="true">
+
+  @if (!verificando()) {
+    <div class="principal-hero">
+      <h1 class="principal-hero-titulo">Bienvenido/a a Merlot</h1>
+      <p class="principal-hero-subtitulo">
+        Ingresá tu nombre y una foto para identificarte en el local. No hace falta registrarte con email ni contraseña.
+      </p>
+    </div>
+
+    <form class="principal-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="principal-campo">
+        <ion-item class="principal-item">
+          <ion-label position="stacked">Nombre</ion-label>
+          <ion-input formControlName="nombre"></ion-input>
+        </ion-item>
+      </div>
+
+      <div class="principal-campo">
+        <ion-item class="principal-item">
+          <ion-label position="stacked">Apellido</ion-label>
+          <ion-input formControlName="apellido"></ion-input>
+        </ion-item>
+      </div>
+
+      <div class="principal-campo-foto">
+        <ion-label>Tu foto</ion-label>
+
+        <div class="principal-foto-viewport" [class.principal-foto-viewport--vacio]="!fotoDataUrl()">
+          @if (fotoDataUrl(); as foto) {
+            <img [src]="foto" alt="Tu foto" class="principal-foto-img" />
+          } @else {
+            <div class="principal-foto-placeholder">
+              <span>{{ tomandoFoto ? 'Abriendo cámara…' : 'Tu foto va a aparecer acá' }}</span>
+            </div>
+          }
+        </div>
+
+        @if (fotoDataUrl()) {
+          <ion-button expand="block" fill="outline" type="button" (click)="volverATomarFoto()">
+            Volver a tomar foto
+          </ion-button>
+        } @else {
+          <ion-button expand="block" fill="outline" type="button" [disabled]="tomandoFoto" (click)="tomarFoto()">
+            {{ tomandoFoto ? 'Abriendo cámara…' : 'Tomar foto' }}
+          </ion-button>
+        }
+      </div>
+
+      <ion-button expand="block" type="submit" class="principal-submit" [disabled]="cargando">
+        {{ cargando ? 'Ingresando…' : 'Ingresar' }}
+      </ion-button>
+
+      <ion-button expand="block" type="button" class="principal-submit" [disabled]="cargando" (click)="cancelarRegistro()">
+        Cancelar registro
+      </ion-button>
+    </form>
+  }
+</ion-content>

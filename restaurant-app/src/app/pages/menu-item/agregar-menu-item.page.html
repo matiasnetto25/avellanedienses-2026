@@ -1,0 +1,110 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="rutaVolver" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ titulo }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="menu-item-content">
+  <form class="menu-item-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    @if (!esCantinero) {
+      <div class="menu-item-campo">
+        <ion-item class="menu-item-item">
+          <ion-label position="stacked">Tipo</ion-label>
+          <ion-select formControlName="tipo" placeholder="Seleccioná un tipo" interface="popover">
+            @for (t of tiposCocinero; track t.valor) {
+              <ion-select-option [value]="t.valor">{{ t.etiqueta }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+        @if (mensajeError('tipo'); as mensaje) {
+          <ion-text color="danger" class="menu-item-error">{{ mensaje }}</ion-text>
+        }
+      </div>
+    }
+
+    <div class="menu-item-campo">
+      <ion-item class="menu-item-item">
+        <ion-label position="stacked">Nombre</ion-label>
+        <ion-input formControlName="nombre"></ion-input>
+      </ion-item>
+      @if (mensajeError('nombre'); as mensaje) {
+        <ion-text color="danger" class="menu-item-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <div class="menu-item-campo">
+      <ion-item class="menu-item-item">
+        <ion-label position="stacked">Descripción</ion-label>
+        <ion-textarea formControlName="descripcion" [autoGrow]="true" rows="3"></ion-textarea>
+      </ion-item>
+      @if (mensajeError('descripcion'); as mensaje) {
+        <ion-text color="danger" class="menu-item-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <div class="menu-item-campo">
+      <ion-item class="menu-item-item">
+        <ion-label position="stacked">Demora (minutos)</ion-label>
+        <ion-input type="number" formControlName="demora"></ion-input>
+      </ion-item>
+      @if (mensajeError('demora'); as mensaje) {
+        <ion-text color="danger" class="menu-item-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <div class="menu-item-campo">
+      <ion-item class="menu-item-item">
+        <ion-label position="stacked">Precio</ion-label>
+        <ion-input type="number" formControlName="precio"></ion-input>
+      </ion-item>
+      @if (mensajeError('precio'); as mensaje) {
+        <ion-text color="danger" class="menu-item-error">{{ mensaje }}</ion-text>
+      }
+    </div>
+
+    <!-- 3 fotos, cada una en su propio contenedor individual -->
+    <div class="menu-item-fotos">
+      @for (item of camposFoto; track item.campo) {
+        <div class="menu-item-foto-bloque">
+          <ion-label class="menu-item-foto-label">{{ item.etiqueta }}</ion-label>
+
+          <div
+            class="menu-item-foto-contenedor"
+            [class.menu-item-foto-contenedor--vacio]="!fotos()[item.campo]"
+            (click)="elegirFoto(item.campo)"
+          >
+            @if (fotos()[item.campo]; as url) {
+              <img [src]="url" [alt]="item.etiqueta" class="menu-item-foto-img" />
+            } @else {
+              <div class="menu-item-foto-placeholder">
+                <ion-icon name="camera-outline"></ion-icon>
+                <span>{{ subiendoFoto === item.campo ? 'Abriendo…' : 'Tocá para elegir' }}</span>
+              </div>
+            }
+          </div>
+
+          <ion-button
+            expand="block"
+            fill="outline"
+            size="small"
+            type="button"
+            class="menu-item-foto-boton"
+            [disabled]="subiendoFoto === item.campo"
+            (click)="elegirFoto(item.campo)"
+          >
+            <ion-icon slot="start" name="camera-outline"></ion-icon>
+            {{ fotos()[item.campo] ? 'Reemplazar imagen' : 'Cámara o galería' }}
+          </ion-button>
+        </div>
+      }
+    </div>
+
+    <ion-button expand="block" type="submit" class="menu-item-submit" [disabled]="cargando">
+      {{ cargando ? 'Guardando…' : 'Crear ' + (esCantinero ? 'bebida' : 'plato') }}
+    </ion-button>
+  </form>
+</ion-content>

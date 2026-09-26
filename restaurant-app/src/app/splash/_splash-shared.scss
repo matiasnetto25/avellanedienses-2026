@@ -1,0 +1,47 @@
+// Estilos compartidos por SplashEstaticaPage y SplashAnimadaPage.
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.splash-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  // Offset fijo: el Icono queda a la misma altura en las dos pantallas
+  padding-top: 30vh;
+  box-sizing: border-box;
+}
+
+.splash-icon-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.splash-icon {
+  width: 40vw;
+  max-width: 220px;
+  height: auto;
+}
+
+.splash-rest {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.splash-nombre-app {
+  font-family: var(--brand-font-logo);
+  color: var(--brand-text);
+  font-size: 1.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 0;
+}

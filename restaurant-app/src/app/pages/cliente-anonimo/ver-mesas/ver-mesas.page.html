@@ -1,0 +1,77 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/cliente-anonimo" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Ver mesas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="vermesas-content">
+  @if (miSolicitud(); as solicitud) {
+    <div class="vermesas-estado">
+      <ion-card class="vermesas-card">
+        <div class="vermesas-imagen-viewport">
+          @if (urlFotoSolicitud(solicitud.foto); as url) {
+            <img [src]="url" [alt]="'Foto de la Mesa ' + solicitud.numero_mesa" class="vermesas-imagen" loading="lazy" />
+          } @else {
+            <span class="vermesas-imagen-placeholder">Sin foto</span>
+          }
+        </div>
+
+        <ion-card-content class="vermesas-info">
+          <h3 class="vermesas-numero">Mesa {{ solicitud.numero_mesa }}</h3>
+          <p class="vermesas-detalle">{{ etiquetaTipo(solicitud.tipo) }} · {{ solicitud.cant_comensales }} comensales</p>
+
+          @if (solicitud.estado === 'vinculado') {
+            <ion-button fill="solid" class="vermesas-boton" (click)="irAMiMesa(solicitud.mesa_id)">
+              Ir a mi mesa
+            </ion-button>
+          }
+        </ion-card-content>
+      </ion-card>
+    </div>
+  } @else if (!cargandoLista() && mesas().length === 0) {
+    <div class="vermesas-vacio">
+      <p>Todavía no hay mesas cargadas.</p>
+    </div>
+  } @else {
+    <div class="vermesas-lista">
+      @for (pagina of paginas(); track $index) {
+        <div class="pagina-vermesas">
+          @for (mesa of pagina; track mesa.id) {
+            <ion-card class="vermesas-card">
+              <div class="vermesas-imagen-viewport">
+                @if (urlFoto(mesa); as url) {
+                  <img [src]="url" [alt]="'Foto de la Mesa ' + mesa.numero_mesa" class="vermesas-imagen" loading="lazy" />
+                } @else {
+                  <span class="vermesas-imagen-placeholder">Sin foto</span>
+                }
+                <span
+                  class="vermesas-disponibilidad-badge"
+                  [class.vermesas-disponibilidad-badge--ocupada]="mesa.disponibilidad === 'Ocupada'"
+                >
+                  {{ mesa.disponibilidad === 'Ocupada' ? 'Ocupada' : 'Libre' }}
+                </span>
+              </div>
+
+              <ion-card-content class="vermesas-info">
+                <h3 class="vermesas-numero">Mesa {{ mesa.numero_mesa }}</h3>
+                <p class="vermesas-detalle">{{ etiquetaTipo(mesa.tipo) }} · {{ mesa.cant_comensales }} comensales</p>
+
+                <ion-button
+                  fill="solid"
+                  class="vermesas-boton"
+                  [disabled]="solicitando() === mesa.id"
+                  (click)="solicitar(mesa)"
+                >
+                  {{ solicitando() === mesa.id ? 'Solicitando…' : 'Solicitar esta mesa' }}
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+          }
+        </div>
+      }
+    </div>
+  }
+</ion-content>

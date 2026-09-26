@@ -1,0 +1,28 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/cliente-anonimo" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Ver mesas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="escaneo-content">
+  <div class="escaneo-contenedor">
+    <ion-icon name="qr-code-outline" class="escaneo-icono"></ion-icon>
+
+    <h2 class="escaneo-titulo">Escaneá el código QR de la entrada</h2>
+    <p class="escaneo-detalle">
+      Buscá el cartel con el código QR ubicado en la entrada del local para ver las mesas disponibles.
+    </p>
+
+    <ion-button
+      expand="block"
+      class="escaneo-boton"
+      [disabled]="escaneando"
+      (click)="escanear()"
+    >
+      {{ escaneando ? 'Abriendo cámara…' : 'Escanear código QR' }}
+    </ion-button>
+  </div>
+</ion-content>

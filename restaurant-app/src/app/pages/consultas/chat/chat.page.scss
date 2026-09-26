@@ -1,0 +1,104 @@
+// Sin reglas en :host a propósito (ver mesa.page.scss): el router de Ionic
+// le pone .ion-page para que header, content y footer repartan el alto.
+
+ion-toolbar {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+}
+
+.chat-titulo {
+  display: block;
+  font-family: var(--brand-font-subtitle);
+}
+
+.chat-subtitulo {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 400;
+  opacity: 0.75;
+  white-space: normal;
+}
+
+.chat-content {
+  --background: var(--brand-background);
+}
+
+.chat-vacio {
+  margin: 32px 24px 0;
+  text-align: center;
+  color: var(--brand-text);
+  opacity: 0.7;
+}
+
+// ===== Mensajes =====
+
+.chat-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 12px;
+}
+
+.chat-burbuja {
+  align-self: flex-start;
+  max-width: 80%;
+  padding: 8px 12px;
+  border-radius: 4px 16px 16px 16px;
+  background: #ffffff;
+  color: var(--brand-text);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--brand-text) 15%, transparent);
+}
+
+.chat-burbuja--propia {
+  align-self: flex-end;
+  border-radius: 16px 4px 16px 16px;
+  background: var(--brand-accent);
+  color: var(--brand-floral-white);
+}
+
+.chat-meta {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.chat-texto {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+// ===== Campo de texto fijo abajo =====
+
+.chat-footer {
+  background: var(--brand-background);
+}
+
+.chat-redactor {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 12px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid color-mix(in srgb, var(--brand-text) 12%, transparent);
+}
+
+.chat-campo {
+  flex: 1;
+  min-height: 44px;
+  max-height: 140px;
+  overflow-y: auto;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --background: #ffffff;
+  --color: var(--brand-text);
+  border-radius: 22px;
+}
+
+.chat-enviar {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+}
