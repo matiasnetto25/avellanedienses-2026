@@ -62,10 +62,10 @@
             <div class="mesa-opciones">
               <ion-button expand="block" class="mesa-opcion" [routerLink]="['/consultas', solicitudId()]">Consultar al mozo</ion-button>
               <ion-button expand="block" class="mesa-opcion" routerLink="/menu" [queryParams]="{ mesa: m.numero_mesa }">Ver el menú</ion-button>
-              <ion-button expand="block" class="mesa-opcion" (click)="proximamente()">Estado de mi pedido</ion-button>
-              <ion-button expand="block" class="mesa-opcion" (click)="proximamente()">Encuesta de satisfacción</ion-button>
-              <ion-button expand="block" class="mesa-opcion" (click)="proximamente()">Juegos</ion-button>
-              <ion-button expand="block" class="mesa-opcion" (click)="proximamente()">Pagar la cuenta</ion-button>
+              <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Estado de mi pedido</ion-button>
+              <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Encuesta de satisfacción</ion-button>
+              <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Juegos</ion-button>
+              <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Pagar la cuenta</ion-button>
             </div>
           </div>
         </div>

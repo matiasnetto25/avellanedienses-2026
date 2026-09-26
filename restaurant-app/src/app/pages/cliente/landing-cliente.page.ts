@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { IonButton, IonContent } from '@ionic/angular/standalone';
-import { ToastController } from '@ionic/angular';
 import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
+import { AvisosService } from '../../core/services/avisos.service';
 import { ClientesService } from '../../core/services/clientes.service';
 import { SesionService } from '../../core/services/sesion.service';
 
@@ -13,8 +13,8 @@ import { SesionService } from '../../core/services/sesion.service';
   styleUrls: ['./landing-cliente.page.scss'],
 })
 export class LandingClientePage implements OnInit {
-  private readonly toastController = inject(ToastController);
   private readonly clientesService = inject(ClientesService);
+  protected readonly avisos = inject(AvisosService);
   protected readonly sesionService = inject(SesionService);
 
   readonly nombreCompleto = signal('');
@@ -26,26 +26,5 @@ export class LandingClientePage implements OnInit {
 
     this.nombreCompleto.set(`${cliente.nombre} ${cliente.apellido ?? ''}`.trim());
     this.fotoUrl.set(this.clientesService.obtenerUrlFoto(cliente.foto));
-  }
-
-  async menu(): Promise<void> {
-    await this.proximamente();
-  }
-
-  async misPedidos(): Promise<void> {
-    await this.proximamente();
-  }
-
-  async encuestas(): Promise<void> {
-    await this.proximamente();
-  }
-
-  private async proximamente(): Promise<void> {
-    const toast = await this.toastController.create({
-      message: 'Esta sección se habilita en la próxima entrega.',
-      duration: 1800,
-      position: 'bottom',
-    });
-    await toast.present();
   }
 }

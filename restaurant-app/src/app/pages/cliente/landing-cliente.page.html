@@ -3,13 +3,13 @@
     <nav class="cocina-navbar">
       <app-marca-header />
       <div class="cocina-navbar-acciones">
-        <ion-button fill="solid" class="cocina-navbar-item" (click)="menu()">
+        <ion-button fill="solid" class="cocina-navbar-item" (click)="avisos.proximamente()">
           Menú
         </ion-button>
-        <ion-button fill="solid" class="cocina-navbar-item" (click)="misPedidos()">
+        <ion-button fill="solid" class="cocina-navbar-item" (click)="avisos.proximamente()">
           Mis pedidos
         </ion-button>
-        <ion-button fill="solid" class="cocina-navbar-item" (click)="encuestas()">
+        <ion-button fill="solid" class="cocina-navbar-item" (click)="avisos.proximamente()">
           Encuestas
         </ion-button>
         <ion-button fill="solid" class="cocina-navbar-item cocina-navbar-salir" (click)="sesionService.cerrarSesion()">

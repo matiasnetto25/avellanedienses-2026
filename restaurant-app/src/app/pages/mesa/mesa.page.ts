@@ -54,7 +54,7 @@ export class MesaPage implements OnInit {
   private readonly auth = inject(Auth);
   private readonly mesasService = inject(MesasService);
   private readonly loading = inject(LoadingService);
-  private readonly avisos = inject(AvisosService);
+  protected readonly avisos = inject(AvisosService);
   private readonly clienteActual = inject(ClienteActualService);
   private readonly clienteAnonimo = inject(ClienteAnonimoService);
 
@@ -145,9 +145,5 @@ export class MesaPage implements OnInit {
 
   volverAlInicio(): void {
     this.router.navigate([this.rutaVolver()], { replaceUrl: true });
-  }
-
-  async proximamente(): Promise<void> {
-    await this.avisos.info('Esta función se habilita en la próxima entrega.');
   }
 }

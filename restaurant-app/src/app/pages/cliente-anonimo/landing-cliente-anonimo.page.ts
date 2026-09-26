@@ -1,13 +1,14 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonButton, IonContent } from '@ionic/angular/standalone';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
 import { ClienteAnonimoService } from '../../core/services/cliente-anonimo.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { NotificacionesService } from '../../core/services/notificaciones.service';
 import { LoadingService } from '../../core/services/loading.service';
+import { AvisosService } from '../../core/services/avisos.service';
 import { EstadoSolicitudMesa } from '../../core/models/solicitud-mesa.model';
 
 /** Red de seguridad, por si el canal en tiempo real se corta (por
@@ -24,12 +25,12 @@ const INTERVALO_RESPALDO_MS = 30000;
 })
 export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
   private readonly router = inject(Router);
-  private readonly toastController = inject(ToastController);
   private readonly alertController = inject(AlertController);
   private readonly clienteAnonimo = inject(ClienteAnonimoService);
   private readonly supabase = inject(SupabaseService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
+  protected readonly avisos = inject(AvisosService);
 
   readonly nombre = signal('');
   readonly fotoUrl = signal<string | null>(null);
@@ -236,20 +237,4 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
     this.router.navigate(['/menu']);
   }
 
-  async miPedido(): Promise<void> {
-    await this.proximamente();
-  }
-
-  async encuestas(): Promise<void> {
-    await this.proximamente();
-  }
-
-  private async proximamente(): Promise<void> {
-    const toast = await this.toastController.create({
-      message: 'Próximo deploy.',
-      duration: 1800,
-      position: 'bottom',
-    });
-    await toast.present();
-  }
 }
