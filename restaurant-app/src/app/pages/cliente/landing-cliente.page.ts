@@ -1,10 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { IonButton, IonContent } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular';
 import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
-import { Auth } from '../../core/services/auth';
 import { ClientesService } from '../../core/services/clientes.service';
+import { SesionService } from '../../core/services/sesion.service';
 
 @Component({
   selector: 'app-landing-cliente',
@@ -14,10 +13,9 @@ import { ClientesService } from '../../core/services/clientes.service';
   styleUrls: ['./landing-cliente.page.scss'],
 })
 export class LandingClientePage implements OnInit {
-  private readonly auth = inject(Auth);
-  private readonly router = inject(Router);
   private readonly toastController = inject(ToastController);
   private readonly clientesService = inject(ClientesService);
+  protected readonly sesionService = inject(SesionService);
 
   readonly nombreCompleto = signal('');
   readonly fotoUrl = signal<string | null>(null);
@@ -40,11 +38,6 @@ export class LandingClientePage implements OnInit {
 
   async encuestas(): Promise<void> {
     await this.proximamente();
-  }
-
-  async cerrarSesion(): Promise<void> {
-    await this.auth.logout();
-    this.router.navigate(['/bienvenida'], { replaceUrl: true });
   }
 
   private async proximamente(): Promise<void> {

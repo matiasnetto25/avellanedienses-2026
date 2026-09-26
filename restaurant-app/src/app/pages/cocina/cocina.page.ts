@@ -4,7 +4,7 @@ import { IonButton, IonContent } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular';
 import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
 import { Auth } from '../../core/services/auth';
-import { NotificacionesService } from '../../core/services/notificaciones.service';
+import { SesionService } from '../../core/services/sesion.service';
 
 @Component({
   selector: 'app-cocina',
@@ -15,9 +15,9 @@ import { NotificacionesService } from '../../core/services/notificaciones.servic
 })
 export class CocinaPage {
   private readonly auth = inject(Auth);
-  private readonly notificaciones = inject(NotificacionesService);
   private readonly router = inject(Router);
   private readonly toastController = inject(ToastController);
+  protected readonly sesionService = inject(SesionService);
 
   readonly sesion = this.auth.sesion;
 
@@ -41,11 +41,5 @@ export class CocinaPage {
       position: 'bottom',
     });
     await toast.present();
-  }
-
-  async cerrarSesion(): Promise<void> {
-    await this.notificaciones.eliminarTokenAlCerrarSesion();
-    await this.auth.logout();
-    this.router.navigate(['/bienvenida'], { replaceUrl: true });
   }
 }

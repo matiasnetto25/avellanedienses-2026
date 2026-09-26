@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { IonButton, IonContent } from '@ionic/angular/standalone';
 import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
 import { Auth } from '../../core/services/auth';
-import { NotificacionesService } from '../../core/services/notificaciones.service';
+import { SesionService } from '../../core/services/sesion.service';
 
 @Component({
   selector: 'app-administracion',
@@ -14,8 +14,8 @@ import { NotificacionesService } from '../../core/services/notificaciones.servic
 })
 export class AdministracionPage {
   private readonly auth = inject(Auth);
-  private readonly notificaciones = inject(NotificacionesService);
   private readonly router = inject(Router);
+  protected readonly sesionService = inject(SesionService);
 
   readonly sesion = this.auth.sesion;
 
@@ -48,14 +48,5 @@ export class AdministracionPage {
 
   irASolicitudes(): void {
     this.router.navigate(['/administracion/solicitudes']);
-  }
-
-  async cerrarSesion(): Promise<void> {
-    // Antes de invalidar la sesión: si no, el dispositivo seguía
-    // recibiendo notificaciones de este empleado después de desloguearse.
-    await this.notificaciones.eliminarTokenAlCerrarSesion();
-    await this.auth.logout();
-    // replaceUrl: true → el botón "atrás" del navegador no puede volver a /administracion
-    this.router.navigate(['/bienvenida'], { replaceUrl: true });
   }
 }

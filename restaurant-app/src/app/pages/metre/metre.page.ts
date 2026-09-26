@@ -4,7 +4,7 @@ import { IonButton, IonContent } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular';
 import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
 import { Auth } from '../../core/services/auth';
-import { NotificacionesService } from '../../core/services/notificaciones.service';
+import { SesionService } from '../../core/services/sesion.service';
 
 @Component({
   selector: 'app-metre',
@@ -16,8 +16,8 @@ import { NotificacionesService } from '../../core/services/notificaciones.servic
 export class MetrePage {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
-  private readonly notificaciones = inject(NotificacionesService);
   private readonly toastController = inject(ToastController);
+  protected readonly sesionService = inject(SesionService);
 
   readonly sesion = this.auth.sesion;
 
@@ -40,12 +40,6 @@ export class MetrePage {
 
   listaDeEspera(): void {
     this.router.navigate(['/metre/lista-espera']);
-  }
-
-  async cerrarSesion(): Promise<void> {
-    await this.notificaciones.eliminarTokenAlCerrarSesion();
-    await this.auth.logout();
-    this.router.navigate(['/bienvenida'], { replaceUrl: true });
   }
 
   private async proximamente(): Promise<void> {
