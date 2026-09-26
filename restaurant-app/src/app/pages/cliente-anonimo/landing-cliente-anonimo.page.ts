@@ -46,6 +46,9 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
   /** true cuando intentó cerrar sesión con la mesa ya vinculada — no se
    *  lo dejamos hacer, y le mostramos este cartel en su lugar. */
   readonly avisoMostrador = signal(false);
+  /** Id de la mesa a la que está vinculado (escaneó su QR), o null. Cuando
+   *  hay valor, el botón "Lista de espera" pasa a ser "Mi mesa". */
+  readonly mesaVinculadaId = signal<string | null>(null);
 
   async ngOnInit(): Promise<void> {
     const cliente = await this.clienteAnonimo.obtenerClienteActual();
@@ -117,6 +120,7 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
     const estado = solicitud?.estado ?? null;
     this.cartelAviso.set(this.textoCartel(estado));
     this.estadoCartel.set(estado === 'en_espera' || estado === 'aceptado' ? estado : null);
+    this.mesaVinculadaId.set(estado === 'vinculado' ? solicitud!.mesa_id : null);
   }
 
   private textoCartel(estado: EstadoSolicitudMesa | null): string | null {
@@ -209,15 +213,19 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Si ya hay una solicitud activa, no tiene sentido pedirle que vuelva
-   * a escanear el QR de la entrada — va directo a ver-mesas.page, que
-   * ya muestra su mesa (foto + info) en vez de la lista para elegir.
+   * - Vinculado a una mesa (ya escaneó su QR): va directo a la pantalla
+   *   de su mesa — en ese caso el botón se muestra como "Mi mesa".
+   * - Con una solicitud activa: no tiene sentido pedirle que vuelva a
+   *   escanear el QR de la entrada — va a ver-mesas.page, que ya muestra
+   *   su mesa (foto + info) en vez de la lista para elegir.
    */
   async listaDeEspera(): Promise<void> {
     if (!this.clienteId) return;
     const solicitud = await this.clienteAnonimo.obtenerMiSolicitud(this.clienteId);
 
-    if (solicitud) {
+    if (solicitud?.estado === 'vinculado') {
+      this.router.navigate(['/mesa', solicitud.mesa_id]);
+    } else if (solicitud) {
       this.router.navigate(['/cliente-anonimo/ver-mesas']);
     } else {
       this.router.navigate(['/cliente-anonimo/escaneo-qr']);

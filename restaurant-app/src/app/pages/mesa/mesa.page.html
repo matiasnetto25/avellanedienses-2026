@@ -1,42 +1,99 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>{{ esVistaStaff ? 'Información de mesa' : 'Bienvenido/a' }}</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="rutaVolver()" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ vista() === 'staff' || vista() === 'sinPermiso' ? 'Información de la mesa' : 'Tu mesa' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="mesa-content">
-
   @if (cargando()) {
-    <p class="mesa-mensaje">Cargando…</p>
+    <!-- El spinner global con el logo cubre la espera. -->
   } @else if (noEncontrada()) {
-    <p class="mesa-mensaje">No encontramos esta mesa. Verificá el código QR.</p>
+    <div class="mesa-aviso">
+      <h2 class="mesa-aviso-titulo">Mesa no encontrada</h2>
+      <p class="mesa-aviso-detalle">No encontramos esta mesa. Verificá el código QR.</p>
+      <ion-button expand="block" class="mesa-boton-principal" (click)="volverAlInicio()">Volver al inicio</ion-button>
+    </div>
   } @else if (mesa(); as m) {
+    @switch (vista()) {
 
-    @if (esVistaStaff) {
-      <!-- Vista para metre / mozo / dueño / supervisor -->
-      <div class="mesa-info-card">
-        <h1 class="mesa-info-numero">Mesa {{ m.numero_mesa }}</h1>
-        <ion-badge class="mesa-info-badge">{{ etiquetaTipo(m.tipo) }}</ion-badge>
-        <p class="mesa-info-dato">{{ m.cant_comensales }} comensales</p>
-        <p class="mesa-info-disponibilidad" [class.mesa-info-disponibilidad--ocupada]="m.disponibilidad === 'Ocupada'">
-          {{ m.disponibilidad === 'Ocupada' ? 'Ocupada' : 'Libre' }}
-        </p>
-      </div>
-    } @else {
-      <!-- Hub del cliente -->
-      <div class="mesa-hub">
-        <h1 class="mesa-hub-titulo">Mesa {{ m.numero_mesa }}</h1>
-        <p class="mesa-hub-subtitulo">{{ etiquetaTipo(m.tipo) }} · {{ m.disponibilidad === 'Ocupada' ? 'Ocupada' : 'Libre' }}</p>
+      @case ('staff') {
+        <div class="mesa-pantalla mesa-pantalla--completa">
+          <div class="mesa-imagen-viewport">
+            @if (urlFoto(m); as url) {
+              <img [src]="url" [alt]="'Foto de la Mesa ' + m.numero_mesa" class="mesa-imagen" />
+            } @else {
+              <span class="mesa-imagen-placeholder">Sin foto</span>
+            }
+          </div>
 
-        <div class="mesa-hub-opciones">
-          <ion-button expand="block" fill="outline" (click)="proximamente()">Consultar al mozo</ion-button>
-          <ion-button expand="block" routerLink="/menu">Ver el menú</ion-button>
-          <ion-button expand="block" fill="outline" (click)="proximamente()">Estado de mi pedido</ion-button>
-          <ion-button expand="block" fill="outline" (click)="proximamente()">Encuesta de satisfacción</ion-button>
-          <ion-button expand="block" fill="outline" (click)="proximamente()">Juegos</ion-button>
-          <ion-button expand="block" fill="outline" (click)="proximamente()">Pagar la cuenta</ion-button>
+          <div class="mesa-info">
+            <div class="mesa-info-encabezado">
+              <h1 class="mesa-numero">Mesa {{ m.numero_mesa }}</h1>
+              <ion-badge class="mesa-badge">{{ etiquetaTipo(m.tipo) }}</ion-badge>
+            </div>
+            <p class="mesa-dato">{{ m.cant_comensales }} comensales</p>
+            <p class="mesa-disponibilidad" [class.mesa-disponibilidad--ocupada]="m.disponibilidad === 'Ocupada'">
+              {{ m.disponibilidad === 'Ocupada' ? 'Ocupada' : 'Libre' }}
+            </p>
+          </div>
         </div>
-      </div>
+      }
+
+      @case ('cliente') {
+        <div class="mesa-pantalla">
+          <div class="mesa-imagen-viewport mesa-imagen-viewport--compacta">
+            @if (urlFoto(m); as url) {
+              <img [src]="url" [alt]="'Foto de la Mesa ' + m.numero_mesa" class="mesa-imagen" />
+            } @else {
+              <span class="mesa-imagen-placeholder">Sin foto</span>
+            }
+          </div>
+
+          <div class="mesa-info">
+            <div class="mesa-info-encabezado">
+              <h1 class="mesa-numero">Mesa {{ m.numero_mesa }}</h1>
+              <ion-badge class="mesa-badge">{{ etiquetaTipo(m.tipo) }}</ion-badge>
+            </div>
+            <p class="mesa-dato">{{ m.cant_comensales }} comensales</p>
+
+            <div class="mesa-opciones">
+              <ion-button expand="block" class="mesa-opcion" (click)="proximamente()">Consultar al mozo</ion-button>
+              <ion-button expand="block" class="mesa-opcion" routerLink="/menu">Ver el menú</ion-button>
+              <ion-button expand="block" class="mesa-opcion" (click)="proximamente()">Estado de mi pedido</ion-button>
+              <ion-button expand="block" class="mesa-opcion" (click)="proximamente()">Encuesta de satisfacción</ion-button>
+              <ion-button expand="block" class="mesa-opcion" (click)="proximamente()">Juegos</ion-button>
+              <ion-button expand="block" class="mesa-opcion" (click)="proximamente()">Pagar la cuenta</ion-button>
+            </div>
+          </div>
+        </div>
+      }
+
+      @case ('otraMesa') {
+        <div class="mesa-aviso">
+          <h2 class="mesa-aviso-titulo">Esta no es tu mesa</h2>
+          <p class="mesa-aviso-detalle">Tu mesa asignada es la <strong>Mesa {{ miMesa()?.numero }}</strong>.</p>
+          <ion-button expand="block" class="mesa-boton-principal" (click)="irAMiMesa()">Ir a la Mesa {{ miMesa()?.numero }}</ion-button>
+        </div>
+      }
+
+      @case ('sinMesa') {
+        <div class="mesa-aviso">
+          <h2 class="mesa-aviso-titulo">Todavía no tenés una mesa asignada</h2>
+          <p class="mesa-aviso-detalle">Para usar una mesa, primero anotate en la lista de espera y esperá a que el metre te la asigne.</p>
+          <ion-button expand="block" class="mesa-boton-principal" (click)="volverAlInicio()">Volver al inicio</ion-button>
+        </div>
+      }
+
+      @case ('sinPermiso') {
+        <div class="mesa-aviso">
+          <h2 class="mesa-aviso-titulo">Acceso no disponible</h2>
+          <p class="mesa-aviso-detalle">Tu perfil no tiene acceso a la información de las mesas.</p>
+          <ion-button expand="block" class="mesa-boton-principal" (click)="volverAlInicio()">Volver al inicio</ion-button>
+        </div>
+      }
     }
   }
 </ion-content>

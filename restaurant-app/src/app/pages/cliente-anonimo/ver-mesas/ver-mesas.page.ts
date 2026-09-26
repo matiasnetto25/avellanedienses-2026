@@ -40,6 +40,10 @@ export class VerMesasPage implements OnInit {
     this.router.navigate(['/cliente-anonimo/escaneo-mesa']);
   }
 
+  irAMiMesa(mesaId: string): void {
+    this.router.navigate(['/mesa', mesaId]);
+  }
+
   private clienteId: string | null = null;
   readonly cargandoLista = signal(true);
   readonly mesas = signal<MesaRow[]>([]);

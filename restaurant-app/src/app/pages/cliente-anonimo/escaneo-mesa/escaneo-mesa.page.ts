@@ -41,11 +41,10 @@ export class EscaneoMesaPage implements OnInit {
       this.clienteId = cliente.id;
 
       // Si ya está vinculado, no tiene sentido mostrarle el escaneo de
-      // nuevo — la card con su mesa ya se muestra en ver-mesas.page, así
-      // que directamente lo mandamos ahí.
+      // nuevo: lo mandamos directo a la pantalla de su mesa.
       const solicitud = await this.clienteAnonimo.obtenerMiSolicitud(cliente.id);
       if (solicitud?.estado === 'vinculado') {
-        this.router.navigate(['/cliente-anonimo/ver-mesas'], { replaceUrl: true });
+        this.router.navigate(['/mesa', solicitud.mesa_id], { replaceUrl: true });
       }
     } finally {
       this.loading.ocultar();
@@ -75,7 +74,7 @@ export class EscaneoMesaPage implements OnInit {
         return;
       }
 
-      this.router.navigate(['/cliente-anonimo/ver-mesas'], { replaceUrl: true });
+      this.router.navigate(['/mesa', resultado.mesaId], { replaceUrl: true });
     } finally {
       this.escaneando = false;
     }

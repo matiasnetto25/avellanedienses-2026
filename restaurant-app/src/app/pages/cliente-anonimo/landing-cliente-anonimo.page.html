@@ -4,7 +4,7 @@
       <app-marca-header />
       <div class="cocina-navbar-acciones">
         <ion-button fill="solid" class="cocina-navbar-item" (click)="listaDeEspera()">
-          Lista de espera
+          {{ mesaVinculadaId() ? 'Mi mesa' : 'Lista de espera' }}
         </ion-button>
         <ion-button fill="solid" class="cocina-navbar-item" (click)="menu()">
           Menú

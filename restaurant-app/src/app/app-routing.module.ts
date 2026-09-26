@@ -139,6 +139,13 @@ const routes: Routes = [
     loadComponent: () => import('./pages/cliente-anonimo/ver-mesas/ver-mesas.page').then(m => m.VerMesasPage)
   },
   {
+    path: 'mesa/:idMesa',
+    // Sin guard: la abren tanto el personal (sesión de Auth) como el
+    // cliente anónimo (sin sesión) — el componente decide qué mostrar
+    // según quién es y si está vinculado a ESTA mesa.
+    loadComponent: () => import('./pages/mesa/mesa.page').then(m => m.MesaPage)
+  },
+  {
     path: '**',
     redirectTo: 'bienvenida'
   }
