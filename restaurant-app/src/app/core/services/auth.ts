@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { SupabaseService } from './supabase.service';
+import { SonidosService } from './sonidos.service';
 import {
   EmpleadoRow,
   EmpleadoSesion,
@@ -30,6 +31,7 @@ const CLAVE_INICIO_SESION = 'merlot_sesion_inicio';
 export class Auth {
   private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
+  private readonly sonidos = inject(SonidosService);
 
   private readonly _sesion = signal<EmpleadoSesion | null>(null);
   readonly sesion = this._sesion.asReadonly();
@@ -343,20 +345,10 @@ export class Auth {
     this._sesion.set(null);
 
     if (opciones.sonido) {
-      this.reproducirSonidoCierre();
+      this.sonidos.cierreSesion();
     }
     if (opciones.redirigir) {
       this.router.navigate(['/login'], { replaceUrl: true });
-    }
-  }
-
-  private reproducirSonidoCierre(): void {
-    try {
-      new Audio('assets/sounds/cierre.mp3').play().catch(() => {
-        // Reproducción bloqueada por el navegador/WebView — no es crítico.
-      });
-    } catch {
-      // Ídem: nunca debe romper el flujo de cierre de sesión.
     }
   }
 }
