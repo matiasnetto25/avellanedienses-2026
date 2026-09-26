@@ -70,6 +70,11 @@ export class NotificacionesService {
       // Se usa un toast propio (no avisos.info(), que va abajo) para que
       // las push aparezcan arriba, como una notificación real.
       PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
+        // Si ya está en la pantalla a la que apunta la push (por ejemplo,
+        // el chat de esa mesa), el cambio llega por Realtime: no se repite.
+        const ruta = notification.data?.['ruta'] as string | undefined;
+        if (ruta && this.router.url === ruta) return;
+
         this.mostrarToastPush(notification.title ?? notification.body ?? 'Tenés una notificación nueva.');
       });
 

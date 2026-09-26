@@ -68,6 +68,9 @@ export class MesaPage implements OnInit {
   /** Mesa a la que realmente está vinculado el cliente (solo en la vista 'otraMesa'). */
   readonly miMesa = signal<{ id: string; numero: number } | null>(null);
 
+  /** Estadía del cliente en esta mesa (solo en la vista 'cliente'): abre su chat con el mozo. */
+  readonly solicitudId = signal<string | null>(null);
+
   /** A dónde vuelve el botón atrás: panel del empleado o pantalla principal del cliente. */
   readonly rutaVolver = signal('/bienvenida');
 
@@ -125,6 +128,7 @@ export class MesaPage implements OnInit {
       return;
     }
 
+    this.solicitudId.set(solicitud.id);
     this.vista.set('cliente');
   }
 

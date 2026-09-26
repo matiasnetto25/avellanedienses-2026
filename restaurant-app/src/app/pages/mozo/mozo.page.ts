@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { IonButton, IonContent } from '@ionic/angular/standalone';
 import { ToastController } from '@ionic/angular';
 import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
@@ -9,7 +9,7 @@ import { NotificacionesService } from '../../core/services/notificaciones.servic
 @Component({
   selector: 'app-mozo',
   standalone: true,
-  imports: [IonContent, IonButton, MarcaHeaderComponent],
+  imports: [IonContent, IonButton, RouterLink, MarcaHeaderComponent],
   templateUrl: './mozo.page.html',
   styleUrls: ['./mozo.page.scss'],
 })

@@ -1,0 +1,63 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="rutaVolver()" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      @if (conversacion(); as c) {
+        <span class="chat-titulo">Mesa {{ c.numero_mesa }}</span>
+        <span class="chat-subtitulo">
+          {{ rol() === 'mozo' ? c.cliente_nombre : 'Consultas al mozo' }}
+        </span>
+      } @else {
+        <span class="chat-titulo">Consultas al mozo</span>
+      }
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="chat-content">
+  @if (!cargando()) {
+    @if (mensajes().length === 0) {
+      <p class="chat-vacio">
+        {{ rol() === 'mozo' ? 'Esta mesa todavía no hizo consultas.' : 'Escribí tu consulta y un mozo te va a responder.' }}
+      </p>
+    }
+
+    <div class="chat-lista">
+      @for (m of mensajes(); track m.id) {
+        <div class="chat-burbuja" [class.chat-burbuja--propia]="esPropio(m)">
+          <p class="chat-meta">{{ autor(m) }} · {{ m.created_at | date: 'dd/MM/yyyy HH:mm' }}</p>
+          <p class="chat-texto">{{ m.texto }}</p>
+        </div>
+      }
+    </div>
+  }
+</ion-content>
+
+@if (rol()) {
+  <ion-footer class="chat-footer ion-no-border">
+    <div class="chat-redactor">
+      <ion-textarea
+        class="chat-campo"
+        [ngModel]="texto()"
+        (ngModelChange)="texto.set($event ?? '')"
+        [autoGrow]="true"
+        [rows]="1"
+        [maxlength]="maxCaracteres"
+        [counter]="texto().length > maxCaracteres - 50"
+        [placeholder]="rol() === 'mozo' ? 'Escribí tu respuesta…' : 'Escribí tu consulta…'"
+        [disabled]="enviando()"
+      ></ion-textarea>
+      <ion-button
+        class="chat-enviar"
+        shape="round"
+        [disabled]="!puedeEnviar()"
+        (click)="enviar()"
+        aria-label="Enviar"
+      >
+        <ion-icon slot="icon-only" name="send-outline"></ion-icon>
+      </ion-button>
+    </div>
+  </ion-footer>
+}

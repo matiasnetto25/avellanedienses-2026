@@ -1,0 +1,66 @@
+ion-toolbar {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+}
+
+.conv-content {
+  --background: var(--brand-background);
+}
+
+.conv-vacio {
+  margin: 32px 24px 0;
+  text-align: center;
+  color: var(--brand-text);
+  opacity: 0.7;
+}
+
+.conv-lista {
+  padding: 0;
+  background: transparent;
+}
+
+.conv-item {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+  --border-color: color-mix(in srgb, var(--brand-text) 12%, transparent);
+}
+
+// Consultas esperando respuesta: franja de color a la izquierda.
+.conv-item--sin-responder {
+  --background: color-mix(in srgb, var(--brand-accent) 8%, var(--brand-background));
+  border-left: 4px solid var(--brand-accent);
+}
+
+.conv-mesa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--brand-font-subtitle);
+  font-weight: 600;
+}
+
+.conv-badge {
+  --background: var(--brand-accent);
+  --color: var(--brand-floral-white);
+  font-size: 0.7rem;
+}
+
+.conv-cliente {
+  color: var(--brand-text);
+  opacity: 0.8;
+}
+
+.conv-extracto {
+  color: var(--brand-text);
+  opacity: 0.65;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conv-hora {
+  align-self: flex-start;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: var(--brand-text);
+}

@@ -146,6 +146,17 @@ const routes: Routes = [
     loadComponent: () => import('./pages/mesa/mesa.page').then(m => m.MesaPage)
   },
   {
+    path: 'consultas',
+    canActivate: [mozoGuard],
+    loadComponent: () => import('./pages/consultas/conversaciones/conversaciones.page').then(m => m.ConversacionesPage)
+  },
+  {
+    path: 'consultas/:solicitudId',
+    // Sin guard: la usan el cliente de la estadía (anónimo, sin sesión) y
+    // los mozos — el componente resuelve quién es y si puede entrar.
+    loadComponent: () => import('./pages/consultas/chat/chat.page').then(m => m.ChatPage)
+  },
+  {
     path: '**',
     redirectTo: 'bienvenida'
   }
