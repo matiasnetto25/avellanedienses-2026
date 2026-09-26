@@ -1,3 +1,10 @@
+// Encabezado con el fondo de la marca (por defecto Ionic lo pinta blanco,
+// y la consigna no admite fondos blancos).
+ion-toolbar {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+}
+
 ion-content::part(scroll) {
   scroll-snap-type: y mandatory;
 
@@ -49,6 +56,16 @@ ion-content::part(scroll) {
    */
   scroll-snap-align: start;
   scroll-snap-stop: always;
+}
+
+.menu-vacio {
+  margin: 0;
+  padding: 48px 24px;
+  text-align: center;
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .pagina-menu app-producto-card {

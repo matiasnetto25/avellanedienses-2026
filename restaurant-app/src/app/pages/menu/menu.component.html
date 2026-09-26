@@ -5,7 +5,7 @@
         <ion-icon slot="icon-only" name="arrow-back-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Nuestro Menú</ion-title>
+    <ion-title>Nuestro Menú{{ numeroMesa ? ' · Mesa ' + numeroMesa : '' }}</ion-title>
   </ion-toolbar>
   <ion-toolbar>
     <ion-segment
@@ -38,7 +38,7 @@
     </div>
   </div>
 
-  <p class="menu-vacio" *ngIf="productosFiltrados.length === 0">
+  <p class="menu-vacio" *ngIf="!cargando && productosFiltrados.length === 0">
     No hay productos disponibles en esta categoría por el momento.
   </p>
 </ion-content>

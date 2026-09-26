@@ -1,5 +1,6 @@
 import { CommonModule, Location } from '@angular/common';
 import { Component, HostListener, OnInit, ViewChild, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import {
   IonContent,
   IonHeader,
@@ -46,8 +47,19 @@ export class MenuComponent implements OnInit {
   private readonly avisos = inject(AvisosService);
   private readonly loading = inject(LoadingService);
   private readonly location = inject(Location);
+  private readonly route = inject(ActivatedRoute);
 
   categoriaSeleccionada: CategoriaProducto = 'comida';
+
+  /** true mientras se traen los productos: evita mostrar "no hay productos" antes de tiempo. */
+  cargando = true;
+
+  /**
+   * Número de mesa cuando la carta se abre desde la pantalla de la mesa
+   * (/menu?mesa=5). Es solo informativo, para el encabezado; null si se
+   * abrió desde otro lado.
+   */
+  readonly numeroMesa = this.leerNumeroMesa();
 
   productos: Producto[] = [];
   productosFiltrados: Producto[] = [];
@@ -68,6 +80,7 @@ export class MenuComponent implements OnInit {
       console.error('Error cargando el menú:', error);
       await this.avisos.error('No se pudo cargar el menú. Probá de nuevo.');
     } finally {
+      this.cargando = false;
       this.loading.ocultar();
     }
 
@@ -98,6 +111,11 @@ private async medirAlturaDisponible(): Promise<void> {
     `${altura}px`
   );
 }
+
+  private leerNumeroMesa(): number | null {
+    const valor = Number(this.route.snapshot.queryParamMap.get('mesa'));
+    return Number.isInteger(valor) && valor > 0 ? valor : null;
+  }
 
   volver(): void {
     this.location.back();

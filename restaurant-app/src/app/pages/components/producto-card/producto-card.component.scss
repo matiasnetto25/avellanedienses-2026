@@ -233,12 +233,11 @@
 
   margin: 8px 0 12px;
 
-  display: -webkit-box;
-
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-
-  overflow: hidden;
+  /*
+   * Sin recorte de líneas: la consigna no admite texto cortado. La
+   * descripción siempre se ve completa y la foto (flex: 1) se achica
+   * para dejarle lugar.
+   */
 }
 
 .producto-tiempo {
