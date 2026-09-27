@@ -59,7 +59,7 @@ export class GestionMesasPage implements OnInit {
   @ViewChild(IonContent) private readonly ionContent!: IonContent;
   private readonly fb = inject(FormBuilder);
   private readonly avisos = inject(AvisosService);
-  private readonly camara = inject(CamaraService);
+  protected readonly camara = inject(CamaraService);
   private readonly mesasService = inject(MesasService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
@@ -73,7 +73,6 @@ export class GestionMesasPage implements OnInit {
   readonly mesaEnEdicion = signal<string | null>(null);
   readonly fotoNuevaDataUrl = signal<string | null>(null);
   readonly guardandoEdicion = signal(false);
-  readonly tomandoFoto = signal(false);
 
   /**
    * Siempre 1 mesa por página (una card grande por pantalla) — no
@@ -243,18 +242,8 @@ export class GestionMesasPage implements OnInit {
   }
 
   async tomarNuevaFoto(): Promise<void> {
-    if (this.tomandoFoto()) return;
-    this.tomandoFoto.set(true);
-    try {
-      const resultado = await this.camara.tomarFoto();
-      if (resultado.ok && resultado.dataUrl) {
-        this.fotoNuevaDataUrl.set(resultado.dataUrl);
-      } else if (!resultado.cancelado) {
-        await this.avisos.error(resultado.mensaje ?? 'No se pudo tomar la foto.');
-      }
-    } finally {
-      this.tomandoFoto.set(false);
-    }
+    const foto = await this.camara.tomarFotoConAviso();
+    if (foto) this.fotoNuevaDataUrl.set(foto);
   }
 
   async guardarEdicion(mesa: MesaRow): Promise<void> {

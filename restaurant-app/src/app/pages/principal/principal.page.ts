@@ -21,7 +21,7 @@ export class PrincipalPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly avisos = inject(AvisosService);
-  private readonly camara = inject(CamaraService);
+  protected readonly camara = inject(CamaraService);
   private readonly clienteAnonimo = inject(ClienteAnonimoService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
@@ -29,7 +29,6 @@ export class PrincipalPage implements OnInit {
   /** true mientras se decide si hay que mostrar el form o saltar directo. */
   readonly verificando = signal(true);
   readonly fotoDataUrl = signal<string | null>(null);
-  tomandoFoto = false;
   cargando = false;
 
   readonly form: FormGroup = this.fb.group({
@@ -52,18 +51,8 @@ export class PrincipalPage implements OnInit {
   }
 
   async tomarFoto(): Promise<void> {
-    if (this.tomandoFoto) return;
-    this.tomandoFoto = true;
-    try {
-      const resultado = await this.camara.tomarFoto();
-      if (resultado.ok && resultado.dataUrl) {
-        this.fotoDataUrl.set(resultado.dataUrl);
-      } else if (!resultado.cancelado) {
-        await this.avisos.error(resultado.mensaje ?? 'No se pudo tomar la foto.');
-      }
-    } finally {
-      this.tomandoFoto = false;
-    }
+    const foto = await this.camara.tomarFotoConAviso();
+    if (foto) this.fotoDataUrl.set(foto);
   }
 
   volverATomarFoto(): void {

@@ -31,7 +31,7 @@
             <img [src]="foto" alt="Tu foto" class="principal-foto-img" />
           } @else {
             <div class="principal-foto-placeholder">
-              <span>{{ tomandoFoto ? 'Abriendo cámara…' : 'Tu foto va a aparecer acá' }}</span>
+              <span>{{ camara.abriendo() ? 'Abriendo cámara…' : 'Tu foto va a aparecer acá' }}</span>
             </div>
           }
         </div>
@@ -41,8 +41,8 @@
             Volver a tomar foto
           </ion-button>
         } @else {
-          <ion-button expand="block" fill="outline" type="button" [disabled]="tomandoFoto" (click)="tomarFoto()">
-            {{ tomandoFoto ? 'Abriendo cámara…' : 'Tomar foto' }}
+          <ion-button expand="block" fill="outline" type="button" [disabled]="camara.abriendo()" (click)="tomarFoto()">
+            {{ camara.abriendo() ? 'Abriendo cámara…' : 'Tomar foto' }}
           </ion-button>
         }
       </div>

@@ -107,7 +107,7 @@
         } @else {
           <div class="registro-foto-placeholder">
             <ion-icon name="camera-outline"></ion-icon>
-            <span>{{ tomandoFoto ? 'Abriendo cámara…' : 'Tu foto va a aparecer acá' }}</span>
+            <span>{{ camara.abriendo() ? 'Abriendo cámara…' : 'Tu foto va a aparecer acá' }}</span>
           </div>
         }
       </div>
@@ -122,11 +122,11 @@
           fill="outline"
           class="registro-boton-foto"
           type="button"
-          [disabled]="tomandoFoto"
+          [disabled]="camara.abriendo()"
           (click)="tomarFoto()"
         >
           <ion-icon slot="start" name="camera-outline"></ion-icon>
-          {{ tomandoFoto ? 'Abriendo cámara…' : 'Tomar foto' }}
+          {{ camara.abriendo() ? 'Abriendo cámara…' : 'Tomar foto' }}
         </ion-button>
       }
     </section>

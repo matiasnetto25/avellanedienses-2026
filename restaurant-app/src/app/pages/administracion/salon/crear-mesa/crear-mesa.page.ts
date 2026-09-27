@@ -50,14 +50,13 @@ import { TIPOS_MESA, MesaRow } from '../../../../core/models/mesa.model';
 export class CrearMesaPage {
   private readonly fb = inject(FormBuilder);
   private readonly avisos = inject(AvisosService);
-  private readonly camara = inject(CamaraService);
+  protected readonly camara = inject(CamaraService);
   private readonly mesasService = inject(MesasService);
   private readonly loading = inject(LoadingService);
 
   readonly tiposMesa = TIPOS_MESA;
 
   cargando = false;
-  tomandoFoto = false;
 
   readonly fotoDataUrl = signal<string | null>(null);
   /** URL pública del QR ya persistido en Storage (se llena después de crear la mesa) */
@@ -94,18 +93,8 @@ export class CrearMesaPage {
   }
 
   async tomarFoto(): Promise<void> {
-    if (this.tomandoFoto) return;
-    this.tomandoFoto = true;
-    try {
-      const resultado = await this.camara.tomarFoto();
-      if (resultado.ok && resultado.dataUrl) {
-        this.fotoDataUrl.set(resultado.dataUrl);
-      } else if (!resultado.cancelado) {
-        await this.avisos.error(resultado.mensaje ?? 'No se pudo tomar la foto.');
-      }
-    } finally {
-      this.tomandoFoto = false;
-    }
+    const foto = await this.camara.tomarFotoConAviso();
+    if (foto) this.fotoDataUrl.set(foto);
   }
 
   volverATomarFoto(): void {

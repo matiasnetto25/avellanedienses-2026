@@ -78,8 +78,8 @@
                       <img [src]="fotoNueva" alt="Nueva foto de la mesa" />
                     </div>
                   }
-                  <ion-button expand="block" fill="outline" type="button" [disabled]="tomandoFoto()" (click)="tomarNuevaFoto()">
-                    {{ tomandoFoto() ? 'Abriendo cámara…' : (fotoNuevaDataUrl() ? 'Volver a tomar foto' : 'Cambiar foto') }}
+                  <ion-button expand="block" fill="outline" type="button" [disabled]="camara.abriendo()" (click)="tomarNuevaFoto()">
+                    {{ camara.abriendo() ? 'Abriendo cámara…' : (fotoNuevaDataUrl() ? 'Volver a tomar foto' : 'Cambiar foto') }}
                   </ion-button>
 
                   <div class="mesa-acciones-edicion">

@@ -1,6 +1,7 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { AlertController } from '@ionic/angular';
+import { AvisosService } from './avisos.service';
 
 export interface ResultadoFoto {
   ok: boolean;
@@ -15,6 +16,44 @@ export interface ResultadoFoto {
 @Injectable({ providedIn: 'root' })
 export class CamaraService {
   private readonly alertController = inject(AlertController);
+  private readonly avisos = inject(AvisosService);
+
+  private readonly _abriendo = signal(false);
+  /** true mientras la cámara o la galería están abiertas: sirve para
+   *  deshabilitar el botón y mostrar «Abriendo cámara…». */
+  readonly abriendo = this._abriendo.asReadonly();
+
+  /**
+   * Lo que usan los formularios: saca la foto con la cámara y devuelve su
+   * dataUrl. Si el usuario cancela devuelve null sin aviso; si falla (o no
+   * hay permiso), muestra el error con vibración y devuelve null. Un
+   * segundo toque mientras la cámara está abierta no hace nada.
+   */
+  tomarFotoConAviso(): Promise<string | null> {
+    return this.conAviso(() => this.tomarFoto());
+  }
+
+  /** Igual que tomarFotoConAviso(), pero deja elegir cámara o galería. */
+  seleccionarFotoConAviso(): Promise<string | null> {
+    return this.conAviso(() => this.seleccionarFoto());
+  }
+
+  private async conAviso(obtener: () => Promise<ResultadoFoto>): Promise<string | null> {
+    if (this._abriendo()) return null;
+    this._abriendo.set(true);
+    try {
+      const resultado = await obtener();
+      if (resultado.ok && resultado.dataUrl) {
+        return resultado.dataUrl;
+      }
+      if (!resultado.cancelado) {
+        await this.avisos.error(resultado.mensaje ?? 'No se pudo tomar la foto.');
+      }
+      return null;
+    } finally {
+      this._abriendo.set(false);
+    }
+  }
 
   /** Fuerza cámara únicamente — usar para foto de empleado, mesa y DNI. */
   async tomarFoto(): Promise<ResultadoFoto> {

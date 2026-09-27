@@ -82,7 +82,7 @@
             } @else {
               <div class="menu-item-foto-placeholder">
                 <ion-icon name="camera-outline"></ion-icon>
-                <span>{{ subiendoFoto === item.campo ? 'Abriendo…' : 'Tocá para elegir' }}</span>
+                <span>{{ (camara.abriendo() && campoEligiendo === item.campo) ? 'Abriendo…' : 'Tocá para elegir' }}</span>
               </div>
             }
           </div>
@@ -93,7 +93,7 @@
             size="small"
             type="button"
             class="menu-item-foto-boton"
-            [disabled]="subiendoFoto === item.campo"
+            [disabled]="(camara.abriendo() && campoEligiendo === item.campo)"
             (click)="elegirFoto(item.campo)"
           >
             <ion-icon slot="start" name="camera-outline"></ion-icon>

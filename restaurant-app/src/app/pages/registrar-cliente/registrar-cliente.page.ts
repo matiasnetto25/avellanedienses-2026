@@ -73,7 +73,7 @@ export class RegistrarClientePage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(Auth);
   private readonly avisos = inject(AvisosService);
-  private readonly camara = inject(CamaraService);
+  protected readonly camara = inject(CamaraService);
   private readonly dniScanner = inject(DniScannerService);
   private readonly clientesService = inject(ClientesService);
   private readonly notificaciones = inject(NotificacionesService);
@@ -82,7 +82,6 @@ export class RegistrarClientePage {
 
   cargando = false;
   escaneando = false;
-  tomandoFoto = false;
 
   readonly fotoDataUrl = signal<string | null>(null);
   readonly registroExitoso = signal(false);
@@ -148,18 +147,8 @@ export class RegistrarClientePage {
   }
 
   async tomarFoto(): Promise<void> {
-    if (this.tomandoFoto) return;
-    this.tomandoFoto = true;
-    try {
-      const resultado = await this.camara.tomarFoto();
-      if (resultado.ok && resultado.dataUrl) {
-        this.fotoDataUrl.set(resultado.dataUrl);
-      } else if (!resultado.cancelado) {
-        await this.avisos.error(resultado.mensaje ?? 'No se pudo tomar la foto.');
-      }
-    } finally {
-      this.tomandoFoto = false;
-    }
+    const foto = await this.camara.tomarFotoConAviso();
+    if (foto) this.fotoDataUrl.set(foto);
   }
 
   volverATomarFoto(): void {

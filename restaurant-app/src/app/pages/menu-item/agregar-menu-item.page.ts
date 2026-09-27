@@ -73,7 +73,7 @@ export class AgregarMenuItemPage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(Auth);
   private readonly avisos = inject(AvisosService);
-  private readonly camara = inject(CamaraService);
+  protected readonly camara = inject(CamaraService);
   private readonly menuItemsService = inject(MenuItemsService);
   private readonly loading = inject(LoadingService);
 
@@ -86,7 +86,8 @@ export class AgregarMenuItemPage {
   ];
 
   cargando = false;
-  subiendoFoto: CampoFoto | null = null;
+  /** Cuál de las 3 fotos se está eligiendo (para el «Abriendo…» de ese recuadro). */
+  campoEligiendo: CampoFoto | null = null;
 
   readonly fotos = signal<Record<CampoFoto, string | null>>({
     principal: null,
@@ -140,18 +141,10 @@ export class AgregarMenuItemPage {
   }
 
   async elegirFoto(campo: CampoFoto): Promise<void> {
-    if (this.subiendoFoto) return;
-    this.subiendoFoto = campo;
-    try {
-      const resultado = await this.camara.seleccionarFoto();
-      if (resultado.ok && resultado.dataUrl) {
-        this.fotos.update((f) => ({ ...f, [campo]: resultado.dataUrl! }));
-      } else if (!resultado.cancelado) {
-        await this.avisos.error(resultado.mensaje ?? 'No se pudo obtener la imagen.');
-      }
-    } finally {
-      this.subiendoFoto = null;
-    }
+    if (this.camara.abriendo()) return;
+    this.campoEligiendo = campo;
+    const foto = await this.camara.seleccionarFotoConAviso();
+    if (foto) this.fotos.update((f) => ({ ...f, [campo]: foto }));
   }
 
   async onSubmit(): Promise<void> {
