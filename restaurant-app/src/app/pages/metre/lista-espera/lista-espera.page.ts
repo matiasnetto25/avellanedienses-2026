@@ -13,7 +13,7 @@ import {
 } from '@ionic/angular/standalone';
 import { AlturaDisponibleDirective } from '../../../shared/directives/altura-disponible.directive';
 import { AvisosService } from '../../../core/services/avisos.service';
-import { ClienteAnonimoService } from '../../../core/services/cliente-anonimo.service';
+import { SolicitudesMesaService } from '../../../core/services/solicitudes-mesa.service';
 import { ClientesService } from '../../../core/services/clientes.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { LoadingService } from '../../../core/services/loading.service';
@@ -41,7 +41,7 @@ import { FilaListaEspera } from '../../../core/models/solicitud-mesa.model';
 })
 export class ListaEsperaPage implements OnInit {
   private readonly avisos = inject(AvisosService);
-  private readonly clienteAnonimo = inject(ClienteAnonimoService);
+  private readonly solicitudesMesa = inject(SolicitudesMesaService);
   private readonly clientes = inject(ClientesService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
@@ -60,7 +60,7 @@ export class ListaEsperaPage implements OnInit {
     this.cargandoLista.set(true);
     this.loading.mostrar();
     try {
-      this.filas.set(await this.clienteAnonimo.listarListaEspera());
+      this.filas.set(await this.solicitudesMesa.listarListaEspera());
     } finally {
       this.cargandoLista.set(false);
       this.loading.ocultar();
@@ -76,7 +76,7 @@ export class ListaEsperaPage implements OnInit {
     this.loading.mostrar();
 
     try {
-      const resultado = await this.clienteAnonimo.aceptarSolicitud(fila.id);
+      const resultado = await this.solicitudesMesa.aceptarSolicitud(fila.id);
 
       if (!resultado.ok) {
         await this.avisos.error(resultado.mensaje ?? 'No se pudo aceptar la solicitud.');
@@ -99,7 +99,7 @@ export class ListaEsperaPage implements OnInit {
     this.loading.mostrar();
 
     try {
-      const resultado = await this.clienteAnonimo.rechazarSolicitud(fila.id);
+      const resultado = await this.solicitudesMesa.rechazarSolicitud(fila.id);
 
       if (!resultado.ok) {
         await this.avisos.error(resultado.mensaje ?? 'No se pudo rechazar la solicitud.');

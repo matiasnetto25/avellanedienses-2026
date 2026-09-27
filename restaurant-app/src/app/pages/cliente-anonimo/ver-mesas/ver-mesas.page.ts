@@ -5,6 +5,7 @@ import { IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons,
 import { AlturaDisponibleDirective } from '../../../shared/directives/altura-disponible.directive';
 import { AvisosService } from '../../../core/services/avisos.service';
 import { ClienteAnonimoService } from '../../../core/services/cliente-anonimo.service';
+import { SolicitudesMesaService } from '../../../core/services/solicitudes-mesa.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { LoadingService } from '../../../core/services/loading.service';
 import { MesasService } from '../../../core/services/mesas.service';
@@ -22,6 +23,7 @@ export class VerMesasPage implements OnInit {
   private readonly router = inject(Router);
   private readonly avisos = inject(AvisosService);
   private readonly clienteAnonimo = inject(ClienteAnonimoService);
+  private readonly solicitudesMesa = inject(SolicitudesMesaService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
   private readonly mesasService = inject(MesasService);
@@ -66,11 +68,11 @@ export class VerMesasPage implements OnInit {
       }
       this.clienteId = cliente.id;
 
-      const solicitud = await this.clienteAnonimo.obtenerMiSolicitud(cliente.id);
+      const solicitud = await this.solicitudesMesa.obtenerMiSolicitud(cliente.id);
       this.miSolicitud.set(solicitud);
 
       if (!solicitud) {
-        this.mesas.set(await this.clienteAnonimo.listarMesas());
+        this.mesas.set(await this.solicitudesMesa.listarMesasParaSolicitar());
       }
     } finally {
       this.cargandoLista.set(false);
@@ -84,7 +86,7 @@ export class VerMesasPage implements OnInit {
     this.loading.mostrar();
 
     try {
-      const resultado = await this.clienteAnonimo.crearSolicitud(this.clienteId, mesa.id);
+      const resultado = await this.solicitudesMesa.crearSolicitud(this.clienteId, mesa.id);
 
       if (!resultado.ok) {
         await this.avisos.error(resultado.mensaje ?? 'No se pudo solicitar la mesa.');

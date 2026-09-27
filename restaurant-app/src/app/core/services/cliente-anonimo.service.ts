@@ -3,15 +3,9 @@ import { Preferences } from '@capacitor/preferences';
 import { SupabaseService } from './supabase.service';
 import { NotificacionesService } from './notificaciones.service';
 import { ClientesService } from './clientes.service';
-import { MiSolicitud, FilaListaEspera } from '../models/solicitud-mesa.model';
-import { MesaRow } from '../models/mesa.model';
+import { ResultadoOperacion } from '../models/resultado-operacion';
 
 const CLAVE_CLIENTE_ANONIMO_ID = 'merlot_cliente_anonimo_id';
-
-export interface ResultadoOperacion {
-  ok: boolean;
-  mensaje?: string;
-}
 
 export interface ClienteAnonimoActual {
   id: string;
@@ -106,98 +100,6 @@ export class ClienteAnonimoService {
     if (error) {
       console.error('Error registrando push token de cliente anónimo:', error);
     }
-  }
-
-  // ===== Mesas y solicitudes (todo vía RPC) =====
-
-  async listarMesasLibres(): Promise<MesaRow[]> {
-    const { data, error } = await this.supabase.client.rpc('obtener_mesas_libres');
-    if (error) {
-      console.error('Error listando mesas libres:', error);
-      return [];
-    }
-    return (data ?? []) as MesaRow[];
-  }
-
-  /** Todas las mesas (libres u ocupadas) — el cliente puede pedir
-   *  cualquiera, aunque esté ocupada en este momento. */
-  async listarMesas(): Promise<MesaRow[]> {
-    const { data, error } = await this.supabase.client.rpc('obtener_todas_mesas');
-    if (error) {
-      console.error('Error listando mesas:', error);
-      return [];
-    }
-    return (data ?? []) as MesaRow[];
-  }
-
-  async obtenerMiSolicitud(clienteId: string): Promise<MiSolicitud | null> {
-    const { data, error } = await this.supabase.client.rpc('obtener_mi_solicitud', {
-      p_cliente_id: clienteId,
-    });
-    if (error) {
-      console.error('Error obteniendo mi solicitud:', error);
-      return null;
-    }
-    return (data as MiSolicitud) ?? null;
-  }
-
-  async crearSolicitud(clienteId: string, mesaId: string): Promise<ResultadoOperacion> {
-    const { data, error } = await this.supabase.client.rpc('crear_solicitud_mesa', {
-      p_cliente_id: clienteId,
-      p_mesa_id: mesaId,
-    });
-    if (error) {
-      console.error('Error creando solicitud:', error);
-      return { ok: false, mensaje: 'No se pudo crear la solicitud.' };
-    }
-    return data as ResultadoOperacion;
-  }
-
-  /** El cliente escaneó el QR de una mesa — confirma que sea la que le
-   *  asignaron y la marca como 'vinculado' si corresponde. */
-  async vincularMesa(clienteId: string, mesaIdEscaneada: string): Promise<ResultadoOperacion> {
-    const { data, error } = await this.supabase.client.rpc('vincular_mesa', {
-      p_cliente_id: clienteId,
-      p_mesa_id_escaneada: mesaIdEscaneada,
-    });
-    if (error) {
-      console.error('Error vinculando mesa:', error);
-      return { ok: false, mensaje: 'No se pudo vincular la mesa.' };
-    }
-    return data as ResultadoOperacion;
-  }
-
-  // ===== Lado del metre =====
-
-  async listarListaEspera(): Promise<FilaListaEspera[]> {
-    const { data, error } = await this.supabase.client.rpc('listar_lista_espera');
-    if (error) {
-      console.error('Error listando lista de espera:', error);
-      return [];
-    }
-    return (data as FilaListaEspera[]) ?? [];
-  }
-
-  async aceptarSolicitud(solicitudId: string): Promise<ResultadoOperacion & { clienteId?: string }> {
-    const { data, error } = await this.supabase.client.rpc('aceptar_solicitud_mesa', {
-      p_solicitud_id: solicitudId,
-    });
-    if (error) {
-      console.error('Error aceptando solicitud:', error);
-      return { ok: false, mensaje: 'No se pudo aceptar la solicitud.' };
-    }
-    return data as ResultadoOperacion & { clienteId?: string };
-  }
-
-  async rechazarSolicitud(solicitudId: string): Promise<ResultadoOperacion & { clienteId?: string }> {
-    const { data, error } = await this.supabase.client.rpc('rechazar_solicitud_mesa', {
-      p_solicitud_id: solicitudId,
-    });
-    if (error) {
-      console.error('Error rechazando solicitud:', error);
-      return { ok: false, mensaje: 'No se pudo rechazar la solicitud.' };
-    }
-    return data as ResultadoOperacion & { clienteId?: string };
   }
 
   // ===== Cierre de sesión / baja de cuenta =====
