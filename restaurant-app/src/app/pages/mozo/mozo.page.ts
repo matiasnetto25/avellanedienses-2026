@@ -1,31 +1,25 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { IonButton, IonContent } from '@ionic/angular/standalone';
-import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
+import { Component, computed, inject } from '@angular/core';
+import { PanelInicioComponent, AccionPanel } from '../../shared/components/panel-inicio/panel-inicio.component';
 import { Auth } from '../../core/services/auth';
 import { AvisosService } from '../../core/services/avisos.service';
-import { SesionService } from '../../core/services/sesion.service';
+import { nombreCompleto } from '../../core/utils/nombre-completo';
 
 @Component({
   selector: 'app-mozo',
   standalone: true,
-  imports: [IonContent, IonButton, RouterLink, MarcaHeaderComponent],
+  imports: [PanelInicioComponent],
   templateUrl: './mozo.page.html',
-  styleUrls: ['./mozo.page.scss'],
 })
 export class MozoPage {
-  private readonly auth = inject(Auth);
-  protected readonly avisos = inject(AvisosService);
-  protected readonly sesionService = inject(SesionService);
+  private readonly sesion = inject(Auth).sesion;
+  private readonly avisos = inject(AvisosService);
 
-  readonly sesion = this.auth.sesion;
+  readonly nombre = computed(() => nombreCompleto(this.sesion() ?? { nombre: '' }));
+  readonly foto = computed(() => this.sesion()?.foto ?? null);
 
-  get nombreCompleto(): string {
-    const s = this.sesion();
-    return s ? `${s.nombre} ${s.apellido}` : '';
-  }
-
-  get fotoEmpleado(): string | null {
-    return this.sesion()?.foto ?? null;
-  }
+  readonly acciones: AccionPanel[] = [
+    { texto: 'Consultas', ruta: '/consultas' },
+    { texto: 'Próximamente', accion: () => this.avisos.proximamente() },
+    { texto: 'Próximamente', accion: () => this.avisos.proximamente() },
+  ];
 }

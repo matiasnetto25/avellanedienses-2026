@@ -1,40 +1,25 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { IonButton, IonContent } from '@ionic/angular/standalone';
-import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
+import { Component, computed, inject } from '@angular/core';
+import { PanelInicioComponent, AccionPanel } from '../../shared/components/panel-inicio/panel-inicio.component';
 import { Auth } from '../../core/services/auth';
 import { AvisosService } from '../../core/services/avisos.service';
-import { SesionService } from '../../core/services/sesion.service';
+import { nombreCompleto } from '../../core/utils/nombre-completo';
 
 @Component({
   selector: 'app-metre',
   standalone: true,
-  imports: [IonContent, IonButton, MarcaHeaderComponent],
+  imports: [PanelInicioComponent],
   templateUrl: './metre.page.html',
-  styleUrls: ['./metre.page.scss'],
 })
 export class MetrePage {
-  private readonly auth = inject(Auth);
-  private readonly router = inject(Router);
-  protected readonly avisos = inject(AvisosService);
-  protected readonly sesionService = inject(SesionService);
+  private readonly sesion = inject(Auth).sesion;
+  private readonly avisos = inject(AvisosService);
 
-  readonly sesion = this.auth.sesion;
+  readonly nombre = computed(() => nombreCompleto(this.sesion() ?? { nombre: '' }));
+  readonly foto = computed(() => this.sesion()?.foto ?? null);
 
-  get nombreCompleto(): string {
-    const s = this.sesion();
-    return s ? `${s.nombre} ${s.apellido}` : '';
-  }
-
-  get fotoEmpleado(): string | null {
-    return this.sesion()?.foto ?? null;
-  }
-
-  registrarCliente(): void {
-    this.router.navigate(['/registrar-cliente']);
-  }
-
-  listaDeEspera(): void {
-    this.router.navigate(['/metre/lista-espera']);
-  }
+  readonly acciones: AccionPanel[] = [
+    { texto: 'Registrar cliente', ruta: '/registrar-cliente' },
+    { texto: 'Asignar mesa', accion: () => this.avisos.proximamente() },
+    { texto: 'Lista de espera', ruta: '/metre/lista-espera' },
+  ];
 }

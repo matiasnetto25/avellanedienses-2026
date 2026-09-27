@@ -1,9 +1,8 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonButton, IonContent } from '@ionic/angular/standalone';
 import { AlertController } from '@ionic/angular';
 import { RealtimeChannel } from '@supabase/supabase-js';
-import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
+import { PanelInicioComponent, AccionPanel } from '../../shared/components/panel-inicio/panel-inicio.component';
 import { ClienteAnonimoService } from '../../core/services/cliente-anonimo.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { NotificacionesService } from '../../core/services/notificaciones.service';
@@ -19,7 +18,7 @@ const INTERVALO_RESPALDO_MS = 30000;
 @Component({
   selector: 'app-landing-cliente-anonimo',
   standalone: true,
-  imports: [IonContent, IonButton, MarcaHeaderComponent],
+  imports: [PanelInicioComponent],
   templateUrl: './landing-cliente-anonimo.page.html',
   styleUrls: ['./landing-cliente-anonimo.page.scss'],
 })
@@ -30,7 +29,7 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
   private readonly supabase = inject(SupabaseService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
-  protected readonly avisos = inject(AvisosService);
+  private readonly avisos = inject(AvisosService);
 
   readonly nombre = signal('');
   readonly fotoUrl = signal<string | null>(null);
@@ -50,6 +49,13 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
   /** Id de la mesa a la que está vinculado (escaneó su QR), o null. Cuando
    *  hay valor, el botón "Lista de espera" pasa a ser "Mi mesa". */
   readonly mesaVinculadaId = signal<string | null>(null);
+
+  readonly acciones = computed<AccionPanel[]>(() => [
+    { texto: this.mesaVinculadaId() ? 'Mi mesa' : 'Lista de espera', accion: () => this.listaDeEspera() },
+    { texto: 'Menú', ruta: '/menu' },
+    { texto: 'Mi pedido', accion: () => this.avisos.proximamente() },
+    { texto: 'Ver encuestas', accion: () => this.avisos.proximamente() },
+  ]);
 
   async ngOnInit(): Promise<void> {
     const cliente = await this.clienteAnonimo.obtenerClienteActual();
@@ -222,9 +228,4 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
       this.router.navigate(['/cliente-anonimo/escaneo-qr']);
     }
   }
-
-  async menu(): Promise<void> {
-    this.router.navigate(['/menu']);
-  }
-
 }

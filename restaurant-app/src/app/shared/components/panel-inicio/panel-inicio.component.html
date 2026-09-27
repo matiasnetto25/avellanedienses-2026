@@ -1,0 +1,32 @@
+<ion-content [fullscreen]="true" [scrollY]="false" class="panel-content">
+  <div class="panel-container">
+    <nav class="panel-navbar">
+      <app-marca-header />
+      <div class="panel-navbar-acciones">
+        @for (accion of acciones(); track $index) {
+          <ion-button fill="solid" class="panel-navbar-item" (click)="ejecutar(accion)">
+            {{ accion.texto }}
+          </ion-button>
+        }
+        <ion-button fill="solid" class="panel-navbar-item panel-navbar-salir" (click)="cerrarSesion()">
+          Cerrar sesión
+        </ion-button>
+      </div>
+    </nav>
+
+    <div class="panel-usuario-contenedor">
+      <div class="panel-foto">
+        @if (foto()) {
+          <img [src]="foto()" [alt]="'Foto de ' + nombre()" width="120" height="120" />
+        }
+      </div>
+
+      <div class="panel-cuerpo">
+        <p class="panel-usuario">{{ nombre() }}</p>
+        <p class="panel-puesto">{{ puesto() }}</p>
+      </div>
+    </div>
+  </div>
+
+  <ng-content />
+</ion-content>
