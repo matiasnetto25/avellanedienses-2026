@@ -298,11 +298,7 @@ export class GestionMesasPage implements OnInit {
       this.mesas.update((lista) => lista.map((m) => (m.id === mesa.id ? resultado.mesa! : m)));
 
       // Sin toast verde: confirma la notificación push.
-      this.notificaciones.notificarCreacion(
-        'Mesa actualizada',
-        `Se modificó la Mesa ${resultado.mesa.numero_mesa}.`,
-        { puestos: ['dueño', 'supervisor'], ruta: '/administracion/salon/gestion' }
-      );
+      this.notificaciones.avisarMesaActualizada(resultado.mesa.numero_mesa);
 
       this.cancelarEdicion();
     } finally {
@@ -339,11 +335,7 @@ export class GestionMesasPage implements OnInit {
       this.mesas.update((lista) => lista.filter((m) => m.id !== mesa.id));
 
       // Sin toast verde: confirma la notificación push.
-      this.notificaciones.notificarCreacion(
-        'Mesa eliminada',
-        `Se eliminó la Mesa ${mesa.numero_mesa}.`,
-        { puestos: ['dueño', 'supervisor'], ruta: '/administracion/salon/gestion' }
-      );
+      this.notificaciones.avisarMesaEliminada(mesa.numero_mesa);
     } finally {
       this.loading.ocultar();
     }

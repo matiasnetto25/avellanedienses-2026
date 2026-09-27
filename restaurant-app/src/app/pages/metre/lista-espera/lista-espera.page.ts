@@ -130,12 +130,7 @@ export class ListaEsperaPage implements OnInit {
         return;
       }
 
-      this.notificaciones.notificarCliente(
-        'Mesa asignada',
-        'Tu solicitud fue aceptada. Ya tenés una mesa asignada.',
-        fila.cliente_id,
-        '/cliente-anonimo'
-      );
+      this.notificaciones.avisarMesaAsignada(fila.cliente_id);
 
       this.filas.update((lista) => lista.filter((f) => f.id !== fila.id));
     } finally {
@@ -158,12 +153,7 @@ export class ListaEsperaPage implements OnInit {
         return;
       }
 
-      this.notificaciones.notificarCliente(
-        'Solicitud rechazada',
-        'Tu solicitud de mesa fue rechazada.',
-        fila.cliente_id,
-        '/cliente-anonimo/ver-mesas'
-      );
+      this.notificaciones.avisarSolicitudRechazada(fila.cliente_id);
 
       this.filas.update((lista) => lista.filter((f) => f.id !== fila.id));
     } finally {

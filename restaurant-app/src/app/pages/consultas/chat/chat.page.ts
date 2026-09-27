@@ -254,16 +254,10 @@ export class ChatPage implements OnInit, OnDestroy {
    *  - Respuesta de un mozo → al cliente de esta estadía.
    */
   private notificar(mensaje: MensajeMesa): void {
-    const ruta = `/consultas/${mensaje.solicitud_id}`;
-    const extracto = mensaje.texto.length > 80 ? `${mensaje.texto.slice(0, 77)}…` : mensaje.texto;
-
     if (esDeCliente(mensaje)) {
-      this.notificaciones.notificarCreacion(`Consulta de la Mesa ${mensaje.numero_mesa}`, extracto, {
-        puestos: ['mozo'],
-        ruta,
-      });
+      this.notificaciones.avisarNuevaConsulta(mensaje);
     } else {
-      this.notificaciones.notificarCliente(`Respuesta de ${mensaje.autor_nombre}`, extracto, mensaje.cliente_id, ruta);
+      this.notificaciones.avisarRespuestaConsulta(mensaje);
     }
   }
 }

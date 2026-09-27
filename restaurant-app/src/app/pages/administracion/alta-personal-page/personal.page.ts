@@ -318,16 +318,9 @@ export class PersonalPage {
         return;
       }
 
-      // Sin toast verde acá: la confirmación la da la notificación push
-      // (notificarCreacion, abajo). Los toasts de avisos.error() siguen
-      // intactos para cuando algo falla.
-
-      // Notificación push a dueño/supervisor avisando del alta nueva.
-      this.notificaciones.notificarCreacion(
-        'Nuevo empleado creado',
-        `${nombre} ${apellido} fue dado de alta como ${puesto}.`,
-        { puestos: ['dueño', 'supervisor'], ruta: '/administracion/personal' }
-      );
+      // Sin toast verde acá: la confirmación la da la notificación push.
+      // Los toasts de avisos.error() siguen intactos para cuando algo falla.
+      this.notificaciones.avisarNuevoEmpleado(nombre, apellido, puesto);
 
       this.form.reset();
       this.fotoDataUrl.set(null);

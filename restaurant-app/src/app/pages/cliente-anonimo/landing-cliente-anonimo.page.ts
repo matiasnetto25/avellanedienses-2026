@@ -150,11 +150,7 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
 
     if (solicitud?.estado === 'vinculado') {
       this.avisoMostrador.set(true);
-      this.notificaciones.notificarCreacion(
-        'Cliente pidió cerrar sesión',
-        `El cliente de la Mesa ${solicitud.numero_mesa} intentó cerrar sesión estando ya vinculado. Se le indicó acercarse al mostrador.`,
-        { puestos: ['metre'], ruta: '/metre' }
-      );
+      this.notificaciones.avisarCierreSesionBloqueado(solicitud.numero_mesa);
       return;
     }
 
@@ -199,13 +195,7 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
         return;
       }
 
-      this.notificaciones.notificarCreacion(
-        'Cliente cerró sesión',
-        resultado.mesaLiberada
-          ? `${nombreCliente} cerró sesión. La Mesa ${resultado.mesaLiberada} quedó libre.`
-          : `${nombreCliente} cerró sesión.`,
-        { puestos: ['metre'] }
-      );
+      this.notificaciones.avisarClienteCerroSesion(nombreCliente, resultado.mesaLiberada);
 
       this.router.navigate(['/bienvenida'], { replaceUrl: true });
     } finally {

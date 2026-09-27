@@ -20,7 +20,6 @@ import {
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { CamaraService } from '../../../../core/services/camara.service';
 import { MesasService } from '../../../../core/services/mesas.service';
-import { NotificacionesService } from '../../../../core/services/notificaciones.service';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { TIPOS_MESA, MesaRow } from '../../../../core/models/mesa.model';
 
@@ -53,7 +52,6 @@ export class CrearMesaPage {
   private readonly avisos = inject(AvisosService);
   private readonly camara = inject(CamaraService);
   private readonly mesasService = inject(MesasService);
-  private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
 
   readonly tiposMesa = TIPOS_MESA;
@@ -153,18 +151,10 @@ export class CrearMesaPage {
         return;
       }
 
-      // No hace falta un toast acá: la pantalla de éxito de abajo (con el
-      // QR) ya confirma visualmente que la mesa se creó — mostrar además
-      // un toast de "Mesa creada correctamente" quedaba redundante,
-      // encimado con el toast de la notificación push.
+      // No hace falta un toast ni una push: la pantalla de éxito de abajo
+      // (con el QR) ya confirma visualmente que la mesa se creó.
       this.mesaCreada.set(resultado.mesa);
       this.urlQr.set(this.mesasService.obtenerUrlQr(resultado.mesa.qr));
-
-      this.notificaciones.notificarCreacion(
-        'Nueva mesa creada',
-        `Se creó la Mesa ${resultado.mesa.numero_mesa}.`,
-        { ruta: '/administracion/salon/gestion' }
-      );
 
       this.form.reset();
       this.fotoDataUrl.set(null);

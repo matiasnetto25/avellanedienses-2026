@@ -240,20 +240,9 @@ export class RegistrarClientePage {
         return;
       }
 
-      // Sin toast verde: dueño/supervisor siempre se enteran por push. Si
-      // fue el metre quien lo registró, también le llega a él (confirmación
-      // propia); si se autoregistró el cliente, el metre no recibe nada
-      // extra (no participó). Al cliente no se le puede avisar por push en
-      // este momento — todavía no tiene sesión propia en ningún dispositivo
-      // (se entera por email cuando se apruebe/rechace su cuenta).
-      this.notificaciones.notificarCreacion(
-        'Nuevo cliente pendiente',
-        `${nombre} ${apellido} se registró y está pendiente de aprobación.`,
-        {
-          puestos: this.esMetre ? ['dueño', 'supervisor', 'metre'] : ['dueño', 'supervisor'],
-          ruta: '/administracion',
-        }
-      );
+      // Sin toast verde: la confirmación la da la push (ver
+      // NotificacionesService.avisarNuevoClientePendiente).
+      this.notificaciones.avisarNuevoClientePendiente(nombre, apellido, this.esMetre);
 
       this.form.reset();
       this.fotoDataUrl.set(null);

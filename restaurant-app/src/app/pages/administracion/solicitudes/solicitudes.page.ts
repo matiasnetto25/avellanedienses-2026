@@ -148,11 +148,7 @@ export class SolicitudesClientesPage implements OnInit {
         await this.clientesService.enviarEmailResultado(cliente.email, cliente.nombre, aprobar);
       }
 
-      this.notificaciones.notificarCreacion(
-        aprobar ? 'Cliente aprobado' : 'Cliente rechazado',
-        `${cliente.nombre} ${cliente.apellido} fue ${aprobar ? 'aceptado' : 'rechazado'}.`,
-        { puestos: ['dueño', 'supervisor', 'metre'], ruta: '/administracion/solicitudes' }
-      );
+      this.notificaciones.avisarClienteRevisado(cliente.nombre, cliente.apellido, aprobar);
 
       this.clientes.update((lista) => lista.filter((c) => c.id !== cliente.id));
     } finally {

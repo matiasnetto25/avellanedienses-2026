@@ -149,11 +149,7 @@ export class VerMesasPage implements OnInit {
         return;
       }
 
-      this.notificaciones.notificarCreacion(
-        'Cliente en lista de espera',
-        `Cliente no registrado solicitó la Mesa ${mesa.numero_mesa}.`,
-        { puestos: ['metre'], ruta: '/metre/lista-espera' }
-      );
+      this.notificaciones.avisarClienteEnListaEspera(mesa.numero_mesa);
 
       // Actualiza la interfaz al toque, sin esperar a recargar del todo.
       this.miSolicitud.set({

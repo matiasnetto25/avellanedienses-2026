@@ -24,7 +24,6 @@ import { Auth } from '../../core/services/auth';
 import { AvisosService } from '../../core/services/avisos.service';
 import { CamaraService } from '../../core/services/camara.service';
 import { MenuItemsService } from '../../core/services/menu-items.service';
-import { NotificacionesService } from '../../core/services/notificaciones.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { TIPOS_COCINERO, TipoMenuItem } from '../../core/models/menu-item.model';
 import {
@@ -76,7 +75,6 @@ export class AgregarMenuItemPage {
   private readonly avisos = inject(AvisosService);
   private readonly camara = inject(CamaraService);
   private readonly menuItemsService = inject(MenuItemsService);
-  private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
 
   readonly tiposCocinero = TIPOS_COCINERO;
@@ -203,13 +201,9 @@ export class AgregarMenuItemPage {
         return;
       }
 
-      // Sin toast verde acá: confirma la notificación push (abajo).
-
-      this.notificaciones.notificarCreacion(
-        this.esCantinero ? 'Nueva bebida en la carta' : 'Nuevo plato en la carta',
-        `Se agregó "${nombreTrim}" al menú.`,
-        { ruta: '/menu' }
-      );
+      // Sin push: el alta de un plato o una bebida no avisa a nadie
+      // (decisión del equipo). La confirmación la da este toast.
+      await this.avisos.exito(`Se agregó "${nombreTrim}" al menú.`);
 
       this.form.reset();
       if (this.esCantinero) {

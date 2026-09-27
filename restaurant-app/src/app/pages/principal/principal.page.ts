@@ -99,11 +99,7 @@ export class PrincipalPage implements OnInit {
         return;
       }
 
-      this.notificaciones.notificarCreacion(
-        'Cliente no registrado acaba de ingresar',
-        `${nombre} ${apellido} ingresó al local como invitado.`,
-        { puestos: ['metre'], ruta: '/metre/lista-espera' }
-      );
+      this.notificaciones.avisarClienteAnonimoIngreso(nombre, apellido);
 
       this.router.navigate(['/cliente-anonimo'], { replaceUrl: true });
     } finally {
