@@ -5,7 +5,6 @@ import { SonidosService } from './sonidos.service';
 import {
   EmpleadoRow,
   EmpleadoSesion,
-  PUESTOS_ADMIN,
 } from '../models/empleado.model';
 import { rutaHomeSegunPuesto } from '../models/rutas-por-puesto';
 
@@ -39,15 +38,6 @@ export class Auth {
   readonly estaLogueado = computed(() => this._sesion() !== null);
 
   private timerExpiracion: ReturnType<typeof setTimeout> | null = null;
-
-  /** Solo lo usa adminGuard (ruta /administracion) */
-  readonly puedeAccederAdministracion = computed(() => {
-    const s = this._sesion();
-
-    return !!s &&
-      s.estado === 'On' &&
-      (PUESTOS_ADMIN as string[]).includes(s.puesto);
-  });
 
   /**
    * Restaura la sesión de Supabase Auth al iniciar la aplicación, y
@@ -121,8 +111,7 @@ export class Auth {
    * IMPORTANTE: acá ya NO se valida el puesto (antes rechazaba a
    * cualquiera que no fuera dueño/supervisor, lo que bloqueaba por
    * completo el login de cocinero/cantinero/mozo/metre). Esa validación
-   * de "quién puede entrar a Administración" vive en adminGuard;
-   * cocineroGuard/cantineroGuard hacen lo mismo para sus rutas.
+   * de "quién puede entrar a cada ruta" vive en puestoGuard.
    * Acá solo se valida que el empleado exista y esté activo.
    */
   private async cargarEmpleado(

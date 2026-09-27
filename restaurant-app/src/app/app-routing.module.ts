@@ -1,12 +1,9 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
-import { adminGuard } from './core/guards/admin.guard';
-import { cocineroGuard } from './core/guards/cocinero.guard';
-import { cantineroGuard } from './core/guards/cantinero.guard';
-import { metreGuard } from './core/guards/metre.guard';
+import { puestoGuard } from './core/guards/puesto.guard';
 import { clienteAprobadoGuard } from './core/guards/cliente-aprobado.guard';
-import { mozoGuard } from './core/guards/mozo.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
+import { PUESTOS_ADMIN } from './core/models/empleado.model';
 
 const routes: Routes = [
   {
@@ -48,47 +45,47 @@ const routes: Routes = [
   },
   {
     path: 'administracion',
-    canActivate: [adminGuard],
+    canActivate: [puestoGuard(...PUESTOS_ADMIN)],
     loadComponent: () => import('./pages/administracion/administracion.page').then(m => m.AdministracionPage)
   },
   {
     path: 'administracion/personal',
-    canActivate: [adminGuard],
+    canActivate: [puestoGuard(...PUESTOS_ADMIN)],
     loadComponent: () => import('./pages/administracion/alta-personal-page/personal.page').then(m => m.PersonalPage)
   },
   {
     path: 'administracion/salon/crear',
-    canActivate: [adminGuard],
+    canActivate: [puestoGuard(...PUESTOS_ADMIN)],
     loadComponent: () => import('./pages/administracion/salon/crear-mesa/crear-mesa.page').then(m => m.CrearMesaPage)
   },
   {
     path: 'administracion/salon/gestion',
-    canActivate: [adminGuard],
+    canActivate: [puestoGuard(...PUESTOS_ADMIN)],
     loadComponent: () => import('./pages/administracion/salon/gestion-mesas/gestion-mesas.page').then(m => m.GestionMesasPage)
   },
   {
     path: 'administracion/solicitudes',
-    canActivate: [adminGuard],
+    canActivate: [puestoGuard(...PUESTOS_ADMIN)],
     loadComponent: () => import('./pages/administracion/solicitudes/solicitudes.page').then(m => m.SolicitudesClientesPage)
   },
   {
     path: 'cocina',
-    canActivate: [cocineroGuard],
+    canActivate: [puestoGuard('cocinero')],
     loadComponent: () => import('./pages/cocina/cocina.page').then(m => m.CocinaPage)
   },
   {
     path: 'cocina/agregar-plato',
-    canActivate: [cocineroGuard],
+    canActivate: [puestoGuard('cocinero')],
     loadComponent: () => import('./pages/menu-item/agregar-menu-item.page').then(m => m.AgregarMenuItemPage)
   },
   {
     path: 'cantina',
-    canActivate: [cantineroGuard],
+    canActivate: [puestoGuard('cantinero')],
     loadComponent: () => import('./pages/cantina/cantina.page').then(m => m.CantinaPage)
   },
   {
     path: 'cantina/agregar-bebida',
-    canActivate: [cantineroGuard],
+    canActivate: [puestoGuard('cantinero')],
     loadComponent: () => import('./pages/menu-item/agregar-menu-item.page').then(m => m.AgregarMenuItemPage)
   },
   {
@@ -100,7 +97,7 @@ const routes: Routes = [
   },
   {
     path: 'metre',
-    canActivate: [metreGuard],
+    canActivate: [puestoGuard('metre')],
     loadComponent: () => import('./pages/metre/metre.page').then(m => m.MetrePage)
   },
   {
@@ -110,7 +107,7 @@ const routes: Routes = [
   },
   {
     path: 'metre/lista-espera',
-    canActivate: [metreGuard],
+    canActivate: [puestoGuard('metre')],
     loadComponent: () => import('./pages/metre/lista-espera/lista-espera.page').then(m => m.ListaEsperaPage)
   },
   {
@@ -131,7 +128,7 @@ const routes: Routes = [
   },
   {
     path: 'mozo',
-    canActivate: [mozoGuard],
+    canActivate: [puestoGuard('mozo')],
     loadComponent: () => import('./pages/mozo/mozo.page').then(m => m.MozoPage)
   },
   {
@@ -147,7 +144,7 @@ const routes: Routes = [
   },
   {
     path: 'consultas',
-    canActivate: [mozoGuard],
+    canActivate: [puestoGuard('mozo')],
     loadComponent: () => import('./pages/consultas/conversaciones/conversaciones.page').then(m => m.ConversacionesPage)
   },
   {
