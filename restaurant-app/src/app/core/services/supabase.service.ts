@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
+import { Bucket } from '../storage-buckets';
 
 /**
  * Cliente único de Supabase para todo el proyecto.
@@ -26,4 +27,14 @@ export class SupabaseService {
       },
     }
   );
+
+  /**
+   * URL pública de un archivo de Storage. En la base solo se guarda el
+   * nombre del archivo (por ejemplo "20-35371754-6.jpg"); acá se arma la
+   * URL completa. Devuelve null si no hay archivo.
+   */
+  urlPublica(bucket: Bucket, archivo: string | null): string | null {
+    if (!archivo) return null;
+    return this.client.storage.from(bucket).getPublicUrl(archivo).data.publicUrl;
+  }
 }

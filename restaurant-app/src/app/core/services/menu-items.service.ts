@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { BUCKETS } from '../storage-buckets';
 import { NuevoMenuItem, MenuItemRow } from '../models/menu-item.model';
 import { Producto } from '../models/producto.model';
 
-const BUCKET_MENU = 'menu';
 const TABLA_MENU = 'menu';
 
 export interface ResultadoAltaMenuItem {
@@ -66,9 +66,7 @@ export class MenuItemsService {
   }
 
   obtenerUrl(path: string | null): string | null {
-    if (!path) return null;
-    const { data } = this.supabase.client.storage.from(BUCKET_MENU).getPublicUrl(path);
-    return data.publicUrl;
+    return this.supabase.urlPublica(BUCKETS.menu, path);
   }
 
   private async subirImagen(path: string, dataUrl: string): Promise<void> {
@@ -76,7 +74,7 @@ export class MenuItemsService {
     const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 
     const { error } = await this.supabase.client.storage
-      .from(BUCKET_MENU)
+      .from(BUCKETS.menu)
       .upload(path, bytes, { contentType: 'image/jpeg', upsert: false });
 
     if (error) {
@@ -86,7 +84,7 @@ export class MenuItemsService {
 
   private async eliminarImagenes(paths: string[]): Promise<void> {
     if (!paths.length) return;
-    const { error } = await this.supabase.client.storage.from(BUCKET_MENU).remove(paths);
+    const { error } = await this.supabase.client.storage.from(BUCKETS.menu).remove(paths);
     if (error) {
       console.error('No se pudieron limpiar las imágenes subidas tras un error:', error);
     }

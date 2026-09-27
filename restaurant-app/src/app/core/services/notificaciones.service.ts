@@ -10,8 +10,12 @@ import {
 } from '@capacitor/push-notifications';
 import { SupabaseService } from './supabase.service';
 import { Auth } from './auth';
+import { Puesto } from '../models/empleado.model';
+import { MensajeMesa } from '../models/consulta.model';
 
 const CLAVE_CLIENTE_ANONIMO_ID = 'merlot_cliente_anonimo_id';
+/** Largo máximo del texto del chat que se muestra en la push. */
+const MAX_CARACTERES_EXTRACTO = 80;
 
 @Injectable({ providedIn: 'root' })
 export class NotificacionesService {
@@ -31,6 +35,13 @@ export class NotificacionesService {
    * sesión: ver guardarTokenPendienteSiHaySesion(), llamado desde login.
    */
   private ultimoToken: string | null = null;
+
+  constructor() {
+    // Cualquier cierre de sesión (botón o expiración a la hora) borra el
+    // token: si no, el dispositivo seguía recibiendo las push de alguien
+    // que ya no tiene sesión en él.
+    this.auth.alCerrarSesion(() => this.eliminarToken());
+  }
 
   /**
    * Llamar UNA sola vez al bootstrapear la app (ej: en app.component.ts,
@@ -57,8 +68,7 @@ export class NotificacionesService {
       // dispositivo — normalmente antes de que exista sesión todavía.
       PushNotifications.addListener('registration', (token: Token) => {
         this.ultimoToken = token.value;
-        this.guardarTokenPendienteSiHaySesion();
-        this.registrarTokenClienteAnonimoSiCorresponde(token.value);
+        this.asignarTokenDelDispositivo(token.value);
       });
 
       PushNotifications.addListener('registrationError', (error) => {
@@ -103,11 +113,10 @@ export class NotificacionesService {
   }
 
   /**
-   * Reintenta guardar el token cacheado. Se llama:
-   *  1) desde el listener 'registration' (por si YA había sesión, ej:
-   *     restaurarSesion() encontró una sesión previa antes de esto), y
-   *  2) desde login.page.ts, justo después de un login exitoso — que es
-   *     el caso más común (arranque en frío -> se pide permiso -> login).
+   * Reintenta guardar el token cacheado para el empleado con sesión. Se
+   * llama desde login.page.ts, justo después de un login exitoso — el
+   * caso más común (arranque en frío -> se pide permiso -> login). Si ya
+   * había sesión al arrancar, lo resuelve asignarTokenDelDispositivo().
    * Es seguro llamarla aunque no haya token o no haya sesión: no hace nada.
    */
   guardarTokenPendienteSiHaySesion(): void {
@@ -140,12 +149,11 @@ export class NotificacionesService {
   }
 
   /**
-   * Se llama al cerrar sesión (ANTES de invalidar la sesión de Supabase
-   * Auth, ver los cerrarSesion() de administracion/cocina/cantina). Sin
-   * esto, el dispositivo seguía recibiendo notificaciones del empleado
-   * que se deslogueó, porque el token nunca se borraba de push_tokens.
+   * Borra el token del dispositivo de push_tokens. Corre en cada cierre
+   * de sesión (ver el constructor). La RPC borra por token y no depende de
+   * la sesión de Supabase, así que el orden respecto de signOut no importa.
    */
-  async eliminarTokenAlCerrarSesion(): Promise<void> {
+  private async eliminarToken(): Promise<void> {
     if (!this.ultimoToken) return;
 
     const { error } = await this.supabase.client.rpc('eliminar_push_token', {
@@ -153,7 +161,7 @@ export class NotificacionesService {
     });
 
     if (error) {
-      console.error('Error eliminando push token al cerrar sesión:', error);
+      console.error('Error eliminando push token:', error);
     }
     // No se limpia this.ultimoToken: si el mismo dispositivo vuelve a
     // loguearse (otro empleado, o el mismo), guardarTokenPendienteSiHaySesion()
@@ -161,23 +169,39 @@ export class NotificacionesService {
   }
 
   /**
-   * Mismo problema que con empleados: el evento 'registration' puede
-   * llegar antes de que exista un cliente_id guardado. Se consulta acá
-   * directo (en vez de inyectar ClienteAnonimoService, que a su vez
-   * depende de este servicio — evita la dependencia circular).
+   * Decide de quién es el dispositivo cuando el SO entrega el token (al
+   * arrancar la app). Un celular es de una sola persona a la vez:
+   *  1) Si hay sesión de empleado, el token es del empleado.
+   *  2) Si no, y hay un cliente anónimo guardado, es del cliente.
+   *  3) Si no hay nadie (por ejemplo, la sesión expiró con la app
+   *     cerrada), se borra: no debe recibir las push de nadie.
+   *
+   * Antes se registraban el empleado y el cliente a la vez, y el último
+   * en llegar se quedaba con el token.
+   *
+   * El cliente anónimo se lee directo de Preferences (en vez de inyectar
+   * ClienteAnonimoService, que a su vez depende de este servicio — evita
+   * la dependencia circular).
    */
-  private async registrarTokenClienteAnonimoSiCorresponde(token: string): Promise<void> {
-    const { value: clienteId } = await Preferences.get({ key: CLAVE_CLIENTE_ANONIMO_ID });
-    if (!clienteId) return;
-
-    const { error } = await this.supabase.client.rpc('registrar_push_token_cliente', {
-      p_cliente_id: clienteId,
-      p_token: token,
-    });
-
-    if (error) {
-      console.error('Error registrando push token de cliente anónimo (reintento):', error);
+  private async asignarTokenDelDispositivo(token: string): Promise<void> {
+    if (this.auth.sesion()) {
+      await this.guardarToken(token);
+      return;
     }
+
+    const { value: clienteId } = await Preferences.get({ key: CLAVE_CLIENTE_ANONIMO_ID });
+    if (clienteId) {
+      const { error } = await this.supabase.client.rpc('registrar_push_token_cliente', {
+        p_cliente_id: clienteId,
+        p_token: token,
+      });
+      if (error) {
+        console.error('Error registrando push token de cliente anónimo (reintento):', error);
+      }
+      return;
+    }
+
+    await this.eliminarToken();
   }
 
   /**
@@ -190,23 +214,181 @@ export class NotificacionesService {
     return this.ultimoToken;
   }
 
+  // ===== Catálogo de push =====
+  //
+  // Todas las notificaciones push de la app están acá, una por método.
+  // Las pantallas solo llaman al método de negocio: ninguna arma títulos,
+  // textos, destinatarios ni rutas. Se envían sin esperar: si falla, el
+  // flujo de la pantalla sigue igual (los errores se registran abajo).
+  //
+  // Altas de mesa, plato o bebida: NO envían push (decisión del equipo,
+  // la consigna no lo pide).
+
+  /** Alta de empleado → dueño y supervisor. */
+  avisarNuevoEmpleado(nombre: string, apellido: string, puesto: string): void {
+    this.notificarEmpleados(
+      'Nuevo empleado creado',
+      `${nombre} ${apellido} fue dado de alta como ${puesto}.`,
+      ['dueño', 'supervisor'],
+      '/administracion/personal'
+    );
+  }
+
+  /** Edición de mesa → dueño y supervisor. */
+  avisarMesaActualizada(numeroMesa: number): void {
+    this.notificarEmpleados(
+      'Mesa actualizada',
+      `Se modificó la Mesa ${numeroMesa}.`,
+      ['dueño', 'supervisor'],
+      '/administracion/salon/gestion'
+    );
+  }
+
+  /** Baja de mesa → dueño y supervisor. */
+  avisarMesaEliminada(numeroMesa: number): void {
+    this.notificarEmpleados(
+      'Mesa eliminada',
+      `Se eliminó la Mesa ${numeroMesa}.`,
+      ['dueño', 'supervisor'],
+      '/administracion/salon/gestion'
+    );
+  }
+
+  /** Aprobación o rechazo de un cliente registrado → dueño, supervisor y metre. */
+  avisarClienteRevisado(nombre: string, apellido: string | null, aprobado: boolean): void {
+    const nombreCompleto = `${nombre} ${apellido ?? ''}`.trim();
+    this.notificarEmpleados(
+      aprobado ? 'Cliente aprobado' : 'Cliente rechazado',
+      `${nombreCompleto} fue ${aprobado ? 'aceptado' : 'rechazado'}.`,
+      ['dueño', 'supervisor', 'metre'],
+      '/administracion/solicitudes'
+    );
+  }
+
+  /**
+   * Cliente que se registra → dueño y supervisor. Si lo registró el
+   * metre, también le llega a él como confirmación. Al cliente no se le
+   * puede avisar por push: todavía no tiene sesión en ningún dispositivo
+   * (se entera por email cuando se aprueba o rechaza su cuenta).
+   */
+  avisarNuevoClientePendiente(nombre: string, apellido: string, desdeMetre: boolean): void {
+    this.notificarEmpleados(
+      'Nuevo cliente pendiente',
+      `${nombre} ${apellido} se registró y está pendiente de aprobación.`,
+      desdeMetre ? ['dueño', 'supervisor', 'metre'] : ['dueño', 'supervisor'],
+      '/administracion'
+    );
+  }
+
+  /** Cliente anónimo que entra al local → metre. */
+  avisarClienteAnonimoIngreso(nombre: string, apellido: string): void {
+    this.notificarEmpleados(
+      'Cliente no registrado acaba de ingresar',
+      `${nombre} ${apellido} ingresó al local como invitado.`,
+      ['metre'],
+      '/metre/lista-espera'
+    );
+  }
+
+  /** Cliente anónimo que pide una mesa → metre. */
+  avisarClienteEnListaEspera(numeroMesa: number): void {
+    this.notificarEmpleados(
+      'Cliente en lista de espera',
+      `Cliente no registrado solicitó la Mesa ${numeroMesa}.`,
+      ['metre'],
+      '/metre/lista-espera'
+    );
+  }
+
+  /** Cliente vinculado a una mesa que intenta cerrar sesión → metre. */
+  avisarCierreSesionBloqueado(numeroMesa: number): void {
+    this.notificarEmpleados(
+      'Cliente pidió cerrar sesión',
+      `El cliente de la Mesa ${numeroMesa} intentó cerrar sesión estando ya vinculado. Se le indicó acercarse al mostrador.`,
+      ['metre'],
+      '/metre'
+    );
+  }
+
+  /** Cliente anónimo que cierra sesión (borra su cuenta) → metre. */
+  avisarClienteCerroSesion(nombre: string, mesaLiberada: number | null | undefined): void {
+    this.notificarEmpleados(
+      'Cliente cerró sesión',
+      mesaLiberada
+        ? `${nombre} cerró sesión. La Mesa ${mesaLiberada} quedó libre.`
+        : `${nombre} cerró sesión.`,
+      ['metre']
+    );
+  }
+
+  /** El metre acepta la solicitud de mesa → cliente. */
+  avisarMesaAsignada(clienteId: string): void {
+    this.notificarCliente(
+      'Mesa asignada',
+      'Tu solicitud fue aceptada. Ya tenés una mesa asignada.',
+      clienteId,
+      '/cliente-anonimo'
+    );
+  }
+
+  /** El metre rechaza la solicitud de mesa → cliente. */
+  avisarSolicitudRechazada(clienteId: string): void {
+    this.notificarCliente(
+      'Solicitud rechazada',
+      'Tu solicitud de mesa fue rechazada.',
+      clienteId,
+      '/cliente-anonimo/ver-mesas'
+    );
+  }
+
+  /** Mensaje del cliente en el chat → todos los mozos. */
+  avisarNuevaConsulta(mensaje: MensajeMesa): void {
+    this.notificarEmpleados(
+      `Consulta de la Mesa ${mensaje.numero_mesa}`,
+      this.extracto(mensaje.texto),
+      ['mozo'],
+      `/consultas/${mensaje.solicitud_id}`
+    );
+  }
+
+  /** Respuesta de un mozo en el chat → cliente de la estadía. */
+  avisarRespuestaConsulta(mensaje: MensajeMesa): void {
+    this.notificarCliente(
+      `Respuesta de ${mensaje.autor_nombre}`,
+      this.extracto(mensaje.texto),
+      mensaje.cliente_id,
+      `/consultas/${mensaje.solicitud_id}`
+    );
+  }
+
+  /** Recorta el texto del chat para que entre en la notificación. */
+  private extracto(texto: string): string {
+    return texto.length > MAX_CARACTERES_EXTRACTO
+      ? `${texto.slice(0, MAX_CARACTERES_EXTRACTO - 3)}…`
+      : texto;
+  }
+
+  // ===== Transporte =====
+
   /**
    * Dispara una notificación real a través de la Edge Function
-   * "enviar-notificacion". Se llama SIEMPRE que se crea algo (empleado,
-   * mesa, plato, bebida) — ver los onSubmit() de cada formulario.
+   * "enviar-notificacion" a los empleados de los puestos indicados.
+   * `puestos` es obligatorio: la Edge Function, sin puestos, le manda la
+   * push a TODOS los empleados, y eso nunca debe pasar por olvido.
    */
-  async notificarCreacion(
+  private async notificarEmpleados(
     titulo: string,
     cuerpo: string,
-    opciones?: { puestos?: string[]; ruta?: string }
+    puestos: readonly Puesto[],
+    ruta?: string
   ): Promise<void> {
     try {
       await this.supabase.client.functions.invoke('enviar-notificacion', {
         body: {
           titulo,
           mensaje: cuerpo,
-          puestos: opciones?.puestos,
-          data: opciones?.ruta ? { ruta: opciones.ruta } : {},
+          puestos,
+          data: ruta ? { ruta } : {},
         },
       });
     } catch (error) {
@@ -215,12 +397,10 @@ export class NotificacionesService {
   }
 
   /**
-   * Igual que notificarCreacion, pero apunta a UN cliente puntual (por su
-   * id en la tabla "clientes") en vez de a un conjunto de puestos —
-   * usado para avisarle al cliente anónimo si su solicitud de mesa fue
-   * aceptada o rechazada.
+   * Igual que notificarEmpleados, pero apunta a UN cliente puntual (por
+   * su id en la tabla "clientes") en vez de a un conjunto de puestos.
    */
-  async notificarCliente(titulo: string, cuerpo: string, clienteId: string, ruta?: string): Promise<void> {
+  private async notificarCliente(titulo: string, cuerpo: string, clienteId: string, ruta?: string): Promise<void> {
     try {
       await this.supabase.client.functions.invoke('enviar-notificacion', {
         body: {

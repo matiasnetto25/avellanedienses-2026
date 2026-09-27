@@ -1,41 +1,34 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonButton, IonContent } from '@ionic/angular/standalone';
-import { AlertController, ToastController } from '@ionic/angular';
-import { RealtimeChannel } from '@supabase/supabase-js';
-import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
+import { AlertController } from '@ionic/angular';
+import { PanelInicioComponent, AccionPanel } from '../../shared/components/panel-inicio/panel-inicio.component';
 import { ClienteAnonimoService } from '../../core/services/cliente-anonimo.service';
-import { SupabaseService } from '../../core/services/supabase.service';
+import { SolicitudesMesaService } from '../../core/services/solicitudes-mesa.service';
 import { NotificacionesService } from '../../core/services/notificaciones.service';
 import { LoadingService } from '../../core/services/loading.service';
-import { EstadoSolicitudMesa } from '../../core/models/solicitud-mesa.model';
-
-/** Red de seguridad, por si el canal en tiempo real se corta (por
- *  ejemplo, se pierde la conexión un momento) — mucho más espaciado
- *  que antes, porque ahora el cambio normalmente llega al toque. */
-const INTERVALO_RESPALDO_MS = 30000;
+import { AvisosService } from '../../core/services/avisos.service';
+import { EstadoSolicitudMesa, MiSolicitud } from '../../core/models/solicitud-mesa.model';
 
 @Component({
   selector: 'app-landing-cliente-anonimo',
   standalone: true,
-  imports: [IonContent, IonButton, MarcaHeaderComponent],
+  imports: [PanelInicioComponent],
   templateUrl: './landing-cliente-anonimo.page.html',
   styleUrls: ['./landing-cliente-anonimo.page.scss'],
 })
 export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
   private readonly router = inject(Router);
-  private readonly toastController = inject(ToastController);
   private readonly alertController = inject(AlertController);
   private readonly clienteAnonimo = inject(ClienteAnonimoService);
-  private readonly supabase = inject(SupabaseService);
+  private readonly solicitudesMesa = inject(SolicitudesMesaService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
+  private readonly avisos = inject(AvisosService);
 
   readonly nombre = signal('');
   readonly fotoUrl = signal<string | null>(null);
   private clienteId: string | null = null;
-  private intervaloId: ReturnType<typeof setInterval> | null = null;
-  private canal: RealtimeChannel | null = null;
+  private dejarDeObservar: (() => void) | null = null;
 
   /** Texto del cartel inferior, o null si no hay que mostrar nada
    *  (sin solicitud, rechazada, o ya vinculado a la mesa). */
@@ -50,6 +43,13 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
    *  hay valor, el botón "Lista de espera" pasa a ser "Mi mesa". */
   readonly mesaVinculadaId = signal<string | null>(null);
 
+  readonly acciones = computed<AccionPanel[]>(() => [
+    { texto: this.mesaVinculadaId() ? 'Mi mesa' : 'Lista de espera', accion: () => this.listaDeEspera() },
+    { texto: 'Menú', ruta: '/menu' },
+    { texto: 'Mi pedido', accion: () => this.avisos.proximamente() },
+    { texto: 'Ver encuestas', accion: () => this.avisos.proximamente() },
+  ]);
+
   async ngOnInit(): Promise<void> {
     const cliente = await this.clienteAnonimo.obtenerClienteActual();
     if (!cliente) {
@@ -63,48 +63,17 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
     this.fotoUrl.set(cliente.fotoUrl);
 
     await this.actualizarCartel();
-    this.suscribirseACambios(cliente.id);
 
-    // Red de seguridad: si por algún motivo el canal en tiempo real no
-    // llega a conectarse (o se corta), esto igual termina reflejando
-    // el cambio, aunque tarde un poco más.
-    this.intervaloId = setInterval(() => {
-      this.actualizarCartel();
-    }, INTERVALO_RESPALDO_MS);
+    // Apenas el metre acepta o rechaza, el cartel se actualiza solo
+    // (Realtime, con un sondeo de respaldo; ver SolicitudesMesaService).
+    this.dejarDeObservar = this.solicitudesMesa.observarMiSolicitud(cliente.id, (solicitud) =>
+      this.mostrarCartel(solicitud)
+    );
   }
 
   ngOnDestroy(): void {
-    if (this.intervaloId !== null) {
-      clearInterval(this.intervaloId);
-      this.intervaloId = null;
-    }
-    if (this.canal) {
-      this.supabase.client.removeChannel(this.canal);
-      this.canal = null;
-    }
-  }
-
-  /**
-   * Se suscribe a los cambios de la fila de ESTE cliente en
-   * solicitudes_mesa — apenas el metre acepta (o rechaza) su solicitud,
-   * Supabase empuja el cambio al instante, sin esperar ningún intervalo.
-   */
-  private suscribirseACambios(clienteId: string): void {
-    this.canal = this.supabase.client
-      .channel(`mi-solicitud-${clienteId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'solicitudes_mesa',
-          filter: `cliente_id=eq.${clienteId}`,
-        },
-        () => {
-          this.actualizarCartel();
-        }
-      )
-      .subscribe();
+    this.dejarDeObservar?.();
+    this.dejarDeObservar = null;
   }
 
   /** Se vuelve a llamar cada vez que se vuelve a esta pantalla (por
@@ -116,7 +85,10 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
 
   private async actualizarCartel(): Promise<void> {
     if (!this.clienteId) return;
-    const solicitud = await this.clienteAnonimo.obtenerMiSolicitud(this.clienteId);
+    this.mostrarCartel(await this.solicitudesMesa.obtenerMiSolicitud(this.clienteId));
+  }
+
+  private mostrarCartel(solicitud: MiSolicitud | null): void {
     const estado = solicitud?.estado ?? null;
     this.cartelAviso.set(this.textoCartel(estado));
     this.estadoCartel.set(estado === 'en_espera' || estado === 'aceptado' ? estado : null);
@@ -145,15 +117,11 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
   async cerrarSesion(): Promise<void> {
     if (!this.clienteId) return;
 
-    const solicitud = await this.clienteAnonimo.obtenerMiSolicitud(this.clienteId);
+    const solicitud = await this.solicitudesMesa.obtenerMiSolicitud(this.clienteId);
 
     if (solicitud?.estado === 'vinculado') {
       this.avisoMostrador.set(true);
-      this.notificaciones.notificarCreacion(
-        'Cliente pidió cerrar sesión',
-        `El cliente de la Mesa ${solicitud.numero_mesa} intentó cerrar sesión estando ya vinculado. Se le indicó acercarse al mostrador.`,
-        { puestos: ['metre'], ruta: '/metre' }
-      );
+      this.notificaciones.avisarCierreSesionBloqueado(solicitud.numero_mesa);
       return;
     }
 
@@ -198,13 +166,7 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
         return;
       }
 
-      this.notificaciones.notificarCreacion(
-        'Cliente cerró sesión',
-        resultado.mesaLiberada
-          ? `${nombreCliente} cerró sesión. La Mesa ${resultado.mesaLiberada} quedó libre.`
-          : `${nombreCliente} cerró sesión.`,
-        { puestos: ['metre'] }
-      );
+      this.notificaciones.avisarClienteCerroSesion(nombreCliente, resultado.mesaLiberada);
 
       this.router.navigate(['/bienvenida'], { replaceUrl: true });
     } finally {
@@ -221,7 +183,7 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
    */
   async listaDeEspera(): Promise<void> {
     if (!this.clienteId) return;
-    const solicitud = await this.clienteAnonimo.obtenerMiSolicitud(this.clienteId);
+    const solicitud = await this.solicitudesMesa.obtenerMiSolicitud(this.clienteId);
 
     if (solicitud?.estado === 'vinculado') {
       this.router.navigate(['/mesa', solicitud.mesa_id]);
@@ -230,26 +192,5 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
     } else {
       this.router.navigate(['/cliente-anonimo/escaneo-qr']);
     }
-  }
-
-  async menu(): Promise<void> {
-    this.router.navigate(['/menu']);
-  }
-
-  async miPedido(): Promise<void> {
-    await this.proximamente();
-  }
-
-  async encuestas(): Promise<void> {
-    await this.proximamente();
-  }
-
-  private async proximamente(): Promise<void> {
-    const toast = await this.toastController.create({
-      message: 'Próximo deploy.',
-      duration: 1800,
-      position: 'bottom',
-    });
-    await toast.present();
   }
 }

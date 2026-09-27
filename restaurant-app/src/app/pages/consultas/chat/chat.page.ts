@@ -19,7 +19,7 @@ import { sendOutline } from 'ionicons/icons';
 import { Auth } from '../../../core/services/auth';
 import { AvisosService } from '../../../core/services/avisos.service';
 import { ClienteActualService } from '../../../core/services/cliente-actual.service';
-import { ClienteAnonimoService } from '../../../core/services/cliente-anonimo.service';
+import { SolicitudesMesaService } from '../../../core/services/solicitudes-mesa.service';
 import { ConsultasService } from '../../../core/services/consultas.service';
 import { LoadingService } from '../../../core/services/loading.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
@@ -72,7 +72,7 @@ export class ChatPage implements OnInit, OnDestroy {
   private readonly avisos = inject(AvisosService);
   private readonly loading = inject(LoadingService);
   private readonly clienteActual = inject(ClienteActualService);
-  private readonly clienteAnonimo = inject(ClienteAnonimoService);
+  private readonly solicitudesMesa = inject(SolicitudesMesaService);
   private readonly consultas = inject(ConsultasService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly sonidos = inject(SonidosService);
@@ -165,7 +165,7 @@ export class ChatPage implements OnInit, OnDestroy {
 
     this.rutaVolver.set(await this.clienteActual.rutaInicioCliente());
     const clienteId = await this.clienteActual.obtenerClienteIdActual();
-    const solicitud = clienteId ? await this.clienteAnonimo.obtenerMiSolicitud(clienteId) : null;
+    const solicitud = clienteId ? await this.solicitudesMesa.obtenerMiSolicitud(clienteId) : null;
 
     if (solicitud?.estado !== 'vinculado') {
       await this.salir('Necesitás tener una mesa asignada para consultar al mozo.');
@@ -254,16 +254,10 @@ export class ChatPage implements OnInit, OnDestroy {
    *  - Respuesta de un mozo → al cliente de esta estadía.
    */
   private notificar(mensaje: MensajeMesa): void {
-    const ruta = `/consultas/${mensaje.solicitud_id}`;
-    const extracto = mensaje.texto.length > 80 ? `${mensaje.texto.slice(0, 77)}…` : mensaje.texto;
-
     if (esDeCliente(mensaje)) {
-      this.notificaciones.notificarCreacion(`Consulta de la Mesa ${mensaje.numero_mesa}`, extracto, {
-        puestos: ['mozo'],
-        ruta,
-      });
+      this.notificaciones.avisarNuevaConsulta(mensaje);
     } else {
-      this.notificaciones.notificarCliente(`Respuesta de ${mensaje.autor_nombre}`, extracto, mensaje.cliente_id, ruta);
+      this.notificaciones.avisarRespuestaConsulta(mensaje);
     }
   }
 }

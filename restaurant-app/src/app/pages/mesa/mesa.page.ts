@@ -16,7 +16,7 @@ import { MesasService } from '../../core/services/mesas.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { AvisosService } from '../../core/services/avisos.service';
 import { ClienteActualService } from '../../core/services/cliente-actual.service';
-import { ClienteAnonimoService } from '../../core/services/cliente-anonimo.service';
+import { SolicitudesMesaService } from '../../core/services/solicitudes-mesa.service';
 import { MesaRow, etiquetaTipo } from '../../core/models/mesa.model';
 import { PUESTOS_VISTA_MESA } from '../../core/models/empleado.model';
 
@@ -54,9 +54,9 @@ export class MesaPage implements OnInit {
   private readonly auth = inject(Auth);
   private readonly mesasService = inject(MesasService);
   private readonly loading = inject(LoadingService);
-  private readonly avisos = inject(AvisosService);
+  protected readonly avisos = inject(AvisosService);
   private readonly clienteActual = inject(ClienteActualService);
-  private readonly clienteAnonimo = inject(ClienteAnonimoService);
+  private readonly solicitudesMesa = inject(SolicitudesMesaService);
 
   readonly etiquetaTipo = etiquetaTipo;
 
@@ -115,7 +115,7 @@ export class MesaPage implements OnInit {
     this.rutaVolver.set(await this.clienteActual.rutaInicioCliente());
 
     const clienteId = await this.clienteActual.obtenerClienteIdActual();
-    const solicitud = clienteId ? await this.clienteAnonimo.obtenerMiSolicitud(clienteId) : null;
+    const solicitud = clienteId ? await this.solicitudesMesa.obtenerMiSolicitud(clienteId) : null;
 
     if (solicitud?.estado !== 'vinculado') {
       this.vista.set('sinMesa');
@@ -145,9 +145,5 @@ export class MesaPage implements OnInit {
 
   volverAlInicio(): void {
     this.router.navigate([this.rutaVolver()], { replaceUrl: true });
-  }
-
-  async proximamente(): Promise<void> {
-    await this.avisos.info('Esta función se habilita en la próxima entrega.');
   }
 }

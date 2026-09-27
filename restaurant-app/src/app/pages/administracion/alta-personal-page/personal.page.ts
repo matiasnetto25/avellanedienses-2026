@@ -24,7 +24,6 @@ import { DniScannerService } from '../../../core/services/scanDNI.service';
 import { EmpleadosService } from '../../../core/services/empleados.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { LoadingService } from '../../../core/services/loading.service';
-import { SupabaseService } from '../../../core/services/supabase.service';
 import { Puesto, PUESTOS_CREABLES_POR_SUPERVISOR, PUESTOS_TODOS, Sexo } from '../../../core/models/empleado.model';
 import {
   validadorCuil,
@@ -103,17 +102,15 @@ export class PersonalPage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(Auth);
   private readonly avisos = inject(AvisosService);
-  private readonly camara = inject(CamaraService);
+  protected readonly camara = inject(CamaraService);
   private readonly dniScanner = inject(DniScannerService);
   private readonly empleadosService = inject(EmpleadosService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
-  private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
 
   cargando = false;
   escaneando = false;
-  tomandoFoto = false;
 
   readonly fotoDataUrl = signal<string | null>(null);
 
@@ -188,18 +185,8 @@ export class PersonalPage {
   }
 
   async tomarFoto(): Promise<void> {
-    if (this.tomandoFoto) return;
-    this.tomandoFoto = true;
-    try {
-      const resultado = await this.camara.tomarFoto();
-      if (resultado.ok && resultado.dataUrl) {
-        this.fotoDataUrl.set(resultado.dataUrl);
-      } else if (!resultado.cancelado) {
-        await this.avisos.error(resultado.mensaje ?? 'No se pudo tomar la foto.');
-      }
-    } finally {
-      this.tomandoFoto = false;
-    }
+    const foto = await this.camara.tomarFotoConAviso();
+    if (foto) this.fotoDataUrl.set(foto);
   }
 
   volverATomarFoto(): void {
@@ -276,58 +263,19 @@ export class PersonalPage {
         return;
       }
 
-      const correo = email.trim().toLowerCase();
-
-      // 1) Crear el usuario en Supabase Auth vía Edge Function mínima
-      const resultadoAuth = await this.empleadosService.crearUsuarioAuth(correo, password);
-
-      if (!resultadoAuth.ok || !resultadoAuth.userId) {
-        await this.avisos.error(resultadoAuth.mensaje ?? 'No se pudo crear el usuario.');
-        return;
-      }
-
-      // 2) Subir la foto a Storage (bucket "empleado"), nombrada con el CUIL.
-      const nombreArchivo = `${cuil}.jpg`;
-      const fotoBlob = await (await fetch(this.fotoDataUrl()!)).blob();
-
-      const { error: storageError } = await this.supabase.client.storage
-        .from('empleado')
-        .upload(nombreArchivo, fotoBlob, { contentType: 'image/jpeg', upsert: false });
-
-      if (storageError) {
-        await this.avisos.error(`Error al subir foto: ${storageError.message}`);
-        return;
-      }
-
-      // 3) Insertar la fila del empleado, vinculada al usuario de Auth recién creado.
-      const { error: insertError } = await this.supabase.client.from('empleados').insert({
-        auth_user_id: resultadoAuth.userId,
-        estado: 'On',
-        nombre,
-        apellido,
-        sexo,
-        fecha_nacimiento,
-        cuil,
-        email: correo,
-        puesto,
-        foto: nombreArchivo,
-      });
-
-      if (insertError) {
-        await this.avisos.error(`Error al guardar empleado: ${insertError.message}`);
-        return;
-      }
-
-      // Sin toast verde acá: la confirmación la da la notificación push
-      // (notificarCreacion, abajo). Los toasts de avisos.error() siguen
-      // intactos para cuando algo falla.
-
-      // Notificación push a dueño/supervisor avisando del alta nueva.
-      this.notificaciones.notificarCreacion(
-        'Nuevo empleado creado',
-        `${nombre} ${apellido} fue dado de alta como ${puesto}.`,
-        { puestos: ['dueño', 'supervisor'], ruta: '/administracion/personal' }
+      const resultado = await this.empleadosService.crearEmpleado(
+        { nombre, apellido, sexo, fecha_nacimiento, cuil, email, password, puesto },
+        this.fotoDataUrl()!
       );
+
+      if (!resultado.ok) {
+        await this.avisos.error(resultado.mensaje ?? 'No se pudo crear el empleado.');
+        return;
+      }
+
+      // Sin toast verde acá: la confirmación la da la notificación push.
+      // Los toasts de avisos.error() siguen intactos para cuando algo falla.
+      this.notificaciones.avisarNuevoEmpleado(nombre, apellido, puesto);
 
       this.form.reset();
       this.fotoDataUrl.set(null);

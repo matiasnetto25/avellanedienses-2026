@@ -55,20 +55,6 @@ ion-action-sheet {
   --button-color: var(--brand-text);
 }
 
-body.barcode-scanner-active {
-  visibility: hidden;
-  --background: transparent;
-  --ion-background-color: transparent;
-}
-
-body.barcode-scanner-active ion-app {
-  background: transparent;
-}
-
-body.barcode-scanner-active ion-content {
-  --background: transparent;
-}
-
 // ===== Alerts con el estilo de la marca =====
 // Pegar esto en src/global.scss. ion-alert NO tiene shadow parts (a
 // diferencia de otros componentes de Ionic) — la forma correcta de

@@ -147,10 +147,10 @@
           expand="block"
           fill="outline"
           type="button"
-          [disabled]="tomandoFoto"
+          [disabled]="camara.abriendo()"
           (click)="tomarFoto()"
         >
-          {{ tomandoFoto ? 'Abriendo cámara…' : 'Tomar foto' }}
+          {{ camara.abriendo() ? 'Abriendo cámara…' : 'Tomar foto' }}
         </ion-button>
       }
     </div>

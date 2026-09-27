@@ -73,7 +73,7 @@ export class RegistrarClientePage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(Auth);
   private readonly avisos = inject(AvisosService);
-  private readonly camara = inject(CamaraService);
+  protected readonly camara = inject(CamaraService);
   private readonly dniScanner = inject(DniScannerService);
   private readonly clientesService = inject(ClientesService);
   private readonly notificaciones = inject(NotificacionesService);
@@ -82,7 +82,6 @@ export class RegistrarClientePage {
 
   cargando = false;
   escaneando = false;
-  tomandoFoto = false;
 
   readonly fotoDataUrl = signal<string | null>(null);
   readonly registroExitoso = signal(false);
@@ -148,18 +147,8 @@ export class RegistrarClientePage {
   }
 
   async tomarFoto(): Promise<void> {
-    if (this.tomandoFoto) return;
-    this.tomandoFoto = true;
-    try {
-      const resultado = await this.camara.tomarFoto();
-      if (resultado.ok && resultado.dataUrl) {
-        this.fotoDataUrl.set(resultado.dataUrl);
-      } else if (!resultado.cancelado) {
-        await this.avisos.error(resultado.mensaje ?? 'No se pudo tomar la foto.');
-      }
-    } finally {
-      this.tomandoFoto = false;
-    }
+    const foto = await this.camara.tomarFotoConAviso();
+    if (foto) this.fotoDataUrl.set(foto);
   }
 
   volverATomarFoto(): void {
@@ -240,20 +229,9 @@ export class RegistrarClientePage {
         return;
       }
 
-      // Sin toast verde: dueño/supervisor siempre se enteran por push. Si
-      // fue el metre quien lo registró, también le llega a él (confirmación
-      // propia); si se autoregistró el cliente, el metre no recibe nada
-      // extra (no participó). Al cliente no se le puede avisar por push en
-      // este momento — todavía no tiene sesión propia en ningún dispositivo
-      // (se entera por email cuando se apruebe/rechace su cuenta).
-      this.notificaciones.notificarCreacion(
-        'Nuevo cliente pendiente',
-        `${nombre} ${apellido} se registró y está pendiente de aprobación.`,
-        {
-          puestos: this.esMetre ? ['dueño', 'supervisor', 'metre'] : ['dueño', 'supervisor'],
-          ruta: '/administracion',
-        }
-      );
+      // Sin toast verde: la confirmación la da la push (ver
+      // NotificacionesService.avisarNuevoClientePendiente).
+      this.notificaciones.avisarNuevoClientePendiente(nombre, apellido, this.esMetre);
 
       this.form.reset();
       this.fotoDataUrl.set(null);

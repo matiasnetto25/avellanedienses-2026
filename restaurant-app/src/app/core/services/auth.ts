@@ -1,10 +1,11 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { SupabaseService } from './supabase.service';
+import { SonidosService } from './sonidos.service';
+import { EmpleadosService } from './empleados.service';
+import { ClientesService } from './clientes.service';
 import {
-  EmpleadoRow,
   EmpleadoSesion,
-  PUESTOS_ADMIN,
 } from '../models/empleado.model';
 import { rutaHomeSegunPuesto } from '../models/rutas-por-puesto';
 
@@ -30,6 +31,9 @@ const CLAVE_INICIO_SESION = 'merlot_sesion_inicio';
 export class Auth {
   private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
+  private readonly sonidos = inject(SonidosService);
+  private readonly empleados = inject(EmpleadosService);
+  private readonly clientes = inject(ClientesService);
 
   private readonly _sesion = signal<EmpleadoSesion | null>(null);
   readonly sesion = this._sesion.asReadonly();
@@ -38,14 +42,8 @@ export class Auth {
 
   private timerExpiracion: ReturnType<typeof setTimeout> | null = null;
 
-  /** Solo lo usa adminGuard (ruta /administracion) */
-  readonly puedeAccederAdministracion = computed(() => {
-    const s = this._sesion();
-
-    return !!s &&
-      s.estado === 'On' &&
-      (PUESTOS_ADMIN as string[]).includes(s.puesto);
-  });
+  /** Ver alCerrarSesion(). */
+  private readonly tareasAlCerrarSesion: Array<() => Promise<void>> = [];
 
   /**
    * Restaura la sesión de Supabase Auth al iniciar la aplicación, y
@@ -119,27 +117,15 @@ export class Auth {
    * IMPORTANTE: acá ya NO se valida el puesto (antes rechazaba a
    * cualquiera que no fuera dueño/supervisor, lo que bloqueaba por
    * completo el login de cocinero/cantinero/mozo/metre). Esa validación
-   * de "quién puede entrar a Administración" vive en adminGuard;
-   * cocineroGuard/cantineroGuard hacen lo mismo para sus rutas.
+   * de "quién puede entrar a cada ruta" vive en puestoGuard.
    * Acá solo se valida que el empleado exista y esté activo.
    */
   private async cargarEmpleado(
     authUserId: string
   ): Promise<ResultadoLogin> {
-    const { data, error } = await this.supabase.client
-      .from('empleados')
-      .select(
-        'id, auth_user_id, estado, nombre, apellido, cuil, email, puesto, foto'
-      )
-      .eq('auth_user_id', authUserId)
-      .maybeSingle<EmpleadoRow>();
+    const resultado = await this.empleados.obtenerPorAuthId(authUserId);
 
-    if (error) {
-      console.error(
-        'Error buscando empleado:',
-        JSON.stringify(error, null, 2)
-      );
-
+    if (!resultado.ok) {
       await this.cerrarSesionCompleta({ sonido: false, redirigir: false });
 
       return {
@@ -148,14 +134,15 @@ export class Auth {
       };
     }
 
-    if (!data) {
+    const sesion = resultado.dato;
+    if (!sesion) {
       // No es empleado — puede ser un cliente registrado (pendiente,
       // rechazado, o aprobado) o directamente un email que no existe
       // en ninguna de las dos tablas.
       return await this.evaluarComoCliente(authUserId);
     }
 
-    if (data.estado !== 'On') {
+    if (sesion.estado !== 'On') {
       await this.cerrarSesionCompleta({ sonido: false, redirigir: false });
 
       return {
@@ -164,34 +151,6 @@ export class Auth {
           'Tu usuario está dado de baja. Contactá al dueño o supervisor.',
       };
     }
-
-    /**
-     * La tabla empleados guarda solamente el nombre del archivo:
-     *
-     * foto = "20-35371754-6.jpg"
-     *
-     * Acá lo convertimos en la URL pública de Storage.
-     */
-    let fotoUrl: string | null = null;
-
-    if (data.foto) {
-      const { data: publicUrlData } =
-        this.supabase.client.storage
-          .from('empleado')
-          .getPublicUrl(data.foto);
-
-      fotoUrl = publicUrlData.publicUrl;
-    }
-
-    const sesion: EmpleadoSesion = {
-      id: data.id,
-      nombre: data.nombre,
-      apellido: data.apellido,
-      email: data.email,
-      puesto: data.puesto,
-      estado: data.estado,
-      foto: fotoUrl,
-    };
 
     this._sesion.set(sesion);
     this.iniciarCuentaRegresiva();
@@ -213,17 +172,14 @@ export class Auth {
    * encontrado, se cierra la sesión — no tienen nada que hacer logueados.
    */
   private async evaluarComoCliente(authUserId: string): Promise<ResultadoLogin> {
-    const { data: cliente, error } = await this.supabase.client
-      .from('clientes')
-      .select('estado')
-      .eq('auth_customer_id', authUserId)
-      .maybeSingle<{ estado: string }>();
+    const resultado = await this.clientes.obtenerPorAuthId(authUserId);
 
-    if (error) {
-      console.error('Error buscando cliente:', JSON.stringify(error, null, 2));
+    if (!resultado.ok) {
       await this.cerrarSesionCompleta({ sonido: false, redirigir: false });
       return { ok: false, mensaje: 'No se pudo validar el usuario. Probá de nuevo.' };
     }
+
+    const cliente = resultado.dato;
 
     if (cliente?.estado === 'aprobado') {
       this.iniciarCuentaRegresiva();
@@ -265,16 +221,7 @@ export class Auth {
       return true;
     }
 
-    const { data } = await this.supabase.client.auth.getSession();
-    const userId = data.session?.user?.id;
-    if (!userId) return false;
-
-    const { data: cliente } = await this.supabase.client
-      .from('clientes')
-      .select('estado')
-      .eq('auth_customer_id', userId)
-      .maybeSingle<{ estado: string }>();
-
+    const cliente = await this.clientes.obtenerClienteActual();
     if (cliente?.estado === 'aprobado') {
       this.router.navigate(['/cliente'], { replaceUrl: true });
       return true;
@@ -289,7 +236,31 @@ export class Auth {
    * cierre y navega a /login.
    */
   async logout(): Promise<void> {
+    await this.ejecutarTareasAlCerrarSesion();
     await this.cerrarSesionCompleta({ sonido: true, redirigir: false });
+  }
+
+  /**
+   * Registra una tarea que corre cada vez que el usuario deja de tener
+   * sesión: botón "Cerrar sesión" o expiración automática a la hora.
+   *
+   * Existe para que NotificacionesService borre el token de push del
+   * dispositivo sin que Auth lo inyecte: NotificacionesService ya inyecta
+   * Auth, y al revés se formaría una dependencia circular.
+   */
+  alCerrarSesion(tarea: () => Promise<void>): void {
+    this.tareasAlCerrarSesion.push(tarea);
+  }
+
+  private async ejecutarTareasAlCerrarSesion(): Promise<void> {
+    for (const tarea of this.tareasAlCerrarSesion) {
+      try {
+        await tarea();
+      } catch (error) {
+        // Una tarea que falla nunca debe impedir el cierre de sesión.
+        console.error('Error en una tarea de cierre de sesión:', error);
+      }
+    }
   }
 
   // ===== Expiración de sesión (1 hora, sea el perfil que sea) =====
@@ -313,8 +284,9 @@ export class Auth {
 
   private programarExpiracion(msRestantes: number): void {
     this.cancelarTimerExpiracion();
-    this.timerExpiracion = setTimeout(() => {
-      this.cerrarSesionCompleta({ sonido: true, redirigir: true });
+    this.timerExpiracion = setTimeout(async () => {
+      await this.ejecutarTareasAlCerrarSesion();
+      await this.cerrarSesionCompleta({ sonido: true, redirigir: true });
     }, msRestantes);
   }
 
@@ -343,20 +315,10 @@ export class Auth {
     this._sesion.set(null);
 
     if (opciones.sonido) {
-      this.reproducirSonidoCierre();
+      this.sonidos.cierreSesion();
     }
     if (opciones.redirigir) {
       this.router.navigate(['/login'], { replaceUrl: true });
-    }
-  }
-
-  private reproducirSonidoCierre(): void {
-    try {
-      new Audio('assets/sounds/cierre.mp3').play().catch(() => {
-        // Reproducción bloqueada por el navegador/WebView — no es crítico.
-      });
-    } catch {
-      // Ídem: nunca debe romper el flujo de cierre de sesión.
     }
   }
 }

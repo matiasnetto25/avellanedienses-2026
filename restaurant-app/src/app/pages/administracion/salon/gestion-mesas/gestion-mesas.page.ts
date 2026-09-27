@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   IonContent,
@@ -21,6 +21,7 @@ import {
   IonText,
   AlertController,
 } from '@ionic/angular/standalone';
+import { AlturaDisponibleDirective } from '../../../../shared/directives/altura-disponible.directive';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { CamaraService } from '../../../../core/services/camara.service';
 import { MesasService } from '../../../../core/services/mesas.service';
@@ -32,6 +33,7 @@ import { MesaRow, TIPOS_MESA, etiquetaTipo } from '../../../../core/models/mesa.
   selector: 'app-gestion-mesas',
   standalone: true,
   imports: [
+    AlturaDisponibleDirective,
     CommonModule,
     ReactiveFormsModule,
     IonContent,
@@ -56,10 +58,9 @@ import { MesaRow, TIPOS_MESA, etiquetaTipo } from '../../../../core/models/mesa.
   styleUrls: ['./gestion-mesas.page.scss'],
 })
 export class GestionMesasPage implements OnInit {
-  @ViewChild(IonContent) private readonly ionContent!: IonContent;
   private readonly fb = inject(FormBuilder);
   private readonly avisos = inject(AvisosService);
-  private readonly camara = inject(CamaraService);
+  protected readonly camara = inject(CamaraService);
   private readonly mesasService = inject(MesasService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
@@ -73,21 +74,6 @@ export class GestionMesasPage implements OnInit {
   readonly mesaEnEdicion = signal<string | null>(null);
   readonly fotoNuevaDataUrl = signal<string | null>(null);
   readonly guardandoEdicion = signal(false);
-  readonly tomandoFoto = signal(false);
-
-  /**
-   * Siempre 1 mesa por página (una card grande por pantalla) — no
-   * calculamos cuántas entran, ese cálculo variaba de forma poco
-   * confiable entre distintos tamaños/densidades de pantalla.
-   */
-  readonly paginas = signal<MesaRow[][]>([]);
-
-  constructor() {
-    effect(() => {
-      const lista = this.mesas();
-      this.paginas.set(lista.map((mesa) => [mesa]));
-    });
-  }
 
   /** Por cada mesa, qué imagen se está mostrando: 0 = foto, 1 = QR */
   private readonly indiceImagen = signal<Record<string, number>>({});
@@ -102,50 +88,6 @@ export class GestionMesasPage implements OnInit {
     await this.cargarMesas();
   }
 
-  /** Ionic dispara esto después de que termina la transición de entrada. */
-  async ionViewDidEnter(): Promise<void> {
-    await this.medirAlturaDisponible();
-  }
-
-  @HostListener('window:resize')
-  async onResize(): Promise<void> {
-    await this.medirAlturaDisponible();
-  }
-
-  /** Mide el alto real disponible dentro de ion-content (con JS, ya que
-   *  los porcentajes de CSS no se propagan de forma confiable a través
-   *  del Shadow DOM) y lo expone como variable CSS. */
-  private async medirAlturaDisponible(): Promise<void> {
-    if (!this.ionContent) return;
-    const scrollEl = await this.ionContent.getScrollElement();
-    const alturaTotal = scrollEl.clientHeight;
-    if (!alturaTotal) return;
-
-    // El padding superior de .gestion-mesas-lista (16px) más un margen
-    // de seguridad para redondeos/diferencias entre dispositivos, más
-    // el alto real de la franja de gestos de Android (safe-area-inset-bottom,
-    // que clientHeight NO descuenta sola) — sin esto, el último botón
-    // de la card queda tapado por los botones del sistema.
-    const margenSeguridad = 32;
-    const colchonExtra = 16;
-    const safeAreaBottom = this.obtenerSafeAreaBottom();
-    const alturaDisponible = alturaTotal - margenSeguridad - safeAreaBottom - colchonExtra;
-
-    scrollEl.style.setProperty('--altura-disponible', `${alturaDisponible}px`);
-  }
-
-  private obtenerSafeAreaBottom(): number {
-    const div = document.createElement('div');
-    div.style.position = 'fixed';
-    div.style.bottom = '0';
-    div.style.visibility = 'hidden';
-    div.style.paddingBottom = 'env(safe-area-inset-bottom, 0px)';
-    document.body.appendChild(div);
-    const valor = parseFloat(getComputedStyle(div).paddingBottom) || 0;
-    document.body.removeChild(div);
-    return valor;
-  }
-
   async cargarMesas(): Promise<void> {
     this.cargandoLista.set(true);
     this.loading.mostrar();
@@ -155,10 +97,6 @@ export class GestionMesasPage implements OnInit {
       this.cargandoLista.set(false);
       this.loading.ocultar();
     }
-
-    requestAnimationFrame(() => {
-      this.medirAlturaDisponible();
-    });
   }
 
   urlFoto(mesa: MesaRow): string | null {
@@ -243,18 +181,8 @@ export class GestionMesasPage implements OnInit {
   }
 
   async tomarNuevaFoto(): Promise<void> {
-    if (this.tomandoFoto()) return;
-    this.tomandoFoto.set(true);
-    try {
-      const resultado = await this.camara.tomarFoto();
-      if (resultado.ok && resultado.dataUrl) {
-        this.fotoNuevaDataUrl.set(resultado.dataUrl);
-      } else if (!resultado.cancelado) {
-        await this.avisos.error(resultado.mensaje ?? 'No se pudo tomar la foto.');
-      }
-    } finally {
-      this.tomandoFoto.set(false);
-    }
+    const foto = await this.camara.tomarFotoConAviso();
+    if (foto) this.fotoNuevaDataUrl.set(foto);
   }
 
   async guardarEdicion(mesa: MesaRow): Promise<void> {
@@ -298,11 +226,7 @@ export class GestionMesasPage implements OnInit {
       this.mesas.update((lista) => lista.map((m) => (m.id === mesa.id ? resultado.mesa! : m)));
 
       // Sin toast verde: confirma la notificación push.
-      this.notificaciones.notificarCreacion(
-        'Mesa actualizada',
-        `Se modificó la Mesa ${resultado.mesa.numero_mesa}.`,
-        { puestos: ['dueño', 'supervisor'], ruta: '/administracion/salon/gestion' }
-      );
+      this.notificaciones.avisarMesaActualizada(resultado.mesa.numero_mesa);
 
       this.cancelarEdicion();
     } finally {
@@ -339,11 +263,7 @@ export class GestionMesasPage implements OnInit {
       this.mesas.update((lista) => lista.filter((m) => m.id !== mesa.id));
 
       // Sin toast verde: confirma la notificación push.
-      this.notificaciones.notificarCreacion(
-        'Mesa eliminada',
-        `Se eliminó la Mesa ${mesa.numero_mesa}.`,
-        { puestos: ['dueño', 'supervisor'], ruta: '/administracion/salon/gestion' }
-      );
+      this.notificaciones.avisarMesaEliminada(mesa.numero_mesa);
     } finally {
       this.loading.ocultar();
     }

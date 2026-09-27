@@ -32,6 +32,11 @@ export class AvisosService {
     await this.mostrar(mensaje, 'info', duracionMs);
   }
 
+  /** Aviso único para los botones de funciones que todavía no están disponibles. */
+  async proximamente(): Promise<void> {
+    await this.info('Esta función se habilita en la próxima entrega.');
+  }
+
   private async vibrarError(): Promise<void> {
     try {
       await Haptics.notification({ type: NotificationType.Error });

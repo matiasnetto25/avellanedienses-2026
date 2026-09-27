@@ -1,59 +1,25 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { IonButton, IonContent } from '@ionic/angular/standalone';
-import { ToastController } from '@ionic/angular';
-import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
+import { Component, computed, inject } from '@angular/core';
+import { PanelInicioComponent, AccionPanel } from '../../shared/components/panel-inicio/panel-inicio.component';
 import { Auth } from '../../core/services/auth';
-import { NotificacionesService } from '../../core/services/notificaciones.service';
+import { AvisosService } from '../../core/services/avisos.service';
+import { nombreCompleto } from '../../core/utils/nombre-completo';
 
 @Component({
   selector: 'app-metre',
   standalone: true,
-  imports: [IonContent, IonButton, MarcaHeaderComponent],
+  imports: [PanelInicioComponent],
   templateUrl: './metre.page.html',
-  styleUrls: ['./metre.page.scss'],
 })
 export class MetrePage {
-  private readonly auth = inject(Auth);
-  private readonly router = inject(Router);
-  private readonly notificaciones = inject(NotificacionesService);
-  private readonly toastController = inject(ToastController);
+  private readonly sesion = inject(Auth).sesion;
+  private readonly avisos = inject(AvisosService);
 
-  readonly sesion = this.auth.sesion;
+  readonly nombre = computed(() => nombreCompleto(this.sesion() ?? { nombre: '' }));
+  readonly foto = computed(() => this.sesion()?.foto ?? null);
 
-  get nombreCompleto(): string {
-    const s = this.sesion();
-    return s ? `${s.nombre} ${s.apellido}` : '';
-  }
-
-  get fotoEmpleado(): string | null {
-    return this.sesion()?.foto ?? null;
-  }
-
-  registrarCliente(): void {
-    this.router.navigate(['/registrar-cliente']);
-  }
-
-  async asignarMesa(): Promise<void> {
-    await this.proximamente();
-  }
-
-  listaDeEspera(): void {
-    this.router.navigate(['/metre/lista-espera']);
-  }
-
-  async cerrarSesion(): Promise<void> {
-    await this.notificaciones.eliminarTokenAlCerrarSesion();
-    await this.auth.logout();
-    this.router.navigate(['/bienvenida'], { replaceUrl: true });
-  }
-
-  private async proximamente(): Promise<void> {
-    const toast = await this.toastController.create({
-      message: 'Esta sección se habilita en la próxima entrega.',
-      duration: 1800,
-      position: 'bottom',
-    });
-    await toast.present();
-  }
+  readonly acciones: AccionPanel[] = [
+    { texto: 'Registrar cliente', ruta: '/registrar-cliente' },
+    { texto: 'Asignar mesa', accion: () => this.avisos.proximamente() },
+    { texto: 'Lista de espera', ruta: '/metre/lista-espera' },
+  ];
 }

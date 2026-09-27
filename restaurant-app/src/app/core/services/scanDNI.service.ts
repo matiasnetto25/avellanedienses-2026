@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
-import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { Injectable, inject } from '@angular/core';
+import { BarcodeFormat } from '@capacitor-mlkit/barcode-scanning';
+import { QrService } from './qr.service';
 import { DniQrData, Sexo } from '../models/empleado.model';
 import { calcularCuilSugerido } from '../../validators/empleado.validators';
 
@@ -28,49 +29,22 @@ export interface ResultadoEscaneoDni {
  */
 @Injectable({ providedIn: 'root' })
 export class DniScannerService {
+  private readonly qr = inject(QrService);
+
+  /** Lee el DNI con el escaneo común de QrService y lo interpreta. */
   async escanear(): Promise<ResultadoEscaneoDni> {
-    try {
-      const permiso = await BarcodeScanner.requestPermissions();
-      if (permiso.camera !== 'granted' && permiso.camera !== 'limited') {
-        return {
-          ok: false,
-          mensaje: 'Necesitamos permiso de cámara para escanear el DNI. Habilitalo en la configuración del dispositivo.',
-        };
-      }
- 
-      // En Android, Google Barcode Scanner Module puede no estar descargado
-      // todavía la primera vez; lo instala si hace falta.
-      const disponible = await BarcodeScanner.isGoogleBarcodeScannerModuleAvailable();
-      if (!disponible.available) {
-        await BarcodeScanner.installGoogleBarcodeScannerModule();
-      }
- 
-      const resultado = await BarcodeScanner.scan({
-        formats: [BarcodeFormat.QrCode, BarcodeFormat.Pdf417],
-      });
- 
-      if (!resultado.barcodes.length) {
-        return { ok: false, cancelado: true };
-      }
- 
-      const raw = resultado.barcodes[0].rawValue ?? '';
-      const datos = this.parsearDniArgentino(raw);
- 
-      if (!datos) {
-        return {
-          ok: false,
-          mensaje: 'No pudimos leer los datos del DNI. Probá escanear el código de barras del dorso, con buena luz.',
-        };
-      }
- 
-      return { ok: true, datos };
-    } catch (error: unknown) {
-      const mensaje = error instanceof Error ? error.message : String(error);
-      if (/cancel/i.test(mensaje)) {
-        return { ok: false, cancelado: true };
-      }
-      return { ok: false, mensaje: 'No se pudo escanear el DNI. Probá de nuevo.' };
+    const lectura = await this.qr.escanear([BarcodeFormat.QrCode, BarcodeFormat.Pdf417], 'el DNI');
+    if (!lectura.ok) return lectura;
+
+    const datos = this.parsearDniArgentino(lectura.texto);
+    if (!datos) {
+      return {
+        ok: false,
+        mensaje: 'No pudimos leer los datos del DNI. Probá escanear el código de barras del dorso, con buena luz.',
+      };
     }
+
+    return { ok: true, datos };
   }
  
   private parsearDniArgentino(raw: string): DniQrData | null {

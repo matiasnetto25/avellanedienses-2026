@@ -28,13 +28,10 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="menu-content">
+<ion-content class="menu-content" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
   <div class="menu-lista">
-    <div class="pagina-menu" *ngFor="let pagina of paginas">
-      <app-producto-card
-        *ngFor="let producto of pagina"
-        [producto]="producto"
-      ></app-producto-card>
+    <div class="pagina-menu" *ngFor="let producto of productosFiltrados">
+      <app-producto-card [producto]="producto"></app-producto-card>
     </div>
   </div>
 

@@ -1,47 +1,25 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { IonButton, IonContent } from '@ionic/angular/standalone';
-import { ToastController } from '@ionic/angular';
-import { MarcaHeaderComponent } from '../../shared/components/marca-header/marca-header.component';
+import { Component, computed, inject } from '@angular/core';
+import { PanelInicioComponent, AccionPanel } from '../../shared/components/panel-inicio/panel-inicio.component';
 import { Auth } from '../../core/services/auth';
-import { NotificacionesService } from '../../core/services/notificaciones.service';
+import { AvisosService } from '../../core/services/avisos.service';
+import { nombreCompleto } from '../../core/utils/nombre-completo';
 
 @Component({
   selector: 'app-mozo',
   standalone: true,
-  imports: [IonContent, IonButton, RouterLink, MarcaHeaderComponent],
+  imports: [PanelInicioComponent],
   templateUrl: './mozo.page.html',
-  styleUrls: ['./mozo.page.scss'],
 })
 export class MozoPage {
-  private readonly auth = inject(Auth);
-  private readonly notificaciones = inject(NotificacionesService);
-  private readonly router = inject(Router);
-  private readonly toastController = inject(ToastController);
+  private readonly sesion = inject(Auth).sesion;
+  private readonly avisos = inject(AvisosService);
 
-  readonly sesion = this.auth.sesion;
+  readonly nombre = computed(() => nombreCompleto(this.sesion() ?? { nombre: '' }));
+  readonly foto = computed(() => this.sesion()?.foto ?? null);
 
-  get nombreCompleto(): string {
-    const s = this.sesion();
-    return s ? `${s.nombre} ${s.apellido}` : '';
-  }
-
-  get fotoEmpleado(): string | null {
-    return this.sesion()?.foto ?? null;
-  }
-
-  async proximamente(): Promise<void> {
-    const toast = await this.toastController.create({
-      message: 'Próximo deploy.',
-      duration: 1800,
-      position: 'bottom',
-    });
-    await toast.present();
-  }
-
-  async cerrarSesion(): Promise<void> {
-    await this.notificaciones.eliminarTokenAlCerrarSesion();
-    await this.auth.logout();
-    this.router.navigate(['/bienvenida'], { replaceUrl: true });
-  }
+  readonly acciones: AccionPanel[] = [
+    { texto: 'Consultas', ruta: '/consultas' },
+    { texto: 'Próximamente', accion: () => this.avisos.proximamente() },
+    { texto: 'Próximamente', accion: () => this.avisos.proximamente() },
+  ];
 }

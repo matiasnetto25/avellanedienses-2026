@@ -1,29 +1,19 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { SupabaseService } from '../services/supabase.service';
+import { ClientesService } from '../services/clientes.service';
 
+/**
+ * Deja entrar a /cliente solo a un cliente registrado y aprobado con
+ * sesión activa. El resto va al login.
+ */
 export const clienteAprobadoGuard: CanActivateFn = async () => {
-  const supabase = inject(SupabaseService);
+  const clientes = inject(ClientesService);
   const router = inject(Router);
 
-  const { data: sessionData } = await supabase.client.auth.getSession();
-  const userId = sessionData.session?.user?.id;
-
-  if (!userId) {
-    router.navigate(['/login'], { replaceUrl: true });
-    return false;
+  const cliente = await clientes.obtenerClienteActual();
+  if (cliente?.estado === 'aprobado') {
+    return true;
   }
 
-  const { data, error } = await supabase.client
-    .from('clientes')
-    .select('estado')
-    .eq('auth_customer_id', userId)
-    .maybeSingle();
-
-  if (error || !data || data.estado !== 'aprobado') {
-    router.navigate(['/login'], { replaceUrl: true });
-    return false;
-  }
-
-  return true;
+  return router.createUrlTree(['/login']);
 };

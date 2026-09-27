@@ -1,5 +1,5 @@
 import { CommonModule, Location } from '@angular/common';
-import { Component, HostListener, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {
   IonContent,
@@ -16,6 +16,7 @@ import {
 import { addIcons } from 'ionicons';
 import { restaurantOutline, wineOutline, iceCreamOutline, arrowBackOutline } from 'ionicons/icons';
 import { ProductoCardComponent } from '../components/producto-card/producto-card.component';
+import { AlturaDisponibleDirective } from '../../shared/directives/altura-disponible.directive';
 import { Producto, CategoriaProducto } from '../../core/models/producto.model';
 import { MenuItemsService } from '../../core/services/menu-items.service';
 import { AvisosService } from '../../core/services/avisos.service';
@@ -27,6 +28,7 @@ import { LoadingService } from '../../core/services/loading.service';
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.scss'],
   imports: [
+    AlturaDisponibleDirective,
     CommonModule,
     IonContent,
     IonHeader,
@@ -42,7 +44,6 @@ import { LoadingService } from '../../core/services/loading.service';
   ],
 })
 export class MenuComponent implements OnInit {
-  @ViewChild(IonContent) private readonly ionContent!: IonContent;
   private readonly menuItemsService = inject(MenuItemsService);
   private readonly avisos = inject(AvisosService);
   private readonly loading = inject(LoadingService);
@@ -64,9 +65,6 @@ export class MenuComponent implements OnInit {
   productos: Producto[] = [];
   productosFiltrados: Producto[] = [];
 
-  /** Siempre 1 producto por página. */
-  paginas: Producto[][] = [];
-
   constructor() {
     addIcons({ restaurantOutline, wineOutline, iceCreamOutline, arrowBackOutline });
   }
@@ -83,34 +81,7 @@ export class MenuComponent implements OnInit {
       this.cargando = false;
       this.loading.ocultar();
     }
-
-    requestAnimationFrame(() => {
-      this.medirAlturaDisponible();
-    });
   }
-
-  async ionViewDidEnter(): Promise<void> {
-    await this.medirAlturaDisponible();
-  }
-
-  @HostListener('window:resize')
-  async onResize(): Promise<void> {
-    await this.medirAlturaDisponible();
-  }
-
-private async medirAlturaDisponible(): Promise<void> {
-  if (!this.ionContent) return;
-
-  const scrollEl = await this.ionContent.getScrollElement();
-  const altura = scrollEl.clientHeight;
-
-  if (!altura) return;
-
-  scrollEl.style.setProperty(
-    '--altura-disponible',
-    `${altura}px`
-  );
-}
 
   private leerNumeroMesa(): number | null {
     const valor = Number(this.route.snapshot.queryParamMap.get('mesa'));
@@ -130,6 +101,5 @@ private async medirAlturaDisponible(): Promise<void> {
     this.productosFiltrados = this.productos.filter(
       (p) => p.categoria === this.categoriaSeleccionada
     );
-    this.paginas = this.productosFiltrados.map((p) => [p]);
   }
 }

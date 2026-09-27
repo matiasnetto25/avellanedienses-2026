@@ -7,11 +7,10 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="gestion-mesas-content">
+<ion-content class="gestion-mesas-content" appAlturaDisponible>
   <div class="gestion-mesas-lista">
-    @for (pagina of paginas(); track $index) {
+    @for (mesa of mesas(); track mesa.id) {
       <div class="pagina-mesas">
-        @for (mesa of pagina; track mesa.id) {
           <ion-card class="mesa-card">
 
             <!-- Contenedor individual de la imagen: posición 1 = foto, posición 2 = QR -->
@@ -78,8 +77,8 @@
                       <img [src]="fotoNueva" alt="Nueva foto de la mesa" />
                     </div>
                   }
-                  <ion-button expand="block" fill="outline" type="button" [disabled]="tomandoFoto()" (click)="tomarNuevaFoto()">
-                    {{ tomandoFoto() ? 'Abriendo cámara…' : (fotoNuevaDataUrl() ? 'Volver a tomar foto' : 'Cambiar foto') }}
+                  <ion-button expand="block" fill="outline" type="button" [disabled]="camara.abriendo()" (click)="tomarNuevaFoto()">
+                    {{ camara.abriendo() ? 'Abriendo cámara…' : (fotoNuevaDataUrl() ? 'Volver a tomar foto' : 'Cambiar foto') }}
                   </ion-button>
 
                   <div class="mesa-acciones-edicion">
@@ -113,7 +112,6 @@
               }
             </ion-card-content>
           </ion-card>
-        }
       </div>
     }
 
