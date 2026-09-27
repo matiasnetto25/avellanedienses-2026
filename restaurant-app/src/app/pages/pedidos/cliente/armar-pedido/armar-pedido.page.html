@@ -60,3 +60,27 @@
     }
   }
 </ion-content>
+
+@if (vista() === 'carta') {
+  <!-- Fija abajo aunque la carta scrollee: la consigna pide el importe
+       acumulado visible en todo momento. -->
+  <ion-footer class="pedido-footer ion-no-border">
+    <div class="pedido-barra">
+      <div class="pedido-cifras">
+        <span class="pedido-total-etiqueta">
+          Total
+          @if (cantidadProductos()) {
+            · <span class="sin-corte">{{ cantidadProductos() }} {{ cantidadProductos() === 1 ? 'producto' : 'productos' }}</span>
+          }
+        </span>
+        <span class="pedido-total">${{ total() | number: '1.0-0' }}</span>
+        <span class="pedido-tiempo">
+          Tiempo estimado: <span class="sin-corte">{{ tiempoEstimado() ? tiempoEstimado() + ' min' : '—' }}</span>
+        </span>
+      </div>
+      <ion-button class="pedido-revisar" [disabled]="carrito.vacio()" (click)="revisarPedido()">
+        Revisar pedido
+      </ion-button>
+    </div>
+  </ion-footer>
+}

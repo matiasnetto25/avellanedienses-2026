@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent,
   IonHeader,
+  IonFooter,
   IonToolbar,
   IonTitle,
   IonButtons,
@@ -25,6 +26,7 @@ import { LoadingService } from '../../../../core/services/loading.service';
 import { ClienteActualService } from '../../../../core/services/cliente-actual.service';
 import { SolicitudesMesaService } from '../../../../core/services/solicitudes-mesa.service';
 import { CarritoService } from '../../../../core/services/carrito.service';
+import { calcularTiempoEstimado, calcularTotal } from '../../../../core/models/pedido.model';
 
 /**
  * Qué se muestra:
@@ -39,6 +41,10 @@ type VistaPedido = 'carta' | 'sinAcceso' | 'error';
  * controles − y + en cada producto. Las cantidades viven en
  * CarritoService, así que se conservan al cambiar de categoría y al ir y
  * volver del resumen.
+ *
+ * Abajo, una barra fija (issue 04) con el total y el tiempo estimado. Son
+ * una vista previa: los valores oficiales salen de los ítems guardados
+ * (PedidosService), con las mismas funciones de cálculo.
  */
 @Component({
   selector: 'app-armar-pedido',
@@ -48,6 +54,7 @@ type VistaPedido = 'carta' | 'sinAcceso' | 'error';
     CommonModule,
     IonContent,
     IonHeader,
+    IonFooter,
     IonToolbar,
     IonTitle,
     IonButtons,
@@ -84,6 +91,30 @@ export class ArmarPedidoPage implements OnInit {
 
   readonly productosFiltrados = computed(() =>
     this.productos().filter((producto) => producto.categoria === this.categoria())
+  );
+
+  /** Cada línea del carrito con su producto (se ignoran los que ya no están en la carta). */
+  private readonly lineasConProducto = computed(() => {
+    const porId = new Map(this.productos().map((producto) => [producto.id, producto]));
+    return this.carrito
+      .lineas()
+      .filter((linea) => porId.has(linea.menuId))
+      .map((linea) => ({ producto: porId.get(linea.menuId)!, cantidad: linea.cantidad }));
+  });
+
+  readonly total = computed(() =>
+    calcularTotal(
+      this.lineasConProducto().map(({ producto, cantidad }) => ({ precioUnitario: producto.precio, cantidad }))
+    )
+  );
+
+  /** Demora del producto más lento; 0 con el carrito vacío (se muestra «—»). */
+  readonly tiempoEstimado = computed(() =>
+    calcularTiempoEstimado(this.lineasConProducto().map(({ producto }) => producto.demoraMin))
+  );
+
+  readonly cantidadProductos = computed(() =>
+    this.lineasConProducto().reduce((suma, { cantidad }) => suma + cantidad, 0)
   );
 
   constructor() {
@@ -135,6 +166,11 @@ export class ArmarPedidoPage implements OnInit {
 
   cambiarCantidad(producto: Producto, cantidad: number): void {
     this.carrito.cambiarCantidad(producto.id, cantidad);
+  }
+
+  /** Abre el resumen del pedido (issue 05). */
+  revisarPedido(): void {
+    this.avisos.proximamente();
   }
 
   reintentar(): void {

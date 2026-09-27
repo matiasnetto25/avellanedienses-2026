@@ -1,5 +1,5 @@
 // La carta (lista, páginas y encabezado) usa los estilos de
-// menu.component.scss. Acá solo van los avisos propios del pedido.
+// menu.component.scss. Acá van los avisos y la barra del total.
 
 .pedido-aviso {
   min-height: 100%;
@@ -40,4 +40,75 @@
   width: 100%;
   max-width: 320px;
   height: 46px;
+}
+
+// ===== Barra fija con el total y el tiempo estimado =====
+
+.pedido-footer {
+  background: var(--brand-background);
+}
+
+.pedido-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  // Por encima de la franja de gestos de Android.
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid color-mix(in srgb, var(--brand-text) 15%, transparent);
+  background: color-mix(in srgb, var(--brand-accent) 8%, var(--brand-background));
+}
+
+.pedido-cifras {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pedido-total-etiqueta {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+}
+
+.pedido-total {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-accent);
+  font-size: 1.6rem; // ~26px: se lee de un vistazo
+  font-weight: 700;
+  line-height: 1.15;
+  // Nunca se corta ni se abrevia: con 7 cifras entra igual.
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pedido-tiempo {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  font-size: 0.9rem;
+  line-height: 1.3;
+  // Sin nowrap: si no entra al lado del botón, baja de línea (entre
+  // palabras) en vez de quedar tapado.
+}
+
+.pedido-revisar {
+  flex: 0 0 auto;
+  --background: var(--brand-accent);
+  --color: var(--brand-background);
+  --border-radius: 12px;
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 600;
+  height: 48px;
+  margin: 0;
+}
+
+// Un valor con su unidad («25 min», «260 productos») nunca se parte.
+.sin-corte {
+  white-space: nowrap;
 }
