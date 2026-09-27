@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { BUCKETS, Bucket } from '../storage-buckets';
-import { QrService } from './qr.service';
+import { QrService, contenidoQrMesa } from './qr.service';
 import { MesaRow, NuevaMesa } from '../models/mesa.model';
 
 const TABLA_MESA = 'mesa';
@@ -106,7 +106,7 @@ export class MesasService {
    * relación entre ambos archivos. Ej: foto = "abc123.jpg" -> qr = "qr-abc123.png"
    */
   private async generarYSubirQr(mesaId: string, identificador: string): Promise<string> {
-    const urlMesa = `${window.location.origin}/mesa/${mesaId}`;
+    const urlMesa = contenidoQrMesa(mesaId);
     const qrDataUrl = await this.qrService.generarDataUrl(urlMesa);
     const nombreQr = `qr-${identificador}.png`;
     await this.subirImagen(BUCKETS.qrMesas, nombreQr, qrDataUrl, 'image/png');

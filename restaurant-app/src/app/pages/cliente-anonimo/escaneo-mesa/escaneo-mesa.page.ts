@@ -4,7 +4,7 @@ import { IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons,
 import { addIcons } from 'ionicons';
 import { qrCodeOutline } from 'ionicons/icons';
 import { AvisosService } from '../../../core/services/avisos.service';
-import { EscaneoMesaService } from '../../../core/services/escaneo-mesa.service';
+import { QrService } from '../../../core/services/qr.service';
 import { ClienteAnonimoService } from '../../../core/services/cliente-anonimo.service';
 import { LoadingService } from '../../../core/services/loading.service';
 
@@ -18,7 +18,7 @@ import { LoadingService } from '../../../core/services/loading.service';
 export class EscaneoMesaPage implements OnInit {
   private readonly router = inject(Router);
   private readonly avisos = inject(AvisosService);
-  private readonly escaneoMesaService = inject(EscaneoMesaService);
+  private readonly qr = inject(QrService);
   private readonly clienteAnonimo = inject(ClienteAnonimoService);
   private readonly loading = inject(LoadingService);
 
@@ -56,7 +56,7 @@ export class EscaneoMesaPage implements OnInit {
     this.escaneando = true;
 
     try {
-      const resultado = await this.escaneoMesaService.escanear();
+      const resultado = await this.qr.escanearQrMesa();
 
       if (!resultado.ok) {
         if (!resultado.cancelado) {
