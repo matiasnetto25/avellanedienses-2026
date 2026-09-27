@@ -60,10 +60,14 @@
             <p class="mesa-dato">{{ m.cant_comensales }} comensales</p>
 
             <div class="mesa-opciones">
-              <ion-button expand="block" class="mesa-opcion" [routerLink]="['/mesa', m.id, 'pedido']" [queryParams]="{ mesa: m.numero_mesa }">Hacer pedido</ion-button>
+              <!-- Un solo pedido por estadía: el mismo lugar ofrece pedir o ver el pedido. -->
+              @if (tienePedido()) {
+                <ion-button expand="block" class="mesa-opcion" [routerLink]="['/mesa', m.id, 'estado-pedido']" [queryParams]="{ mesa: m.numero_mesa }">Estado de mi pedido</ion-button>
+              } @else {
+                <ion-button expand="block" class="mesa-opcion" [routerLink]="['/mesa', m.id, 'pedido']" [queryParams]="{ mesa: m.numero_mesa }">Hacer pedido</ion-button>
+              }
               <ion-button expand="block" class="mesa-opcion" [routerLink]="['/consultas', solicitudId()]">Consultar al mozo</ion-button>
               <ion-button expand="block" class="mesa-opcion" routerLink="/menu" [queryParams]="{ mesa: m.numero_mesa }">Ver el menú</ion-button>
-              <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Estado de mi pedido</ion-button>
               <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Encuesta de satisfacción</ion-button>
               <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Juegos</ion-button>
               <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Pagar la cuenta</ion-button>

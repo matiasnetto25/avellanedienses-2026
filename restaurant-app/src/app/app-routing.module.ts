@@ -152,6 +152,13 @@ const routes: Routes = [
     loadComponent: () => import('./pages/pedidos/cliente/armar-pedido/armar-pedido.page').then(m => m.ArmarPedidoPage)
   },
   {
+    path: 'mesa/:idMesa/estado-pedido',
+    // Mismo control que la carta: solo el cliente vinculado a esta mesa.
+    // Las push de los puntos 13 y 14 apuntan acá.
+    canActivate: [estadiaEnMesaGuard],
+    loadComponent: () => import('./pages/pedidos/cliente/estado-pedido/estado-pedido.page').then(m => m.EstadoPedidoPage)
+  },
+  {
     path: 'consultas',
     canActivate: [puestoGuard('mozo')],
     loadComponent: () => import('./pages/consultas/conversaciones/conversaciones.page').then(m => m.ConversacionesPage)

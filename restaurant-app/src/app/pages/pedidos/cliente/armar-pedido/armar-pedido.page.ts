@@ -200,12 +200,12 @@ export class ArmarPedidoPage implements OnInit {
     this.resumenAbierto.set(false);
   }
 
-  /**
-   * replaceUrl: el botón atrás no vuelve a la carta del pedido ya enviado.
-   * TODO issue 06: ir a /mesa/:idMesa/estado-pedido cuando exista.
-   */
+  /** replaceUrl: el botón atrás no vuelve a la carta del pedido ya enviado. */
   private irAlEstadoDelPedido(): void {
-    this.router.navigate([this.rutaMesa], { replaceUrl: true });
+    this.router.navigate([this.rutaMesa, 'estado-pedido'], {
+      replaceUrl: true,
+      queryParamsHandling: 'preserve',
+    });
   }
 
   reintentar(): void {

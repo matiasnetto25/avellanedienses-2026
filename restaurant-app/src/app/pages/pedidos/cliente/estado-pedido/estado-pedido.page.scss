@@ -1,0 +1,167 @@
+// Sin reglas en :host: el router de Ionic le pone .ion-page (ver mesa.page.scss).
+
+ion-toolbar {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+}
+
+.estado-content {
+  --background: var(--brand-background);
+}
+
+.estado-pantalla {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+}
+
+.estado-encabezado {
+  margin: 0;
+  font-family: var(--brand-font-logo);
+  font-size: 1.3rem;
+}
+
+// ===== Etiqueta del estado: grande y con color =====
+
+.estado-etiqueta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 2px solid color-mix(in srgb, var(--brand-text) 30%, transparent);
+  background: color-mix(in srgb, var(--brand-text) 6%, var(--brand-background));
+}
+
+.estado-etiqueta-texto {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.estado-etiqueta-detalle {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+// Esperando al mozo: tono ámbar.
+.estado-etiqueta--pendiente {
+  border-color: #c98a12;
+  background: color-mix(in srgb, #f2b33d 22%, var(--brand-background));
+
+  .estado-etiqueta-texto {
+    color: #8a5a00;
+  }
+}
+
+// ===== Ítems y totales =====
+
+.estado-lineas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.estado-linea {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.estado-linea-detalle {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.estado-linea-nombre {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.estado-linea-unitario {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.estado-linea-subtotal {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.estado-totales {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--brand-text) 20%, transparent);
+}
+
+.estado-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.estado-total {
+  color: var(--brand-accent);
+  font-size: 1.6rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sin-corte {
+  white-space: nowrap;
+}
+
+// ===== Avisos: sin pedido y error =====
+
+.estado-aviso {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  padding: 32px 24px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.estado-aviso-titulo {
+  font-family: var(--brand-font-logo);
+  color: var(--brand-text);
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.estado-aviso-detalle {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 8px;
+  max-width: 320px;
+}
+
+.estado-boton {
+  --background: var(--brand-accent);
+  --color: var(--brand-background);
+  --border-radius: 12px;
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 600;
+  width: 100%;
+  max-width: 320px;
+  height: 46px;
+}

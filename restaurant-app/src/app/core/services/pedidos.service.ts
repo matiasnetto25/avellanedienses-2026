@@ -98,10 +98,11 @@ export class PedidosService {
   // ===== Lectura =====
 
   /**
-   * El pedido de la estadía vinculada del cliente, o null si todavía no
-   * pidió (o si falló la consulta).
+   * El pedido de la estadía vinculada del cliente. Distingue «todavía no
+   * pidió» ({ ok: true, dato: null }) de «falló la consulta» ({ ok: false }):
+   * la pantalla del estado muestra cada caso distinto.
    */
-  async obtenerMiPedidoActivo(clienteId: string): Promise<Pedido | null> {
+  async obtenerMiPedidoActivo(clienteId: string): Promise<ResultadoBusqueda<Pedido>> {
     const { data, error } = await this.supabase.client
       .from(TABLA_PEDIDOS)
       .select(SELECT_PEDIDO)
@@ -111,11 +112,11 @@ export class PedidosService {
       .limit(1)
       .maybeSingle();
 
-    if (error || !data) {
-      if (error) console.error('Error obteniendo mi pedido:', error);
-      return null;
+    if (error) {
+      console.error('Error obteniendo mi pedido:', error);
+      return { ok: false };
     }
-    return this.aPedido(data as unknown as PedidoFila);
+    return { ok: true, dato: data ? this.aPedido(data as unknown as PedidoFila) : null };
   }
 
   async obtener(pedidoId: string): Promise<Pedido | null> {
@@ -204,7 +205,8 @@ export class PedidosService {
         console.error('Error creando pedido:', errorPedido);
         if (errorPedido.code === CODIGO_DUPLICADO) {
           const existente = await this.obtenerMiPedidoActivo(clienteId);
-          return { ok: false, mensaje: 'Ya tenés un pedido en curso.', pedidoExistenteId: existente?.id };
+          const pedidoExistenteId = existente.ok ? existente.dato?.id : undefined;
+          return { ok: false, mensaje: 'Ya tenés un pedido en curso.', pedidoExistenteId };
         }
         if (errorPedido.code === CODIGO_RLS) {
           return { ok: false, mensaje: 'Tu mesa ya no está habilitada para hacer pedidos.' };
