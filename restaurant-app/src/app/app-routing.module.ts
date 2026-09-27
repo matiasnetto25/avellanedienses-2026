@@ -143,6 +143,12 @@ const routes: Routes = [
     loadComponent: () => import('./pages/mesa/mesa.page').then(m => m.MesaPage)
   },
   {
+    path: 'mesa/:idMesa/pedido',
+    // Sin guard, como /mesa/:idMesa: el cliente puede ser anónimo (sin
+    // sesión). La pantalla verifica que esté vinculado a ESTA mesa.
+    loadComponent: () => import('./pages/pedidos/cliente/armar-pedido/armar-pedido.page').then(m => m.ArmarPedidoPage)
+  },
+  {
     path: 'consultas',
     canActivate: [puestoGuard('mozo')],
     loadComponent: () => import('./pages/consultas/conversaciones/conversaciones.page').then(m => m.ConversacionesPage)

@@ -1,0 +1,62 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="rutaMesa" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Hacer pedido{{ numeroMesa() ? ' · Mesa ' + numeroMesa() : '' }}</ion-title>
+  </ion-toolbar>
+  @if (vista() === 'carta') {
+    <ion-toolbar>
+      <ion-segment [value]="categoria()" (ionChange)="onCambioCategoria($event)">
+        <ion-segment-button value="comida">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <ion-label>Comida</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="bebida">
+          <ion-icon name="wine-outline"></ion-icon>
+          <ion-label>Bebidas</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="postre">
+          <ion-icon name="ice-cream-outline"></ion-icon>
+          <ion-label>Postres</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ion-toolbar>
+  }
+</ion-header>
+
+<ion-content class="menu-content" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  @switch (vista()) {
+    @case ('carta') {
+      <div class="menu-lista">
+        @for (producto of productosFiltrados(); track producto.id) {
+          <div class="pagina-menu">
+            <app-producto-card
+              [producto]="producto"
+              [cantidad]="carrito.cantidad(producto.id)"
+              (cantidadCambio)="cambiarCantidad(producto, $event)"
+            ></app-producto-card>
+          </div>
+        } @empty {
+          <p class="menu-vacio">No hay productos disponibles en esta categoría por el momento.</p>
+        }
+      </div>
+    }
+
+    @case ('sinAcceso') {
+      <div class="pedido-aviso">
+        <h2 class="pedido-aviso-titulo">No podés pedir desde esta mesa</h2>
+        <p class="pedido-aviso-detalle">Para hacer un pedido tenés que estar ubicado en esta mesa. Escaneá el QR de tu mesa.</p>
+        <ion-button expand="block" class="pedido-aviso-boton" (click)="volverALaMesa()">Volver a la mesa</ion-button>
+      </div>
+    }
+
+    @case ('error') {
+      <div class="pedido-aviso">
+        <h2 class="pedido-aviso-titulo">No se pudo cargar la carta</h2>
+        <p class="pedido-aviso-detalle">Revisá tu conexión y probá de nuevo.</p>
+        <ion-button expand="block" class="pedido-aviso-boton" (click)="reintentar()">Reintentar</ion-button>
+      </div>
+    }
+  }
+</ion-content>

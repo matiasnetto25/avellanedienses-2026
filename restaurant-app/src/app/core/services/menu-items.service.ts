@@ -16,7 +16,8 @@ export class MenuItemsService {
   private readonly supabase = inject(SupabaseService);
 
 
-  async listarActivos(): Promise<Producto[]> {
+  /** Productos activos de la carta, por nombre. null si falló la consulta. */
+  async listarActivos(): Promise<Producto[] | null> {
     const { data, error } = await this.supabase.client
       .from(TABLA_MENU)
       .select('*')
@@ -25,7 +26,7 @@ export class MenuItemsService {
 
     if (error) {
       console.error('Error listando productos del menú:', error);
-      return [];
+      return null;
     }
 
     return (data as MenuItemRow[]).map((fila) => this.mapearAProducto(fila));
@@ -38,6 +39,7 @@ export class MenuItemsService {
       precio: fila.precio,
       descripcion: fila.descripcion ?? '',
       tiempoElaboracion: fila.demora != null ? `${fila.demora} min` : '',
+      demoraMin: fila.demora ?? 0,
       categoria: fila.tipo,
       imagenes: [
         this.obtenerUrl(fila.foto_principal) ?? '',

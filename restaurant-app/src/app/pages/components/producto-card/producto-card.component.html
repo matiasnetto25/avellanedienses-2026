@@ -56,9 +56,34 @@
 
     <p class="producto-descripcion">{{ producto.descripcion }}</p>
 
-    <ion-badge class="producto-tiempo">
-      <ion-icon name="time-outline"></ion-icon>
-      {{ producto.tiempoElaboracion }}
-    </ion-badge>
+    <div class="producto-pie">
+      <ion-badge class="producto-tiempo">
+        <ion-icon name="time-outline"></ion-icon>
+        {{ producto.tiempoElaboracion }}
+      </ion-badge>
+
+      <!-- Modo pedido: botones en vez de un input numérico, para que no se
+           puedan escribir valores inválidos. -->
+      <div class="producto-cantidad" *ngIf="cantidad !== undefined">
+        <ion-button
+          class="producto-cantidad-boton"
+          fill="outline"
+          [disabled]="cantidad <= 0"
+          (click)="sumar(-1)"
+          [attr.aria-label]="'Quitar un ' + producto.nombre"
+        >
+          <ion-icon slot="icon-only" name="remove-outline"></ion-icon>
+        </ion-button>
+        <span class="producto-cantidad-valor" aria-live="polite">{{ cantidad }}</span>
+        <ion-button
+          class="producto-cantidad-boton"
+          [disabled]="cantidad >= cantidadMaxima"
+          (click)="sumar(1)"
+          [attr.aria-label]="'Agregar un ' + producto.nombre"
+        >
+          <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
   </ion-card-content>
 </ion-card>

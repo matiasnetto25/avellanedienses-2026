@@ -1,0 +1,43 @@
+// La carta (lista, páginas y encabezado) usa los estilos de
+// menu.component.scss. Acá solo van los avisos propios del pedido.
+
+.pedido-aviso {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  padding: 32px 24px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.pedido-aviso-titulo {
+  font-family: var(--brand-font-logo);
+  color: var(--brand-text);
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.pedido-aviso-detalle {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 8px;
+  max-width: 320px;
+}
+
+.pedido-aviso-boton {
+  --background: var(--brand-accent);
+  --color: var(--brand-background);
+  --border-radius: 12px;
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 600;
+  width: 100%;
+  max-width: 320px;
+  height: 46px;
+}
