@@ -1,0 +1,78 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="rutaMesa" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Estado de mi pedido</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="estado-content">
+  @if (cargando()) {
+    <!-- El spinner global con el logo cubre la espera. -->
+  } @else if (errorCarga()) {
+    <div class="estado-aviso">
+      <h2 class="estado-aviso-titulo">No se pudo cargar tu pedido</h2>
+      <p class="estado-aviso-detalle">Revisá tu conexión y probá de nuevo.</p>
+      <ion-button expand="block" class="estado-boton" (click)="reintentar()">Reintentar</ion-button>
+    </div>
+  } @else if (pedido(); as p) {
+    <div class="estado-pantalla">
+      <p class="estado-encabezado">Mesa {{ p.numeroMesa }} · pedido de las {{ p.creadoEn | date: 'HH:mm' }}</p>
+
+      <!-- Un bloque por estado: los puntos 13 y 14 agregan el suyo. -->
+      @switch (p.estado) {
+        @case ('pendiente_confirmacion') {
+          <div class="estado-etiqueta estado-etiqueta--pendiente">
+            <span class="estado-etiqueta-texto">{{ etiquetaEstado(p.estado) }}</span>
+            <span class="estado-etiqueta-detalle">
+              Un mozo va a revisar tu pedido. Cuando lo confirme, pasa a la cocina y a la barra.
+            </span>
+          </div>
+        }
+        @default {
+          <div class="estado-etiqueta">
+            <span class="estado-etiqueta-texto">{{ etiquetaEstado(p.estado) }}</span>
+          </div>
+        }
+      }
+
+      <ul class="estado-lineas">
+        @for (item of p.items; track item.menuId) {
+          <li class="estado-linea">
+            <div class="estado-linea-detalle">
+              <span class="estado-linea-nombre">{{ item.cantidad }} × {{ item.nombre }}</span>
+              <span class="estado-linea-unitario">${{ item.precioUnitario | number: '1.0-0' }} c/u</span>
+            </div>
+            <span class="estado-linea-subtotal">${{ item.subtotal | number: '1.0-0' }}</span>
+          </li>
+        }
+      </ul>
+
+      <div class="estado-totales">
+        <div class="estado-fila">
+          <span>Total</span>
+          <span class="estado-total">${{ p.total | number: '1.0-0' }}</span>
+        </div>
+        <div class="estado-fila">
+          <span>Tiempo estimado</span>
+          <span class="sin-corte">{{ p.tiempoEstimadoMin }} min</span>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="estado-aviso">
+      <h2 class="estado-aviso-titulo">Todavía no hiciste un pedido</h2>
+      <p class="estado-aviso-detalle">Elegí los productos de la carta y enviá tu pedido al mozo.</p>
+      <ion-button
+        expand="block"
+        class="estado-boton"
+        [routerLink]="[rutaMesa, 'pedido']"
+        [queryParams]="queryMesa"
+        [replaceUrl]="true"
+      >
+        Hacer pedido
+      </ion-button>
+    </div>
+  }
+</ion-content>

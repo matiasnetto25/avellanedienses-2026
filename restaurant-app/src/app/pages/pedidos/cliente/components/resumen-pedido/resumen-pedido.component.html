@@ -1,0 +1,37 @@
+<div class="resumen">
+  <h2 class="resumen-titulo">Tu pedido{{ numeroMesa ? ' · Mesa ' + numeroMesa : '' }}</h2>
+
+  <ul class="resumen-lineas">
+    @for (linea of items; track linea.producto.id) {
+      <li class="resumen-linea">
+        <div class="resumen-linea-detalle">
+          <span class="resumen-linea-nombre">{{ linea.cantidad }} × {{ linea.producto.nombre }}</span>
+          <span class="resumen-linea-unitario">${{ linea.producto.precio | number: '1.0-0' }} c/u</span>
+        </div>
+        <span class="resumen-linea-subtotal">${{ linea.producto.precio * linea.cantidad | number: '1.0-0' }}</span>
+      </li>
+    }
+  </ul>
+
+  <div class="resumen-totales">
+    <div class="resumen-fila">
+      <span>Total</span>
+      <span class="resumen-total">${{ total | number: '1.0-0' }}</span>
+    </div>
+    <div class="resumen-fila">
+      <span>Tiempo estimado</span>
+      <span class="sin-corte">{{ tiempoEstimado }} min</span>
+    </div>
+  </div>
+
+  <p class="resumen-nota">El mozo tiene que confirmar el pedido antes de que pase a la cocina y a la barra.</p>
+
+  <div class="resumen-acciones">
+    <ion-button class="resumen-seguir" fill="outline" [disabled]="enviando" (click)="seguirEligiendo.emit()">
+      Seguir eligiendo
+    </ion-button>
+    <ion-button class="resumen-enviar" [disabled]="enviando" (click)="enviar.emit()">
+      Enviar pedido
+    </ion-button>
+  </div>
+</div>

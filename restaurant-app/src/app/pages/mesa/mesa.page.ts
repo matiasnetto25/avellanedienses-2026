@@ -17,6 +17,7 @@ import { LoadingService } from '../../core/services/loading.service';
 import { AvisosService } from '../../core/services/avisos.service';
 import { ClienteActualService } from '../../core/services/cliente-actual.service';
 import { SolicitudesMesaService } from '../../core/services/solicitudes-mesa.service';
+import { PedidosService } from '../../core/services/pedidos.service';
 import { MesaRow, etiquetaTipo } from '../../core/models/mesa.model';
 import { PUESTOS_VISTA_MESA } from '../../core/models/empleado.model';
 
@@ -57,6 +58,7 @@ export class MesaPage implements OnInit {
   protected readonly avisos = inject(AvisosService);
   private readonly clienteActual = inject(ClienteActualService);
   private readonly solicitudesMesa = inject(SolicitudesMesaService);
+  private readonly pedidos = inject(PedidosService);
 
   readonly etiquetaTipo = etiquetaTipo;
 
@@ -70,6 +72,16 @@ export class MesaPage implements OnInit {
 
   /** Estadía del cliente en esta mesa (solo en la vista 'cliente'): abre su chat con el mozo. */
   readonly solicitudId = signal<string | null>(null);
+
+  /**
+   * Hay un solo pedido por estadía: sin pedido se ofrece «Hacer pedido»; con
+   * pedido, ese mismo botón pasa a ser «Estado de mi pedido». Si la consulta
+   * falla queda en false: la base igual no deja crear un segundo pedido.
+   */
+  readonly tienePedido = signal(false);
+
+  /** Cliente de la estadía (solo en la vista 'cliente'): para volver a consultar su pedido. */
+  private clienteId: string | null = null;
 
   /** A dónde vuelve el botón atrás: panel del empleado o pantalla principal del cliente. */
   readonly rutaVolver = signal('/bienvenida');
@@ -128,8 +140,25 @@ export class MesaPage implements OnInit {
       return;
     }
 
+    this.clienteId = clienteId;
     this.solicitudId.set(solicitud.id);
+    await this.actualizarTienePedido();
     this.vista.set('cliente');
+  }
+
+  /**
+   * Ionic deja esta pantalla guardada en la pila al ir a la carta o al
+   * estado: al volver no se ejecuta ngOnInit. Sin esto, después de enviar
+   * un pedido el botón seguiría diciendo «Hacer pedido».
+   */
+  async ionViewWillEnter(): Promise<void> {
+    if (this.vista() === 'cliente') await this.actualizarTienePedido();
+  }
+
+  private async actualizarTienePedido(): Promise<void> {
+    if (!this.clienteId) return;
+    const resultado = await this.pedidos.obtenerMiPedidoActivo(this.clienteId);
+    this.tienePedido.set(resultado.ok && resultado.dato !== null);
   }
 
   urlFoto(mesa: MesaRow): string | null {

@@ -72,7 +72,12 @@ export class MenuComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     this.loading.mostrar();
     try {
-      this.productos = await this.menuItemsService.listarActivos();
+      const productos = await this.menuItemsService.listarActivos();
+      if (!productos) {
+        await this.avisos.error('No se pudo cargar el menú. Probá de nuevo.');
+        return;
+      }
+      this.productos = productos;
       this.filtrarPorCategoria();
     } catch (error) {
       console.error('Error cargando el menú:', error);

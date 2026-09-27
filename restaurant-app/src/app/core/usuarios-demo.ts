@@ -13,5 +13,5 @@ export const USUARIOS_DEMO: readonly UsuarioDemo[] = [
   { perfil: 'mozo', etiqueta: 'Mozo', email: 'mozo@gmail.com', password: '123456' },
   { perfil: 'cocinero', etiqueta: 'Cocinero', email: 'cocinero@gmail.com', password: '123456' },
   { perfil: 'cantinero', etiqueta: 'Cantinero', email: 'cantinero@gmail.com', password: '123456' },
-  { perfil: 'cliente-registrado', etiqueta: 'Cliente registrado', email: 'matiasnetto25@gamil.com', password: '123456' },
+  { perfil: 'cliente-registrado', etiqueta: 'Cliente registrado', email: 'matiasnetto25@gmail.com', password: '123456' },
 ];

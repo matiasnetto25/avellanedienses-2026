@@ -7,6 +7,8 @@ export interface Producto {
   descripcion: string;
   /** Texto libre, ej: "10-15 min" */
   tiempoElaboracion: string;
+  /** Demora en minutos (0 si no está cargada): para el tiempo estimado del pedido. */
+  demoraMin: number;
   categoria: CategoriaProducto;
   /**
    * Debe tener exactamente 3 elementos.

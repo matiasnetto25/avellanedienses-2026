@@ -3,6 +3,7 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { puestoGuard } from './core/guards/puesto.guard';
 import { clienteAprobadoGuard } from './core/guards/cliente-aprobado.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
+import { estadiaEnMesaGuard } from './core/guards/estadia-en-mesa.guard';
 import { PUESTOS_ADMIN } from './core/models/empleado.model';
 
 const routes: Routes = [
@@ -132,6 +133,12 @@ const routes: Routes = [
     loadComponent: () => import('./pages/mozo/mozo.page').then(m => m.MozoPage)
   },
   {
+    // Tiene que coincidir con la ruta de la push avisarNuevoPedido().
+    path: 'mozo/pedidos',
+    canActivate: [puestoGuard('mozo')],
+    loadComponent: () => import('./pages/pedidos/mozo/pedidos-pendientes/pedidos-pendientes.page').then(m => m.PedidosPendientesPage)
+  },
+  {
     path: 'cliente-anonimo/ver-mesas',
     loadComponent: () => import('./pages/cliente-anonimo/ver-mesas/ver-mesas.page').then(m => m.VerMesasPage)
   },
@@ -141,6 +148,21 @@ const routes: Routes = [
     // cliente anónimo (sin sesión) — el componente decide qué mostrar
     // según quién es y si está vinculado a ESTA mesa.
     loadComponent: () => import('./pages/mesa/mesa.page').then(m => m.MesaPage)
+  },
+  {
+    path: 'mesa/:idMesa/pedido',
+    // Solo el cliente (anónimo o registrado) vinculado a ESTA mesa. El
+    // guard no mira la sesión de Auth: al anónimo lo identifica por el id
+    // del dispositivo. Si no pasa, lo manda a /mesa/:idMesa.
+    canActivate: [estadiaEnMesaGuard],
+    loadComponent: () => import('./pages/pedidos/cliente/armar-pedido/armar-pedido.page').then(m => m.ArmarPedidoPage)
+  },
+  {
+    path: 'mesa/:idMesa/estado-pedido',
+    // Mismo control que la carta: solo el cliente vinculado a esta mesa.
+    // Las push de los puntos 13 y 14 apuntan acá.
+    canActivate: [estadiaEnMesaGuard],
+    loadComponent: () => import('./pages/pedidos/cliente/estado-pedido/estado-pedido.page').then(m => m.EstadoPedidoPage)
   },
   {
     path: 'consultas',

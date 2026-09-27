@@ -1,0 +1,94 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="rutaMesa" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Hacer pedido{{ numeroMesa() ? ' · Mesa ' + numeroMesa() : '' }}</ion-title>
+  </ion-toolbar>
+  @if (!cargando() && !errorCarga()) {
+    <ion-toolbar>
+      <ion-segment [value]="categoria()" (ionChange)="onCambioCategoria($event)">
+        <ion-segment-button value="comida">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          <ion-label>Comida</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="bebida">
+          <ion-icon name="wine-outline"></ion-icon>
+          <ion-label>Bebidas</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="postre">
+          <ion-icon name="ice-cream-outline"></ion-icon>
+          <ion-label>Postres</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </ion-toolbar>
+  }
+</ion-header>
+
+<ion-content class="menu-content" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  @if (errorCarga()) {
+    <div class="pedido-aviso">
+      <h2 class="pedido-aviso-titulo">No se pudo cargar la carta</h2>
+      <p class="pedido-aviso-detalle">Revisá tu conexión y probá de nuevo.</p>
+      <ion-button expand="block" class="pedido-aviso-boton" (click)="reintentar()">Reintentar</ion-button>
+    </div>
+  } @else if (!cargando()) {
+    <div class="menu-lista">
+      @for (producto of productosFiltrados(); track producto.id) {
+        <div class="pagina-menu">
+          <app-producto-card
+            [producto]="producto"
+            [cantidad]="carrito.cantidad(producto.id)"
+            (cantidadCambio)="cambiarCantidad(producto, $event)"
+          ></app-producto-card>
+        </div>
+      } @empty {
+        <p class="menu-vacio">No hay productos disponibles en esta categoría por el momento.</p>
+      }
+    </div>
+  }
+</ion-content>
+
+@if (!cargando() && !errorCarga()) {
+  <!-- Fija abajo aunque la carta scrollee: la consigna pide el importe
+       acumulado visible en todo momento. -->
+  <ion-footer class="pedido-footer ion-no-border">
+    <div class="pedido-barra">
+      <div class="pedido-cifras">
+        <span class="pedido-total-etiqueta">
+          Total
+          @if (carrito.cantidadProductos()) {
+            · <span class="sin-corte">{{ carrito.cantidadProductos() }} {{ carrito.cantidadProductos() === 1 ? 'producto' : 'productos' }}</span>
+          }
+        </span>
+        <span class="pedido-total">${{ carrito.total() | number: '1.0-0' }}</span>
+        <span class="pedido-tiempo">
+          Tiempo estimado: <span class="sin-corte">{{ carrito.tiempoEstimado() ? carrito.tiempoEstimado() + ' min' : '—' }}</span>
+        </span>
+      </div>
+      <ion-button class="pedido-revisar" [disabled]="carrito.vacio()" (click)="revisarPedido()">
+        Revisar pedido
+      </ion-button>
+    </div>
+  </ion-footer>
+}
+
+<!-- Resumen antes de enviar (issue 05). -->
+<ion-modal
+  class="resumen-modal"
+  [isOpen]="resumenAbierto()"
+  [canDismiss]="!enviando()"
+  (didDismiss)="resumenAbierto.set(false)"
+>
+  <ng-template>
+    <app-resumen-pedido
+      [items]="carrito.items()"
+      [total]="carrito.total()"
+      [tiempoEstimado]="carrito.tiempoEstimado()"
+      [numeroMesa]="numeroMesa()"
+      [enviando]="enviando()"
+      (seguirEligiendo)="cerrarResumen()"
+      (enviar)="enviarPedido()"
+    />
+  </ng-template>
+</ion-modal>

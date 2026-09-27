@@ -266,3 +266,58 @@
     font-size: 0.9rem;
   }
 }
+/* ---------- Controles de cantidad (modo pedido) ---------- */
+
+.producto-pie {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+}
+
+.producto-cantidad {
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  flex: 0 0 auto;
+}
+
+.producto-cantidad-boton {
+  /* 44px: tamaño mínimo cómodo para el dedo */
+  width: 44px;
+  height: 44px;
+
+  margin: 0;
+
+  --padding-start: 0;
+  --padding-end: 0;
+  --border-radius: 50%;
+
+  --background: var(--brand-accent);
+  --color: var(--brand-background);
+
+  --border-color: var(--brand-accent);
+}
+
+.producto-cantidad-boton[fill='outline'] {
+  --background: transparent;
+  --color: var(--brand-accent);
+}
+
+.producto-cantidad-valor {
+  min-width: 2ch;
+
+  text-align: center;
+
+  font-family: var(--brand-font-subtitle);
+
+  color: var(--brand-text);
+
+  font-size: 1.2rem;
+  font-weight: 600;
+}
