@@ -1,0 +1,122 @@
+// Contenido del resumen. La hoja que lo contiene (.resumen-modal: alto,
+// bordes redondeados, fondo) la define la página que abre el <ion-modal>.
+
+// Un valor con su unidad («25 min») nunca se parte. También está en la
+// página, para la barra del total: los estilos de un componente no se
+// comparten.
+.sin-corte {
+  white-space: nowrap;
+}
+
+.resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 90vh;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  overflow-y: auto;
+  color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+}
+
+.resumen-titulo {
+  font-family: var(--brand-font-logo);
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.resumen-lineas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.resumen-linea {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.resumen-linea-detalle {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.resumen-linea-nombre {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.resumen-linea-unitario {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.resumen-linea-subtotal {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.resumen-totales {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--brand-text) 20%, transparent);
+}
+
+.resumen-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.resumen-total {
+  color: var(--brand-accent);
+  font-size: 1.6rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.resumen-nota {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.resumen-acciones {
+  display: flex;
+  gap: 10px;
+}
+
+.resumen-seguir,
+.resumen-enviar {
+  flex: 1;
+  height: 48px;
+  margin: 0;
+  --border-radius: 12px;
+  // Menos relleno para que «Seguir eligiendo» entre en una línea a 360 px.
+  --padding-start: 8px;
+  --padding-end: 8px;
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.resumen-seguir {
+  --color: var(--brand-accent);
+  --border-color: var(--brand-accent);
+}
+
+.resumen-enviar {
+  --background: var(--brand-accent);
+  --color: var(--brand-background);
+}

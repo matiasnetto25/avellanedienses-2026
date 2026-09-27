@@ -60,7 +60,7 @@
             <p class="mesa-dato">{{ m.cant_comensales }} comensales</p>
 
             <div class="mesa-opciones">
-              <ion-button expand="block" class="mesa-opcion" [routerLink]="['/mesa', m.id, 'pedido']">Hacer pedido</ion-button>
+              <ion-button expand="block" class="mesa-opcion" [routerLink]="['/mesa', m.id, 'pedido']" [queryParams]="{ mesa: m.numero_mesa }">Hacer pedido</ion-button>
               <ion-button expand="block" class="mesa-opcion" [routerLink]="['/consultas', solicitudId()]">Consultar al mozo</ion-button>
               <ion-button expand="block" class="mesa-opcion" routerLink="/menu" [queryParams]="{ mesa: m.numero_mesa }">Ver el menú</ion-button>
               <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Estado de mi pedido</ion-button>

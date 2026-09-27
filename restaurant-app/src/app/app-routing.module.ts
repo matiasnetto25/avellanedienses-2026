@@ -3,6 +3,7 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { puestoGuard } from './core/guards/puesto.guard';
 import { clienteAprobadoGuard } from './core/guards/cliente-aprobado.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
+import { estadiaEnMesaGuard } from './core/guards/estadia-en-mesa.guard';
 import { PUESTOS_ADMIN } from './core/models/empleado.model';
 
 const routes: Routes = [
@@ -144,8 +145,10 @@ const routes: Routes = [
   },
   {
     path: 'mesa/:idMesa/pedido',
-    // Sin guard, como /mesa/:idMesa: el cliente puede ser anónimo (sin
-    // sesión). La pantalla verifica que esté vinculado a ESTA mesa.
+    // Solo el cliente (anónimo o registrado) vinculado a ESTA mesa. El
+    // guard no mira la sesión de Auth: al anónimo lo identifica por el id
+    // del dispositivo. Si no pasa, lo manda a /mesa/:idMesa.
+    canActivate: [estadiaEnMesaGuard],
     loadComponent: () => import('./pages/pedidos/cliente/armar-pedido/armar-pedido.page').then(m => m.ArmarPedidoPage)
   },
   {

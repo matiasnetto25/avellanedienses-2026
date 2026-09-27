@@ -361,6 +361,17 @@ export class NotificacionesService {
     );
   }
 
+  /** El cliente envía su pedido → todos los mozos (lo tiene que confirmar uno). */
+  avisarNuevoPedido(numeroMesa: number, cantidadProductos: number, total: number, tiempoEstimadoMin: number): void {
+    const productos = `${cantidadProductos} ${cantidadProductos === 1 ? 'producto' : 'productos'}`;
+    this.notificarEmpleados(
+      `Nuevo pedido de la Mesa ${numeroMesa}`,
+      `${productos} · Total $${total.toLocaleString('es-AR')} · ~${tiempoEstimadoMin} min`,
+      ['mozo'],
+      '/mozo/pedidos'
+    );
+  }
+
   /** Recorta el texto del chat para que entre en la notificación. */
   private extracto(texto: string): string {
     return texto.length > MAX_CARACTERES_EXTRACTO

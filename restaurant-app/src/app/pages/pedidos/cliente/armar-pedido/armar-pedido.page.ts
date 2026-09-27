@@ -14,38 +14,22 @@ import {
   IonSegment,
   IonSegmentButton,
   IonLabel,
+  IonModal,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { restaurantOutline, wineOutline, iceCreamOutline } from 'ionicons/icons';
 import { ProductoCardComponent } from '../../../components/producto-card/producto-card.component';
+import { ResumenPedidoComponent } from '../components/resumen-pedido/resumen-pedido.component';
 import { AlturaDisponibleDirective } from '../../../../shared/directives/altura-disponible.directive';
 import { Producto, CategoriaProducto } from '../../../../core/models/producto.model';
 import { MenuItemsService } from '../../../../core/services/menu-items.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { ClienteActualService } from '../../../../core/services/cliente-actual.service';
-import { SolicitudesMesaService } from '../../../../core/services/solicitudes-mesa.service';
 import { CarritoService } from '../../../../core/services/carrito.service';
-import { calcularTiempoEstimado, calcularTotal } from '../../../../core/models/pedido.model';
+import { PedidosService } from '../../../../core/services/pedidos.service';
+import { NotificacionesService } from '../../../../core/services/notificaciones.service';
 
-/**
- * Qué se muestra:
- *  - carta:      el cliente está vinculado a esta mesa y puede pedir.
- *  - sinAcceso:  no hay cliente, no está vinculado o es otra mesa.
- *  - error:      no se pudo cargar la carta.
- */
-type VistaPedido = 'carta' | 'sinAcceso' | 'error';
-
-/**
- * Carta en modo pedido (punto 12, issue 03): la misma carta de /menu, con
- * controles − y + en cada producto. Las cantidades viven en
- * CarritoService, así que se conservan al cambiar de categoría y al ir y
- * volver del resumen.
- *
- * Abajo, una barra fija (issue 04) con el total y el tiempo estimado. Son
- * una vista previa: los valores oficiales salen de los ítems guardados
- * (PedidosService), con las mismas funciones de cálculo.
- */
 @Component({
   selector: 'app-armar-pedido',
   standalone: true,
@@ -64,7 +48,9 @@ type VistaPedido = 'carta' | 'sinAcceso' | 'error';
     IonSegment,
     IonSegmentButton,
     IonLabel,
+    IonModal,
     ProductoCardComponent,
+    ResumenPedidoComponent,
   ],
   templateUrl: './armar-pedido.page.html',
   // Los estilos de la carta, para que se vea igual que /menu.
@@ -77,44 +63,30 @@ export class ArmarPedidoPage implements OnInit {
   private readonly avisos = inject(AvisosService);
   private readonly loading = inject(LoadingService);
   private readonly clienteActual = inject(ClienteActualService);
-  private readonly solicitudesMesa = inject(SolicitudesMesaService);
+  private readonly pedidos = inject(PedidosService);
+  private readonly notificaciones = inject(NotificacionesService);
   protected readonly carrito = inject(CarritoService);
 
   readonly idMesa = this.route.snapshot.paramMap.get('idMesa') ?? '';
   readonly rutaMesa = `/mesa/${this.idMesa}`;
 
+  /**
+   * Número de mesa que llega por query param desde /mesa/:idMesa
+   * (/mesa/:idMesa/pedido?mesa=5). Es solo informativo, para el título y
+   * el resumen; null si se abrió desde otro lado.
+   */
+  readonly numeroMesa = signal<number | null>(this.leerNumeroMesa());
+
   readonly cargando = signal(true);
-  readonly vista = signal<VistaPedido | null>(null);
-  readonly numeroMesa = signal<number | null>(null);
+  readonly errorCarga = signal(false);
   readonly productos = signal<Producto[]>([]);
   readonly categoria = signal<CategoriaProducto>('comida');
+  readonly resumenAbierto = signal(false);
+  /** true mientras se envía: evita un segundo pedido por doble toque. */
+  readonly enviando = signal(false);
 
   readonly productosFiltrados = computed(() =>
     this.productos().filter((producto) => producto.categoria === this.categoria())
-  );
-
-  /** Cada línea del carrito con su producto (se ignoran los que ya no están en la carta). */
-  private readonly lineasConProducto = computed(() => {
-    const porId = new Map(this.productos().map((producto) => [producto.id, producto]));
-    return this.carrito
-      .lineas()
-      .filter((linea) => porId.has(linea.menuId))
-      .map((linea) => ({ producto: porId.get(linea.menuId)!, cantidad: linea.cantidad }));
-  });
-
-  readonly total = computed(() =>
-    calcularTotal(
-      this.lineasConProducto().map(({ producto, cantidad }) => ({ precioUnitario: producto.precio, cantidad }))
-    )
-  );
-
-  /** Demora del producto más lento; 0 con el carrito vacío (se muestra «—»). */
-  readonly tiempoEstimado = computed(() =>
-    calcularTiempoEstimado(this.lineasConProducto().map(({ producto }) => producto.demoraMin))
-  );
-
-  readonly cantidadProductos = computed(() =>
-    this.lineasConProducto().reduce((suma, { cantidad }) => suma + cantidad, 0)
   );
 
   constructor() {
@@ -124,23 +96,17 @@ export class ArmarPedidoPage implements OnInit {
   async ngOnInit(): Promise<void> {
     this.loading.mostrar();
     try {
-      if (!(await this.verificarMesa())) {
-        this.vista.set('sinAcceso');
-        return;
-      }
-
       const productos = await this.menuItems.listarActivos();
       if (!productos) {
-        this.vista.set('error');
+        this.errorCarga.set(true);
         await this.avisos.error('No se pudo cargar la carta. Probá de nuevo.');
         return;
       }
 
       this.productos.set(productos);
-      this.vista.set('carta');
     } catch (error) {
-      console.error('Error preparando el pedido:', error);
-      this.vista.set('error');
+      console.error('Error cargando la carta:', error);
+      this.errorCarga.set(true);
       await this.avisos.error('No se pudo cargar la carta. Probá de nuevo.');
     } finally {
       this.cargando.set(false);
@@ -148,16 +114,9 @@ export class ArmarPedidoPage implements OnInit {
     }
   }
 
-  /** Solo pide el cliente vinculado a ESTA mesa. */
-  private async verificarMesa(): Promise<boolean> {
-    const clienteId = await this.clienteActual.obtenerClienteIdActual();
-    const solicitud = clienteId ? await this.solicitudesMesa.obtenerMiSolicitud(clienteId) : null;
-
-    if (solicitud?.estado !== 'vinculado' || solicitud.mesa_id !== this.idMesa) {
-      return false;
-    }
-    this.numeroMesa.set(solicitud.numero_mesa);
-    return true;
+  private leerNumeroMesa(): number | null {
+    const valor = Number(this.route.snapshot.queryParamMap.get('mesa'));
+    return Number.isInteger(valor) && valor > 0 ? valor : null;
   }
 
   onCambioCategoria(event: CustomEvent): void {
@@ -165,21 +124,93 @@ export class ArmarPedidoPage implements OnInit {
   }
 
   cambiarCantidad(producto: Producto, cantidad: number): void {
-    this.carrito.cambiarCantidad(producto.id, cantidad);
+    this.carrito.cambiarCantidad(producto, cantidad);
   }
 
-  /** Abre el resumen del pedido (issue 05). */
   revisarPedido(): void {
-    this.avisos.proximamente();
+    if (!this.carrito.vacio()) this.resumenAbierto.set(true);
+  }
+
+  /** «Seguir eligiendo»: cierra el resumen con el carrito intacto. */
+  cerrarResumen(): void {
+    if (!this.enviando()) this.resumenAbierto.set(false);
+  }
+
+  /**
+   * Crea el pedido. Si sale bien, vacía el carrito, avisa a los mozos y
+   * saca al cliente de la carta. Si falla, el carrito queda como estaba.
+   */
+  async enviarPedido(): Promise<void> {
+    if (this.enviando() || this.carrito.vacio()) return;
+    this.enviando.set(true);
+    this.loading.mostrar();
+
+    // Se toman antes de vaciar el carrito, para la push.
+    const cantidadProductos = this.carrito.cantidadProductos();
+    const total = this.carrito.total();
+    const tiempo = this.carrito.tiempoEstimado();
+
+    try {
+      // El guard ya validó la estadía; acá solo hace falta el id para el
+      // pedido. Se resuelve al enviar, no al entrar.
+      const clienteId = await this.clienteActual.obtenerClienteIdActual();
+      if (!clienteId) {
+        await this.avisos.error('No pudimos identificarte. Volvé a escanear el QR de tu mesa.');
+        return;
+      }
+
+      const resultado = await this.pedidos.crear(clienteId, this.carrito.lineas());
+
+      if (resultado.ok) {
+        this.carrito.vaciar();
+        // Sin await: la push no bloquea, y si falla el pedido igual quedó creado.
+        this.notificaciones.avisarNuevoPedido(
+          resultado.numeroMesa ?? this.numeroMesa() ?? 0,
+          cantidadProductos,
+          total,
+          tiempo
+        );
+        this.cerrarResumenTrasEnviar();
+        await this.avisos.exito('Pedido enviado. Esperando confirmación del mozo.');
+        this.irAlEstadoDelPedido();
+        return;
+      }
+
+      if (resultado.pedidoExistenteId) {
+        this.cerrarResumenTrasEnviar();
+        await this.avisos.advertencia('Ya tenés un pedido en curso.');
+        this.irAlEstadoDelPedido();
+        return;
+      }
+
+      await this.avisos.error(resultado.mensaje ?? 'No se pudo enviar el pedido. Probá de nuevo.');
+    } finally {
+      this.enviando.set(false);
+      this.loading.ocultar();
+    }
+  }
+
+  /**
+   * Cierra la hoja cuando el envío ya terminó. Primero baja «enviando»:
+   * mientras está en true, [canDismiss] no deja cerrar el modal, y si se
+   * navega con la hoja abierta queda colgada encima de /mesa.
+   */
+  private cerrarResumenTrasEnviar(): void {
+    this.enviando.set(false);
+    this.resumenAbierto.set(false);
+  }
+
+  /**
+   * replaceUrl: el botón atrás no vuelve a la carta del pedido ya enviado.
+   * TODO issue 06: ir a /mesa/:idMesa/estado-pedido cuando exista.
+   */
+  private irAlEstadoDelPedido(): void {
+    this.router.navigate([this.rutaMesa], { replaceUrl: true });
   }
 
   reintentar(): void {
-    this.vista.set(null);
+    this.errorCarga.set(false);
     this.cargando.set(true);
     void this.ngOnInit();
-  }
-
-  volverALaMesa(): void {
-    this.router.navigate([this.rutaMesa], { replaceUrl: true });
   }
 }

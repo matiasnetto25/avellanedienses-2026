@@ -1,3 +1,5 @@
+import { Producto } from './producto.model';
+
 /**
  * Pedido de una estadía (tablas "pedidos" y "pedido_items"), ya aplanado
  * para la pantalla: la mesa y el cliente salen del join con la estadía, y
@@ -16,6 +18,12 @@ export const CANTIDAD_MAXIMA_ITEM = 20;
 /** Lo que arma el cliente en la carta: un producto y cuántos quiere. */
 export interface LineaCarrito {
   menuId: string;
+  cantidad: number;
+}
+
+/** Un producto del carrito con la cantidad elegida. */
+export interface ItemCarrito {
+  producto: Producto;
   cantidad: number;
 }
 
@@ -63,7 +71,7 @@ export function etiquetaEstadoPedido(estado: EstadoPedido): string {
   return ETIQUETAS_ESTADO_PEDIDO[estado] ?? estado;
 }
 
-/** Suma de precio por cantidad. La usan el servicio y la barra de la carta (issue 04). */
+/** Suma de precio por cantidad. La usan PedidosService y CarritoService (barra de la carta, issue 04). */
 export function calcularTotal(lineas: { precioUnitario: number; cantidad: number }[]): number {
   return lineas.reduce((total, linea) => total + linea.precioUnitario * linea.cantidad, 0);
 }

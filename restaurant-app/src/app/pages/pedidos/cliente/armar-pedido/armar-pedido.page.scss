@@ -1,5 +1,6 @@
 // La carta (lista, páginas y encabezado) usa los estilos de
-// menu.component.scss. Acá van los avisos y la barra del total.
+// menu.component.scss. Acá van los avisos, la barra del total y la hoja del
+// resumen (su contenido tiene estilos propios en ResumenPedidoComponent).
 
 .pedido-aviso {
   min-height: 100%;
@@ -111,4 +112,16 @@
 // Un valor con su unidad («25 min», «260 productos») nunca se parte.
 .sin-corte {
   white-space: nowrap;
+}
+
+// ===== Resumen antes de enviar =====
+
+// Hoja que sube desde abajo, con el alto justo del contenido. Se queda acá
+// porque el <ion-modal> es de la página.
+.resumen-modal {
+  --height: auto;
+  --max-height: 90%;
+  --border-radius: 20px 20px 0 0;
+  --background: var(--brand-background);
+  align-items: flex-end;
 }
