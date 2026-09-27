@@ -23,9 +23,7 @@ import { CamaraService } from '../../../core/services/camara.service';
 import { DniScannerService } from '../../../core/services/scanDNI.service';
 import { EmpleadosService } from '../../../core/services/empleados.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
-import { BUCKETS } from '../../../core/storage-buckets';
 import { LoadingService } from '../../../core/services/loading.service';
-import { SupabaseService } from '../../../core/services/supabase.service';
 import { Puesto, PUESTOS_CREABLES_POR_SUPERVISOR, PUESTOS_TODOS, Sexo } from '../../../core/models/empleado.model';
 import {
   validadorCuil,
@@ -109,7 +107,6 @@ export class PersonalPage {
   private readonly empleadosService = inject(EmpleadosService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
-  private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
 
   cargando = false;
@@ -277,45 +274,13 @@ export class PersonalPage {
         return;
       }
 
-      const correo = email.trim().toLowerCase();
+      const resultado = await this.empleadosService.crearEmpleado(
+        { nombre, apellido, sexo, fecha_nacimiento, cuil, email, password, puesto },
+        this.fotoDataUrl()!
+      );
 
-      // 1) Crear el usuario en Supabase Auth vía Edge Function mínima
-      const resultadoAuth = await this.empleadosService.crearUsuarioAuth(correo, password);
-
-      if (!resultadoAuth.ok || !resultadoAuth.userId) {
-        await this.avisos.error(resultadoAuth.mensaje ?? 'No se pudo crear el usuario.');
-        return;
-      }
-
-      // 2) Subir la foto a Storage (bucket "empleado"), nombrada con el CUIL.
-      const nombreArchivo = `${cuil}.jpg`;
-      const fotoBlob = await (await fetch(this.fotoDataUrl()!)).blob();
-
-      const { error: storageError } = await this.supabase.client.storage
-        .from(BUCKETS.empleados)
-        .upload(nombreArchivo, fotoBlob, { contentType: 'image/jpeg', upsert: false });
-
-      if (storageError) {
-        await this.avisos.error(`Error al subir foto: ${storageError.message}`);
-        return;
-      }
-
-      // 3) Insertar la fila del empleado, vinculada al usuario de Auth recién creado.
-      const { error: insertError } = await this.supabase.client.from('empleados').insert({
-        auth_user_id: resultadoAuth.userId,
-        estado: 'On',
-        nombre,
-        apellido,
-        sexo,
-        fecha_nacimiento,
-        cuil,
-        email: correo,
-        puesto,
-        foto: nombreArchivo,
-      });
-
-      if (insertError) {
-        await this.avisos.error(`Error al guardar empleado: ${insertError.message}`);
+      if (!resultado.ok) {
+        await this.avisos.error(resultado.mensaje ?? 'No se pudo crear el empleado.');
         return;
       }
 
