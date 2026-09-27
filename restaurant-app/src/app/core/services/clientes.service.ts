@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { BUCKETS } from '../storage-buckets';
 import { ClienteRow, EstadoCliente, EstadoEnEspera, NuevoClienteRegistrado } from '../models/cliente.model';
 import { plantillaClienteAprobado, plantillaClienteRechazado } from '../emails/email-templates';
 
 const TABLA_CLIENTES = 'clientes';
-const BUCKET_CLIENTES = 'cliente';
 
 export interface ResultadoAltaCliente {
   ok: boolean;
@@ -44,10 +44,9 @@ export class ClientesService {
     return !!data;
   }
 
+  /** Foto de un cliente, anónimo o registrado (los dos usan el mismo bucket). */
   obtenerUrlFoto(nombreArchivo: string | null): string | null {
-    if (!nombreArchivo) return null;
-    const { data } = this.supabase.client.storage.from(BUCKET_CLIENTES).getPublicUrl(nombreArchivo);
-    return data.publicUrl;
+    return this.supabase.urlPublica(BUCKETS.clientes, nombreArchivo);
   }
   
   async obtenerClienteActual(): Promise<ClienteRow | null> {

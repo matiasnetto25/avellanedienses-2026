@@ -1,10 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { BUCKETS, Bucket } from '../storage-buckets';
 import { QrService } from './qr.service';
 import { MesaRow, NuevaMesa } from '../models/mesa.model';
 
-const BUCKET_MESAS = 'mesas';
-const BUCKET_QR = 'qr_mesa';
 const TABLA_MESA = 'mesa';
 
 export interface ResultadoOperacionMesa {
@@ -66,20 +65,16 @@ export class MesasService {
 
   /** URL pública de la foto a partir del nombre de archivo guardado en Mesa.foto */
   obtenerUrlFoto(nombreArchivo: string | null): string | null {
-    if (!nombreArchivo) return null;
-    const { data } = this.supabase.client.storage.from(BUCKET_MESAS).getPublicUrl(nombreArchivo);
-    return data.publicUrl;
+    return this.supabase.urlPublica(BUCKETS.mesas, nombreArchivo);
   }
 
   /** URL pública del QR a partir del nombre de archivo guardado en Mesa.qr */
   obtenerUrlQr(nombreArchivo: string | null): string | null {
-    if (!nombreArchivo) return null;
-    const { data } = this.supabase.client.storage.from(BUCKET_QR).getPublicUrl(nombreArchivo);
-    return data.publicUrl;
+    return this.supabase.urlPublica(BUCKETS.qrMesas, nombreArchivo);
   }
 
   private async subirImagen(
-    bucket: string,
+    bucket: Bucket,
     nombreArchivo: string,
     dataUrl: string,
     contentType: string
@@ -96,7 +91,7 @@ export class MesasService {
     }
   }
 
-  private async eliminarArchivo(bucket: string, nombreArchivo: string | null): Promise<void> {
+  private async eliminarArchivo(bucket: Bucket, nombreArchivo: string | null): Promise<void> {
     if (!nombreArchivo) return;
     const { error } = await this.supabase.client.storage.from(bucket).remove([nombreArchivo]);
     if (error) {
@@ -114,7 +109,7 @@ export class MesasService {
     const urlMesa = `${window.location.origin}/mesa/${mesaId}`;
     const qrDataUrl = await this.qrService.generarDataUrl(urlMesa);
     const nombreQr = `qr-${identificador}.png`;
-    await this.subirImagen(BUCKET_QR, nombreQr, qrDataUrl, 'image/png');
+    await this.subirImagen(BUCKETS.qrMesas, nombreQr, qrDataUrl, 'image/png');
     return nombreQr;
   }
 
@@ -122,7 +117,7 @@ export class MesasService {
     try {
       const identificador = crypto.randomUUID();
       const nombreFoto = `${identificador}.jpg`;
-      await this.subirImagen(BUCKET_MESAS, nombreFoto, fotoDataUrl, 'image/jpeg');
+      await this.subirImagen(BUCKETS.mesas, nombreFoto, fotoDataUrl, 'image/jpeg');
 
       const { data, error } = await this.supabase.client
         .from(TABLA_MESA)
@@ -229,7 +224,7 @@ export class MesasService {
       if (nuevaFotoDataUrl) {
         const identificador = crypto.randomUUID();
         nuevoNombreFoto = `${identificador}.jpg`;
-        await this.subirImagen(BUCKET_MESAS, nuevoNombreFoto, nuevaFotoDataUrl, 'image/jpeg');
+        await this.subirImagen(BUCKETS.mesas, nuevoNombreFoto, nuevaFotoDataUrl, 'image/jpeg');
 
         nuevoNombreQr = await this.generarYSubirQr(mesaActual.id, identificador);
 
@@ -256,10 +251,10 @@ export class MesasService {
       // actualización de la fila salió bien (evita archivos huérfanos sin
       // arriesgar perder ambas versiones si algo falla a mitad de camino).
       if (nuevoNombreFoto && mesaActual.foto) {
-        await this.eliminarArchivo(BUCKET_MESAS, mesaActual.foto);
+        await this.eliminarArchivo(BUCKETS.mesas, mesaActual.foto);
       }
       if (nuevoNombreQr && mesaActual.qr) {
-        await this.eliminarArchivo(BUCKET_QR, mesaActual.qr);
+        await this.eliminarArchivo(BUCKETS.qrMesas, mesaActual.qr);
       }
 
       return { ok: true, mesa: data as MesaRow };
@@ -278,8 +273,8 @@ export class MesasService {
       return { ok: false, mensaje: 'No se pudo eliminar la mesa. Probá de nuevo.' };
     }
 
-    await this.eliminarArchivo(BUCKET_MESAS, mesa.foto);
-    await this.eliminarArchivo(BUCKET_QR, mesa.qr);
+    await this.eliminarArchivo(BUCKETS.mesas, mesa.foto);
+    await this.eliminarArchivo(BUCKETS.qrMesas, mesa.qr);
 
     return { ok: true };
   }

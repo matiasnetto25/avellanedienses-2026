@@ -13,6 +13,7 @@ import {
 } from '@ionic/angular/standalone';
 import { AvisosService } from '../../../core/services/avisos.service';
 import { ClienteAnonimoService } from '../../../core/services/cliente-anonimo.service';
+import { ClientesService } from '../../../core/services/clientes.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { LoadingService } from '../../../core/services/loading.service';
 import { etiquetaTipo } from '../../../core/models/mesa.model';
@@ -40,6 +41,7 @@ export class ListaEsperaPage implements OnInit {
   @ViewChild(IonContent) private readonly ionContent!: IonContent;
   private readonly avisos = inject(AvisosService);
   private readonly clienteAnonimo = inject(ClienteAnonimoService);
+  private readonly clientes = inject(ClientesService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
 
@@ -113,7 +115,7 @@ export class ListaEsperaPage implements OnInit {
   }
 
   urlFoto(nombreArchivo: string): string | null {
-    return this.clienteAnonimo.obtenerUrlFoto(nombreArchivo);
+    return this.clientes.obtenerUrlFoto(nombreArchivo);
   }
 
   async aceptar(fila: FilaListaEspera): Promise<void> {

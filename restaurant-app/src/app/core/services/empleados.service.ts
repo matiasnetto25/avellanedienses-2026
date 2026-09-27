@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { BUCKETS } from '../storage-buckets';
 import { NuevoEmpleado } from '../models/empleado.model';
 
 export interface ResultadoAlta {
@@ -86,16 +87,8 @@ export class EmpleadosService {
   }
 
   obtenerUrlFoto(nombreArchivo: string | null): string | null {
-  if (!nombreArchivo) {
-    return null;
+    return this.supabase.urlPublica(BUCKETS.empleados, nombreArchivo);
   }
-
-  const { data } = this.supabase.client.storage
-    .from('empleado')
-    .getPublicUrl(nombreArchivo);
-
-  return data.publicUrl;
-}
 
   async crearEmpleado(
     datos: Omit<NuevoEmpleado, 'foto' | 'estado' | 'auth_user_id'> & {

@@ -2,6 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { SupabaseService } from './supabase.service';
 import { SonidosService } from './sonidos.service';
+import { EmpleadosService } from './empleados.service';
 import {
   EmpleadoRow,
   EmpleadoSesion,
@@ -31,6 +32,7 @@ export class Auth {
   private readonly supabase = inject(SupabaseService);
   private readonly router = inject(Router);
   private readonly sonidos = inject(SonidosService);
+  private readonly empleados = inject(EmpleadosService);
 
   private readonly _sesion = signal<EmpleadoSesion | null>(null);
   readonly sesion = this._sesion.asReadonly();
@@ -159,23 +161,8 @@ export class Auth {
       };
     }
 
-    /**
-     * La tabla empleados guarda solamente el nombre del archivo:
-     *
-     * foto = "20-35371754-6.jpg"
-     *
-     * Acá lo convertimos en la URL pública de Storage.
-     */
-    let fotoUrl: string | null = null;
-
-    if (data.foto) {
-      const { data: publicUrlData } =
-        this.supabase.client.storage
-          .from('empleado')
-          .getPublicUrl(data.foto);
-
-      fotoUrl = publicUrlData.publicUrl;
-    }
+    // La tabla guarda solo el nombre del archivo ("20-35371754-6.jpg").
+    const fotoUrl = this.empleados.obtenerUrlFoto(data.foto);
 
     const sesion: EmpleadoSesion = {
       id: data.id,

@@ -2,11 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { Preferences } from '@capacitor/preferences';
 import { SupabaseService } from './supabase.service';
 import { NotificacionesService } from './notificaciones.service';
+import { ClientesService } from './clientes.service';
 import { MiSolicitud, FilaListaEspera } from '../models/solicitud-mesa.model';
 import { MesaRow } from '../models/mesa.model';
 
 const CLAVE_CLIENTE_ANONIMO_ID = 'merlot_cliente_anonimo_id';
-const BUCKET_CLIENTES = 'cliente';
 
 export interface ResultadoOperacion {
   ok: boolean;
@@ -23,6 +23,7 @@ export interface ClienteAnonimoActual {
 export class ClienteAnonimoService {
   private readonly supabase = inject(SupabaseService);
   private readonly notificaciones = inject(NotificacionesService);
+  private readonly clientes = inject(ClientesService);
 
   // ===== Identidad persistida en el dispositivo =====
 
@@ -56,14 +57,8 @@ export class ClienteAnonimoService {
     return {
       id: data.id,
       nombre: data.nombre,
-      fotoUrl: this.obtenerUrlFoto(data.foto),
+      fotoUrl: this.clientes.obtenerUrlFoto(data.foto),
     };
-  }
-
-  obtenerUrlFoto(nombreArchivo: string | null): string | null {
-    if (!nombreArchivo) return null;
-    const { data } = this.supabase.client.storage.from(BUCKET_CLIENTES).getPublicUrl(nombreArchivo);
-    return data.publicUrl;
   }
 
   /**

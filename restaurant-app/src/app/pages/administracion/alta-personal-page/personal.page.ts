@@ -23,6 +23,7 @@ import { CamaraService } from '../../../core/services/camara.service';
 import { DniScannerService } from '../../../core/services/scanDNI.service';
 import { EmpleadosService } from '../../../core/services/empleados.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
+import { BUCKETS } from '../../../core/storage-buckets';
 import { LoadingService } from '../../../core/services/loading.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { Puesto, PUESTOS_CREABLES_POR_SUPERVISOR, PUESTOS_TODOS, Sexo } from '../../../core/models/empleado.model';
@@ -291,7 +292,7 @@ export class PersonalPage {
       const fotoBlob = await (await fetch(this.fotoDataUrl()!)).blob();
 
       const { error: storageError } = await this.supabase.client.storage
-        .from('empleado')
+        .from(BUCKETS.empleados)
         .upload(nombreArchivo, fotoBlob, { contentType: 'image/jpeg', upsert: false });
 
       if (storageError) {
