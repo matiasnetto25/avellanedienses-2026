@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   IonContent,
   IonHeader,
@@ -11,6 +11,7 @@ import {
   IonCardContent,
   IonButton,
 } from '@ionic/angular/standalone';
+import { AlturaDisponibleDirective } from '../../../shared/directives/altura-disponible.directive';
 import { AvisosService } from '../../../core/services/avisos.service';
 import { ClienteAnonimoService } from '../../../core/services/cliente-anonimo.service';
 import { ClientesService } from '../../../core/services/clientes.service';
@@ -23,6 +24,7 @@ import { FilaListaEspera } from '../../../core/models/solicitud-mesa.model';
   selector: 'app-lista-espera',
   standalone: true,
   imports: [
+    AlturaDisponibleDirective,
     CommonModule,
     IonContent,
     IonHeader,
@@ -38,7 +40,6 @@ import { FilaListaEspera } from '../../../core/models/solicitud-mesa.model';
   styleUrls: ['./lista-espera.page.scss'],
 })
 export class ListaEsperaPage implements OnInit {
-  @ViewChild(IonContent) private readonly ionContent!: IonContent;
   private readonly avisos = inject(AvisosService);
   private readonly clienteAnonimo = inject(ClienteAnonimoService);
   private readonly clientes = inject(ClientesService);
@@ -51,53 +52,8 @@ export class ListaEsperaPage implements OnInit {
   readonly cargandoLista = signal(true);
   readonly procesandoId = signal<string | null>(null);
 
-  /** Siempre 1 solicitud por página. */
-  readonly paginas = signal<FilaListaEspera[][]>([]);
-
-  constructor() {
-    effect(() => {
-      const lista = this.filas();
-      this.paginas.set(lista.map((f) => [f]));
-    });
-  }
-
   async ngOnInit(): Promise<void> {
     await this.cargar();
-  }
-
-  async ionViewDidEnter(): Promise<void> {
-    await this.medirAlturaDisponible();
-  }
-
-  @HostListener('window:resize')
-  async onResize(): Promise<void> {
-    await this.medirAlturaDisponible();
-  }
-
-  private async medirAlturaDisponible(): Promise<void> {
-    if (!this.ionContent) return;
-    const scrollEl = await this.ionContent.getScrollElement();
-    const alturaTotal = scrollEl.clientHeight;
-    if (!alturaTotal) return;
-    const margenSeguridad = 32;
-    const colchonExtra = 32;
-    const safeAreaBottom = this.obtenerSafeAreaBottom();
-    scrollEl.style.setProperty(
-      '--altura-disponible',
-      `${alturaTotal - margenSeguridad - safeAreaBottom - colchonExtra}px`
-    );
-  }
-
-  private obtenerSafeAreaBottom(): number {
-    const div = document.createElement('div');
-    div.style.position = 'fixed';
-    div.style.bottom = '0';
-    div.style.visibility = 'hidden';
-    div.style.paddingBottom = 'env(safe-area-inset-bottom, 0px)';
-    document.body.appendChild(div);
-    const valor = parseFloat(getComputedStyle(div).paddingBottom) || 0;
-    document.body.removeChild(div);
-    return valor;
   }
 
   async cargar(): Promise<void> {
@@ -108,11 +64,7 @@ export class ListaEsperaPage implements OnInit {
     } finally {
       this.cargandoLista.set(false);
       this.loading.ocultar();
-    }
-    requestAnimationFrame(() => {
-      this.medirAlturaDisponible();
-    });
-  }
+    }  }
 
   urlFoto(nombreArchivo: string): string | null {
     return this.clientes.obtenerUrlFoto(nombreArchivo);

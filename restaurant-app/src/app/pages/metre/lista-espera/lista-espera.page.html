@@ -7,16 +7,15 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="espera-content">
+<ion-content class="espera-content" appAlturaDisponible [margenAltura]="64">
   @if (!cargandoLista() && filas().length === 0) {
     <div class="espera-vacio">
       <p>No hay clientes en la lista de espera.</p>
     </div>
   } @else {
     <div class="espera-lista">
-      @for (pagina of paginas(); track $index) {
+      @for (fila of filas(); track fila.id) {
         <div class="pagina-espera">
-          @for (fila of pagina; track fila.id) {
             <ion-card class="cliente-card">
               <div class="cliente-imagen-viewport">
                 @if (urlFoto(fila.foto); as url) {
@@ -60,7 +59,6 @@
                 </div>
               </ion-card-content>
             </ion-card>
-          }
         </div>
       }
     </div>

@@ -7,16 +7,15 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="solicitudes-content">
+<ion-content class="solicitudes-content" appAlturaDisponible>
   @if (!cargandoLista() && clientes().length === 0) {
     <div class="solicitudes-vacio">
       <p>Actualmente no se encuentran solicitudes</p>
     </div>
   } @else {
     <div class="solicitudes-lista">
-      @for (pagina of paginas(); track $index) {
+      @for (cliente of clientes(); track cliente.id) {
         <div class="pagina-solicitudes">
-          @for (cliente of pagina; track cliente.id) {
             <ion-card class="cliente-card">
               <div class="cliente-imagen-viewport">
                 @if (urlFoto(cliente); as url) {
@@ -51,7 +50,6 @@
                 </div>
               </ion-card-content>
             </ion-card>
-          }
         </div>
       }
     </div>

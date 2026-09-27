@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnInit, ViewChild, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   IonContent,
   IonHeader,
@@ -11,6 +11,7 @@ import {
   IonCardContent,
   IonButton,
 } from '@ionic/angular/standalone';
+import { AlturaDisponibleDirective } from '../../../shared/directives/altura-disponible.directive';
 import { AvisosService } from '../../../core/services/avisos.service';
 import { ClientesService } from '../../../core/services/clientes.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
@@ -21,6 +22,7 @@ import { ClienteRow } from '../../../core/models/cliente.model';
   selector: 'app-solicitudes-clientes',
   standalone: true,
   imports: [
+    AlturaDisponibleDirective,
     CommonModule,
     IonContent,
     IonHeader,
@@ -36,7 +38,6 @@ import { ClienteRow } from '../../../core/models/cliente.model';
   styleUrls: ['./solicitudes.page.scss'],
 })
 export class SolicitudesClientesPage implements OnInit {
-  @ViewChild(IonContent) private readonly ionContent!: IonContent;
   private readonly avisos = inject(AvisosService);
   private readonly clientesService = inject(ClientesService);
   private readonly notificaciones = inject(NotificacionesService);
@@ -46,59 +47,8 @@ export class SolicitudesClientesPage implements OnInit {
   readonly cargandoLista = signal(true);
   readonly procesandoId = signal<string | null>(null);
 
-  /** Siempre 1 cliente por página (una card grande por pantalla). */
-  readonly paginas = signal<ClienteRow[][]>([]);
-
-  constructor() {
-    effect(() => {
-      const lista = this.clientes();
-      this.paginas.set(lista.map((c) => [c]));
-    });
-  }
-
   async ngOnInit(): Promise<void> {
     await this.cargarPendientes();
-  }
-
-  async ionViewDidEnter(): Promise<void> {
-    await this.medirAlturaDisponible();
-  }
-
-  @HostListener('window:resize')
-  async onResize(): Promise<void> {
-    await this.medirAlturaDisponible();
-  }
-
-  private async medirAlturaDisponible(): Promise<void> {
-    if (!this.ionContent) return;
-
-    const scrollEl = await this.ionContent.getScrollElement();
-    const alturaTotal = scrollEl.clientHeight;
-
-    if (!alturaTotal) return;
-
-    const paddingVertical = 32; // 16px arriba + 16px abajo
-    const colchonExtra = 16;
-    const safeAreaBottom = this.obtenerSafeAreaBottom();
-
-    const alturaPagina = alturaTotal - paddingVertical - safeAreaBottom - colchonExtra;
-
-    scrollEl.style.setProperty(
-      '--altura-disponible',
-      `${alturaPagina}px`
-    );
-  }
-
-  private obtenerSafeAreaBottom(): number {
-    const div = document.createElement('div');
-    div.style.position = 'fixed';
-    div.style.bottom = '0';
-    div.style.visibility = 'hidden';
-    div.style.paddingBottom = 'env(safe-area-inset-bottom, 0px)';
-    document.body.appendChild(div);
-    const valor = parseFloat(getComputedStyle(div).paddingBottom) || 0;
-    document.body.removeChild(div);
-    return valor;
   }
 
   async cargarPendientes(): Promise<void> {
@@ -109,11 +59,7 @@ export class SolicitudesClientesPage implements OnInit {
     } finally {
       this.cargandoLista.set(false);
       this.loading.ocultar();
-    }
-    requestAnimationFrame(() => {
-      this.medirAlturaDisponible();
-    });
-  }
+    }  }
 
   urlFoto(cliente: ClienteRow): string | null {
     return this.clientesService.obtenerUrlFoto(cliente.foto);
