@@ -36,6 +36,13 @@ export class NotificacionesService {
    */
   private ultimoToken: string | null = null;
 
+  constructor() {
+    // Cualquier cierre de sesión (botón o expiración a la hora) borra el
+    // token: si no, el dispositivo seguía recibiendo las push de alguien
+    // que ya no tiene sesión en él.
+    this.auth.alCerrarSesion(() => this.eliminarToken());
+  }
+
   /**
    * Llamar UNA sola vez al bootstrapear la app (ej: en app.component.ts,
    * justo después de auth.restaurarSesion()). Pide permiso, se registra
@@ -61,8 +68,7 @@ export class NotificacionesService {
       // dispositivo — normalmente antes de que exista sesión todavía.
       PushNotifications.addListener('registration', (token: Token) => {
         this.ultimoToken = token.value;
-        this.guardarTokenPendienteSiHaySesion();
-        this.registrarTokenClienteAnonimoSiCorresponde(token.value);
+        this.asignarTokenDelDispositivo(token.value);
       });
 
       PushNotifications.addListener('registrationError', (error) => {
@@ -107,11 +113,10 @@ export class NotificacionesService {
   }
 
   /**
-   * Reintenta guardar el token cacheado. Se llama:
-   *  1) desde el listener 'registration' (por si YA había sesión, ej:
-   *     restaurarSesion() encontró una sesión previa antes de esto), y
-   *  2) desde login.page.ts, justo después de un login exitoso — que es
-   *     el caso más común (arranque en frío -> se pide permiso -> login).
+   * Reintenta guardar el token cacheado para el empleado con sesión. Se
+   * llama desde login.page.ts, justo después de un login exitoso — el
+   * caso más común (arranque en frío -> se pide permiso -> login). Si ya
+   * había sesión al arrancar, lo resuelve asignarTokenDelDispositivo().
    * Es seguro llamarla aunque no haya token o no haya sesión: no hace nada.
    */
   guardarTokenPendienteSiHaySesion(): void {
@@ -144,12 +149,11 @@ export class NotificacionesService {
   }
 
   /**
-   * Se llama al cerrar sesión (ANTES de invalidar la sesión de Supabase
-   * Auth, ver SesionService.cerrarSesion()). Sin
-   * esto, el dispositivo seguía recibiendo notificaciones del empleado
-   * que se deslogueó, porque el token nunca se borraba de push_tokens.
+   * Borra el token del dispositivo de push_tokens. Corre en cada cierre
+   * de sesión (ver el constructor). La RPC borra por token y no depende de
+   * la sesión de Supabase, así que el orden respecto de signOut no importa.
    */
-  async eliminarTokenAlCerrarSesion(): Promise<void> {
+  private async eliminarToken(): Promise<void> {
     if (!this.ultimoToken) return;
 
     const { error } = await this.supabase.client.rpc('eliminar_push_token', {
@@ -157,7 +161,7 @@ export class NotificacionesService {
     });
 
     if (error) {
-      console.error('Error eliminando push token al cerrar sesión:', error);
+      console.error('Error eliminando push token:', error);
     }
     // No se limpia this.ultimoToken: si el mismo dispositivo vuelve a
     // loguearse (otro empleado, o el mismo), guardarTokenPendienteSiHaySesion()
@@ -165,23 +169,39 @@ export class NotificacionesService {
   }
 
   /**
-   * Mismo problema que con empleados: el evento 'registration' puede
-   * llegar antes de que exista un cliente_id guardado. Se consulta acá
-   * directo (en vez de inyectar ClienteAnonimoService, que a su vez
-   * depende de este servicio — evita la dependencia circular).
+   * Decide de quién es el dispositivo cuando el SO entrega el token (al
+   * arrancar la app). Un celular es de una sola persona a la vez:
+   *  1) Si hay sesión de empleado, el token es del empleado.
+   *  2) Si no, y hay un cliente anónimo guardado, es del cliente.
+   *  3) Si no hay nadie (por ejemplo, la sesión expiró con la app
+   *     cerrada), se borra: no debe recibir las push de nadie.
+   *
+   * Antes se registraban el empleado y el cliente a la vez, y el último
+   * en llegar se quedaba con el token.
+   *
+   * El cliente anónimo se lee directo de Preferences (en vez de inyectar
+   * ClienteAnonimoService, que a su vez depende de este servicio — evita
+   * la dependencia circular).
    */
-  private async registrarTokenClienteAnonimoSiCorresponde(token: string): Promise<void> {
-    const { value: clienteId } = await Preferences.get({ key: CLAVE_CLIENTE_ANONIMO_ID });
-    if (!clienteId) return;
-
-    const { error } = await this.supabase.client.rpc('registrar_push_token_cliente', {
-      p_cliente_id: clienteId,
-      p_token: token,
-    });
-
-    if (error) {
-      console.error('Error registrando push token de cliente anónimo (reintento):', error);
+  private async asignarTokenDelDispositivo(token: string): Promise<void> {
+    if (this.auth.sesion()) {
+      await this.guardarToken(token);
+      return;
     }
+
+    const { value: clienteId } = await Preferences.get({ key: CLAVE_CLIENTE_ANONIMO_ID });
+    if (clienteId) {
+      const { error } = await this.supabase.client.rpc('registrar_push_token_cliente', {
+        p_cliente_id: clienteId,
+        p_token: token,
+      });
+      if (error) {
+        console.error('Error registrando push token de cliente anónimo (reintento):', error);
+      }
+      return;
+    }
+
+    await this.eliminarToken();
   }
 
   /**

@@ -39,6 +39,9 @@ export class Auth {
 
   private timerExpiracion: ReturnType<typeof setTimeout> | null = null;
 
+  /** Ver alCerrarSesion(). */
+  private readonly tareasAlCerrarSesion: Array<() => Promise<void>> = [];
+
   /**
    * Restaura la sesión de Supabase Auth al iniciar la aplicación, y
    * retoma la cuenta regresiva de expiración desde donde había quedado
@@ -280,7 +283,31 @@ export class Auth {
    * cierre y navega a /login.
    */
   async logout(): Promise<void> {
+    await this.ejecutarTareasAlCerrarSesion();
     await this.cerrarSesionCompleta({ sonido: true, redirigir: false });
+  }
+
+  /**
+   * Registra una tarea que corre cada vez que el usuario deja de tener
+   * sesión: botón "Cerrar sesión" o expiración automática a la hora.
+   *
+   * Existe para que NotificacionesService borre el token de push del
+   * dispositivo sin que Auth lo inyecte: NotificacionesService ya inyecta
+   * Auth, y al revés se formaría una dependencia circular.
+   */
+  alCerrarSesion(tarea: () => Promise<void>): void {
+    this.tareasAlCerrarSesion.push(tarea);
+  }
+
+  private async ejecutarTareasAlCerrarSesion(): Promise<void> {
+    for (const tarea of this.tareasAlCerrarSesion) {
+      try {
+        await tarea();
+      } catch (error) {
+        // Una tarea que falla nunca debe impedir el cierre de sesión.
+        console.error('Error en una tarea de cierre de sesión:', error);
+      }
+    }
   }
 
   // ===== Expiración de sesión (1 hora, sea el perfil que sea) =====
@@ -304,8 +331,9 @@ export class Auth {
 
   private programarExpiracion(msRestantes: number): void {
     this.cancelarTimerExpiracion();
-    this.timerExpiracion = setTimeout(() => {
-      this.cerrarSesionCompleta({ sonido: true, redirigir: true });
+    this.timerExpiracion = setTimeout(async () => {
+      await this.ejecutarTareasAlCerrarSesion();
+      await this.cerrarSesionCompleta({ sonido: true, redirigir: true });
     }, msRestantes);
   }
 
