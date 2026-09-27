@@ -3,6 +3,7 @@ import { SupabaseService } from './supabase.service';
 import { BUCKETS } from '../storage-buckets';
 import { ClienteRow, EstadoCliente, EstadoEnEspera, NuevoClienteRegistrado } from '../models/cliente.model';
 import { plantillaClienteAprobado, plantillaClienteRechazado } from '../emails/email-templates';
+import { ResultadoBusqueda } from '../models/resultado-busqueda';
 
 const TABLA_CLIENTES = 'clientes';
 
@@ -49,22 +50,33 @@ export class ClientesService {
     return this.supabase.urlPublica(BUCKETS.clientes, nombreArchivo);
   }
   
+  /**
+   * Cliente registrado vinculado a un usuario de Supabase Auth. Es el
+   * único lugar de la app que consulta clientes por su usuario de Auth
+   * (login, redirección con sesión activa y clienteAprobadoGuard).
+   */
+  async obtenerPorAuthId(authUserId: string): Promise<ResultadoBusqueda<ClienteRow>> {
+    const { data, error } = await this.supabase.client
+      .from(TABLA_CLIENTES)
+      .select('*')
+      .eq('auth_customer_id', authUserId)
+      .maybeSingle<ClienteRow>();
+
+    if (error) {
+      console.error('Error buscando cliente por usuario de Auth:', error);
+      return { ok: false };
+    }
+    return { ok: true, dato: data };
+  }
+
+  /** Cliente registrado de la sesión actual, o null si no hay (o falla la consulta). */
   async obtenerClienteActual(): Promise<ClienteRow | null> {
     const { data: sessionData } = await this.supabase.client.auth.getSession();
     const userId = sessionData.session?.user?.id;
     if (!userId) return null;
 
-    const { data, error } = await this.supabase.client
-      .from(TABLA_CLIENTES)
-      .select('*')
-      .eq('auth_customer_id', userId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error obteniendo cliente actual:', error);
-      return null;
-    }
-    return data as ClienteRow | null;
+    const resultado = await this.obtenerPorAuthId(userId);
+    return resultado.ok ? resultado.dato : null;
   }
 
   async listarPendientes(): Promise<ClienteRow[]> {

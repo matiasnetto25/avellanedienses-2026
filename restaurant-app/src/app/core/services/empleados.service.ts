@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { BUCKETS } from '../storage-buckets';
-import { NuevoEmpleado } from '../models/empleado.model';
+import { EmpleadoRow, EmpleadoSesion, NuevoEmpleado } from '../models/empleado.model';
+import { ResultadoBusqueda } from '../models/resultado-busqueda';
 
 export interface ResultadoAlta {
   ok: boolean;
@@ -23,6 +24,41 @@ export interface ResultadoUsuarioAuth {
 @Injectable({ providedIn: 'root' })
 export class EmpleadosService {
   private readonly supabase = inject(SupabaseService);
+
+  /**
+   * Empleado vinculado a un usuario de Supabase Auth, listo para la
+   * sesión: con la URL de la foto ya resuelta. No valida el estado ni el
+   * puesto; eso lo deciden Auth (estado 'On') y puestoGuard (rutas).
+   */
+  async obtenerPorAuthId(authUserId: string): Promise<ResultadoBusqueda<EmpleadoSesion>> {
+    const { data, error } = await this.supabase.client
+      .from('empleados')
+      .select('id, auth_user_id, estado, nombre, apellido, cuil, email, puesto, foto')
+      .eq('auth_user_id', authUserId)
+      .maybeSingle<EmpleadoRow>();
+
+    if (error) {
+      console.error('Error buscando empleado por usuario de Auth:', error);
+      return { ok: false };
+    }
+    if (!data) {
+      return { ok: true, dato: null };
+    }
+
+    return {
+      ok: true,
+      dato: {
+        id: data.id,
+        nombre: data.nombre,
+        apellido: data.apellido,
+        email: data.email,
+        puesto: data.puesto,
+        estado: data.estado,
+        // La tabla guarda solo el nombre del archivo ("20-35371754-6.jpg").
+        foto: this.obtenerUrlFoto(data.foto),
+      },
+    };
+  }
 
   async existeCuil(cuil: string): Promise<boolean> {
     const { data, error } = await this.supabase.client
