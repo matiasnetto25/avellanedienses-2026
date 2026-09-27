@@ -1,0 +1,48 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/mozo" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Pedidos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pedidos-content">
+  @if (cargando()) {
+    <!-- El spinner global con el logo cubre la espera. -->
+  } @else if (errorCarga()) {
+    <div class="pedidos-aviso">
+      <p class="pedidos-aviso-texto">No se pudieron cargar los pedidos.</p>
+      <ion-button class="pedidos-aviso-boton" (click)="reintentar()">Reintentar</ion-button>
+    </div>
+  } @else if (pedidos().length === 0) {
+    <div class="pedidos-aviso">
+      <p class="pedidos-aviso-texto">No hay pedidos esperando confirmación.</p>
+    </div>
+  } @else {
+    <div class="pedidos-lista">
+      @for (pedido of pedidos(); track pedido.id) {
+        <ion-card class="pedido-card">
+          <div class="pedido-encabezado">
+            <h2 class="pedido-mesa">Mesa {{ pedido.numeroMesa }}</h2>
+            <span class="pedido-fecha">{{ pedido.creadoEn | date: 'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+
+          <ul class="pedido-items">
+            @for (item of pedido.items; track item.menuId) {
+              <li class="pedido-item">{{ item.cantidad }} × {{ item.nombre }}</li>
+            }
+          </ul>
+
+          <div class="pedido-pie">
+            <span class="pedido-tiempo">Aprox. {{ pedido.tiempoEstimadoMin }} min</span>
+            <span class="pedido-total">${{ pedido.total | number: '1.0-0' }}</span>
+          </div>
+
+          <!-- Acciones: el punto 13 agrega «Rechazar» y el 14 «Confirmar». -->
+          <div class="pedido-acciones"></div>
+        </ion-card>
+      }
+    </div>
+  }
+</ion-content>

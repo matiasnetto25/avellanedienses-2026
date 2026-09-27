@@ -133,6 +133,12 @@ const routes: Routes = [
     loadComponent: () => import('./pages/mozo/mozo.page').then(m => m.MozoPage)
   },
   {
+    // Tiene que coincidir con la ruta de la push avisarNuevoPedido().
+    path: 'mozo/pedidos',
+    canActivate: [puestoGuard('mozo')],
+    loadComponent: () => import('./pages/pedidos/mozo/pedidos-pendientes/pedidos-pendientes.page').then(m => m.PedidosPendientesPage)
+  },
+  {
     path: 'cliente-anonimo/ver-mesas',
     loadComponent: () => import('./pages/cliente-anonimo/ver-mesas/ver-mesas.page').then(m => m.VerMesasPage)
   },

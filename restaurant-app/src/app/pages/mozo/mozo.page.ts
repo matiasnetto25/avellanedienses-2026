@@ -19,7 +19,7 @@ export class MozoPage {
 
   readonly acciones: AccionPanel[] = [
     { texto: 'Consultas', ruta: '/consultas' },
-    { texto: 'Próximamente', accion: () => this.avisos.proximamente() },
+    { texto: 'Pedidos', ruta: '/mozo/pedidos' },
     { texto: 'Próximamente', accion: () => this.avisos.proximamente() },
   ];
 }
