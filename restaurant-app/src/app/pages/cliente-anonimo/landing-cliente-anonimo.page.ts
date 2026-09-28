@@ -1,11 +1,8 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
 import { PanelInicioComponent, AccionPanel } from '../../shared/components/panel-inicio/panel-inicio.component';
 import { ClienteAnonimoService } from '../../core/services/cliente-anonimo.service';
 import { SolicitudesMesaService } from '../../core/services/solicitudes-mesa.service';
-import { NotificacionesService } from '../../core/services/notificaciones.service';
-import { LoadingService } from '../../core/services/loading.service';
 import { AvisosService } from '../../core/services/avisos.service';
 import { EstadoSolicitudMesa, MiSolicitud } from '../../core/models/solicitud-mesa.model';
 
@@ -18,11 +15,8 @@ import { EstadoSolicitudMesa, MiSolicitud } from '../../core/models/solicitud-me
 })
 export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
   private readonly router = inject(Router);
-  private readonly alertController = inject(AlertController);
   private readonly clienteAnonimo = inject(ClienteAnonimoService);
   private readonly solicitudesMesa = inject(SolicitudesMesaService);
-  private readonly notificaciones = inject(NotificacionesService);
-  private readonly loading = inject(LoadingService);
   private readonly avisos = inject(AvisosService);
 
   readonly nombre = signal('');
@@ -36,9 +30,6 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
   /** 'en_espera' | 'aceptado' — para poder colorear el cartel distinto
    *  según corresponda (verde cuando ya está disponible). */
   readonly estadoCartel = signal<EstadoSolicitudMesa | null>(null);
-  /** true cuando intentó cerrar sesión con la mesa ya vinculada — no se
-   *  lo dejamos hacer, y le mostramos este cartel en su lugar. */
-  readonly avisoMostrador = signal(false);
   /** Id de la mesa a la que está vinculado (escaneó su QR), o null. Cuando
    *  hay valor, el botón "Lista de espera" pasa a ser "Mi mesa". */
   readonly mesaVinculadaId = signal<string | null>(null);
@@ -103,69 +94,6 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
 
   irAEscanearMesa(): void {
     this.router.navigate(['/cliente-anonimo/escaneo-mesa']);
-  }
-
-  /**
-   * Cerrar sesión de un cliente anónimo equivale a borrar su cuenta por
-   * completo (no tiene contraseña ni nada que "recordar" más allá del
-   * id guardado en el dispositivo) — por eso se le avisa antes.
-   *
-   * Si ya está VINCULADO a una mesa (llegó y escaneó su QR), no se lo
-   * deja cerrar sesión bajo ninguna circunstancia: tiene que resolverlo
-   * en persona en el mostrador.
-   */
-  async cerrarSesion(): Promise<void> {
-    if (!this.clienteId) return;
-
-    const solicitud = await this.solicitudesMesa.obtenerMiSolicitud(this.clienteId);
-
-    if (solicitud?.estado === 'vinculado') {
-      this.avisoMostrador.set(true);
-      this.notificaciones.avisarCierreSesionBloqueado(solicitud.numero_mesa);
-      return;
-    }
-
-    const alert = await this.alertController.create({
-      header: 'Cerrar sesión',
-      message: 'Se van a borrar tus datos y vas a tener que volver a ingresar.',
-      cssClass: 'merlot-alert',
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Cerrar sesión',
-          role: 'destructive',
-          handler: () => this.confirmarCierreSesion(),
-        },
-      ],
-    });
-    await alert.present();
-  }
-
-  private async confirmarCierreSesion(): Promise<void> {
-    if (!this.clienteId) return;
-    const nombreCliente = this.nombre();
-    this.loading.mostrar();
-
-    try {
-      const resultado = await this.clienteAnonimo.eliminarCuenta(this.clienteId);
-
-      if (!resultado.ok) {
-        if (resultado.bloqueado) {
-          // Se coló una vinculación justo en el medio — mismo caso que
-          // el chequeo de arriba, tratado igual.
-          this.avisoMostrador.set(true);
-        } else {
-          await this.avisos.error(resultado.mensaje ?? 'No se pudo cerrar sesión. Probá de nuevo en un momento.');
-        }
-        return;
-      }
-
-      this.notificaciones.avisarClienteCerroSesion(nombreCliente, resultado.mesaLiberada);
-
-      this.router.navigate(['/bienvenida'], { replaceUrl: true });
-    } finally {
-      this.loading.ocultar();
-    }
   }
 
   /**

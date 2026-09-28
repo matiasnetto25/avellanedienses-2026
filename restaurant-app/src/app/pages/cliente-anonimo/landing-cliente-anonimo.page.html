@@ -2,9 +2,7 @@
   [nombre]="nombre()"
   puesto="Invitado"
   [foto]="fotoUrl()"
-  [acciones]="acciones()"
-  [cierrePropio]="true"
-  (salir)="cerrarSesion()">
+  [acciones]="acciones()">
   @if (cartelAviso(); as aviso) {
     @if (estadoCartel() === 'aceptado') {
       <button type="button" class="cliente-anonimo-cartel cliente-anonimo-cartel--disponible" (click)="irAEscanearMesa()">
@@ -15,9 +13,5 @@
         <p>{{ aviso }}</p>
       </div>
     }
-  } @else if (avisoMostrador()) {
-    <div class="cliente-anonimo-cartel cliente-anonimo-cartel--mostrador">
-      <p>Por favor, acérquese al mostrador.</p>
-    </div>
   }
 </app-panel-inicio>

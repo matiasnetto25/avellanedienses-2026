@@ -1,0 +1,64 @@
+// Encabezado de perfil (guía §7.7). Todo el texto va en floral white sobre
+// bordó; las transparencias salen de ese mismo color.
+
+:host {
+  display: block;
+  // Arriba suma la zona segura: el encabezado queda detrás de la barra de
+  // estado y la pinta de bordó.
+  padding: calc(var(--espacio-5) + var(--ion-safe-area-top, 0px)) var(--espacio-6) var(--espacio-6);
+  border-radius: 0 0 var(--radio-xl) var(--radio-xl);
+  background: var(--color-encabezado);
+  color: var(--color-texto-sobre-encabezado);
+}
+
+.arriba {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  // El avatar tiene zona tocable de 44px: se compensa para que el círculo
+  // quede alineado con el borde del contenido.
+  margin-right: calc((var(--alto-toque-minimo) - 36px) / -2);
+}
+
+.marca {
+  font-family: var(--fuente-marca);
+  font-size: var(--texto-cuerpo-compacto);
+  letter-spacing: var(--tracking-marca);
+  opacity: 0.8;
+}
+
+.saludo {
+  margin: var(--espacio-3) 0 0;
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-cuerpo);
+  line-height: var(--alto-linea-cuerpo);
+  opacity: 0.85;
+}
+
+.titulo {
+  margin: var(--espacio-1) 0 0;
+  font-family: var(--fuente-marca);
+  font-weight: var(--peso-regular);
+  font-size: var(--texto-display);
+  line-height: var(--alto-linea-titulo);
+  letter-spacing: var(--tracking-marca);
+  text-transform: uppercase;
+}
+
+.resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+  margin: var(--espacio-3) 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: var(--espacio-1) var(--espacio-3);
+    border-radius: var(--radio-pildora);
+    background: color-mix(in srgb, var(--color-texto-sobre-encabezado) 12%, transparent);
+    font-family: var(--fuente-ui);
+    font-weight: var(--peso-medio);
+    font-size: var(--texto-etiqueta);
+  }
+}

@@ -1,0 +1,56 @@
+// Avatar (guía §7.7 y §7.9). El diámetro llega por --tamano-avatar.
+
+:host {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+// Botón transparente que agranda la zona tocable a 44px como mínimo.
+.zona-toque {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--alto-toque-minimo);
+  min-height: var(--alto-toque-minimo);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-foco);
+    outline-offset: 2px;
+  }
+}
+
+.circulo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tamano-avatar);
+  height: var(--tamano-avatar);
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--color-superficie-hundida);
+  color: var(--color-texto);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// Sobre el encabezado bordó: aro floral white de 2px.
+.circulo.sobre-encabezado {
+  box-shadow: 0 0 0 2px var(--color-texto-sobre-encabezado);
+}
+
+// Las iniciales crecen con el círculo: 13px en 36px, 26px en 72px.
+.iniciales {
+  font-family: var(--fuente-ui);
+  font-weight: var(--peso-fuerte);
+  font-size: calc(var(--tamano-avatar) * 0.36);
+  line-height: 1;
+}

@@ -1,0 +1,13 @@
+<div class="arriba">
+  <span class="marca">{{ marca }}</span>
+  <app-avatar-perfil [nombre]="nombre()" [foto]="foto()" [sobreEncabezado]="true" />
+</div>
+<p class="saludo">{{ saludo() }}</p>
+<h1 class="titulo">{{ titulo() }}</h1>
+@if (resumen().length > 0) {
+  <ul class="resumen">
+    @for (cifra of resumen(); track cifra) {
+      <li>{{ cifra }}</li>
+    }
+  </ul>
+}

@@ -16,6 +16,7 @@
 }
 
 .panel-navbar {
+  position: relative;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -54,12 +55,11 @@
   height: 44px;
 }
 
-.panel-navbar-salir {
-  --color: var(--brand-accent);
-  --background: var(--brand-background);
-  --background-hover: color-mix(in srgb, var(--brand-background) 90%, black);
-  margin-top: 10px;
-  font-weight: 600;
+// Abre la hoja de perfil, que tiene «Cerrar sesión» (issue 07).
+.panel-avatar {
+  position: absolute;
+  top: calc(var(--espacio-4) + env(safe-area-inset-top, 0px));
+  right: var(--espacio-3);
 }
 
 .panel-cuerpo {

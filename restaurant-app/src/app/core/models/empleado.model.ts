@@ -34,6 +34,20 @@ export const PUESTOS_CREABLES_POR_SUPERVISOR: readonly Puesto[] = [
   'cantinero',
 ];
 
+/**
+ * Texto visible de cada puesto (encabezado y hoja de perfil, select del alta
+ * de personal). En la interfaz nunca se muestra el código crudo del puesto.
+ * El texto de «metre» lo define el issue 26 (vocabulario).
+ */
+export const ETIQUETA_PUESTO: Record<Puesto, string> = {
+  'dueño': 'Dueño',
+  supervisor: 'Supervisor',
+  mozo: 'Mozo',
+  metre: 'Metre',
+  cocinero: 'Cocinero',
+  cantinero: 'Cantinero',
+};
+
 export const PUESTOS_VISTA_MESA: readonly Puesto[] = ['dueño', 'supervisor', 'metre', 'mozo'];
 
 /** Fila cruda de la tabla "empleados" en Supabase */

@@ -1,0 +1,21 @@
+@if (tocable()) {
+  <button type="button" class="zona-toque" [attr.aria-label]="'Abrir perfil de ' + nombre()" (click)="abrirHoja()">
+    <ng-container [ngTemplateOutlet]="circulo" />
+  </button>
+} @else {
+  <ng-container [ngTemplateOutlet]="circulo" />
+}
+
+<ng-template #circulo>
+  <span
+    class="circulo"
+    [class.sobre-encabezado]="sobreEncabezado()"
+    [style.--tamano-avatar.px]="tamano()"
+    [attr.aria-hidden]="tocable() ? 'true' : null">
+    @if (foto() && !fotoRota()) {
+      <img [src]="foto()" [alt]="tocable() ? '' : 'Foto de ' + nombre()" (error)="fotoRota.set(true)" />
+    } @else {
+      <span class="iniciales">{{ iniciales() }}</span>
+    }
+  </span>
+</ng-template>

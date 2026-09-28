@@ -397,6 +397,23 @@ ion-modal.merlot-modal {
   --backdrop-opacity: 0.3;
 }
 
+// Hoja de perfil (guía §7.9): hoja inferior que mide solo lo que ocupa su
+// contenido. La abre app-avatar-perfil con cssClass: 'hoja-perfil'.
+ion-modal.hoja-perfil {
+  --height: auto;
+  --border-radius: var(--radio-xl) var(--radio-xl) 0 0;
+  --background: var(--color-superficie);
+  --box-shadow: var(--sombra-2);
+  --backdrop-opacity: 0.3;
+
+  // Asa de arrastre: 36×4 en el color del borde.
+  &::part(handle) {
+    width: 36px;
+    height: 4px;
+    background: var(--color-borde);
+  }
+}
+
 // -----------------------------------------------------------------------------
 // 7. Barra de pestañas (guía §7.8)
 // -----------------------------------------------------------------------------

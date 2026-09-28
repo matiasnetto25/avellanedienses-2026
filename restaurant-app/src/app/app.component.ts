@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Auth } from './core/services/auth';
 import { NotificacionesService } from './core/services/notificaciones.service';
 import { LoadingService } from './core/services/loading.service';
+import { BarraEstadoService } from './core/services/barra-estado.service';
 import { AvisoRechazoService } from './pages/pedidos/cliente/components/aviso-rechazo/aviso-rechazo.service';
 
 @Component({
@@ -14,9 +15,14 @@ export class AppComponent implements OnInit {
   private readonly auth = inject(Auth);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly avisoRechazo = inject(AvisoRechazoService);
+  private readonly barraEstado = inject(BarraEstadoService);
   readonly loading = inject(LoadingService);
 
   async ngOnInit(): Promise<void> {
+    // Barra de estado crema con íconos oscuros, aunque el celular esté en
+    // modo oscuro. El encabezado de perfil la pasa a bordó mientras se ve.
+    void this.barraEstado.usarNormal();
+
     // 1) Restaura la sesión de Supabase Auth si ya había una activa
     //    (por ejemplo, al recargar la página o reabrir la app).
     await this.auth.restaurarSesion();

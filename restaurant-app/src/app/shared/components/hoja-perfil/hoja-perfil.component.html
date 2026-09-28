@@ -1,0 +1,10 @@
+<div class="hoja">
+  <app-avatar-perfil [nombre]="nombre" [foto]="foto" [tamano]="72" [tocable]="false" />
+  <h2 class="nombre">{{ nombre }}</h2>
+  <p class="detalle">{{ perfil()?.detalle }}</p>
+  <hr class="separador" />
+  <ion-button class="accion-destructiva" (click)="cerrarSesion()">
+    <ion-icon slot="start" name="log-out-outline" aria-hidden="true" />
+    Cerrar sesión
+  </ion-button>
+</div>

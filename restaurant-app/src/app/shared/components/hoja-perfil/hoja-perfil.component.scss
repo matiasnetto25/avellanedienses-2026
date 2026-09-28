@@ -1,0 +1,40 @@
+// Contenido de la hoja de perfil (guía §7.9). La forma de la hoja (alto
+// automático, esquinas, sombra y asa) está en theme/componentes.scss,
+// clase .hoja-perfil.
+
+.hoja {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  // Arriba deja lugar al asa; abajo, a la barra de gestos de Android.
+  padding: var(--espacio-8) var(--espacio-6) calc(var(--espacio-6) + var(--ion-safe-area-bottom, 0px));
+  background: var(--color-superficie);
+  text-align: center;
+}
+
+.nombre {
+  margin: var(--espacio-3) 0 0;
+  font-family: var(--fuente-titulo);
+  font-weight: var(--peso-regular);
+  font-size: var(--texto-subtitulo);
+  line-height: var(--alto-linea-titulo);
+  color: var(--color-texto);
+}
+
+// Alto mínimo de una línea: el detalle llega un instante después y así
+// la hoja no salta al aparecer.
+.detalle {
+  min-height: calc(var(--texto-cuerpo-compacto) * var(--alto-linea-cuerpo));
+  margin: var(--espacio-1) 0 var(--espacio-4);
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-cuerpo-compacto);
+  line-height: var(--alto-linea-cuerpo);
+  color: var(--color-texto-secundario);
+}
+
+.separador {
+  align-self: stretch;
+  margin: 0 0 var(--espacio-2);
+  border: 0;
+  border-top: 1px solid var(--color-borde-suave);
+}

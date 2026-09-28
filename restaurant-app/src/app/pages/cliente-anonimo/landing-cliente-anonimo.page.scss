@@ -1,4 +1,4 @@
-// Solo el cartel de estado y el aviso del mostrador: el resto de la
+// Solo el cartel de estado: el resto de la
 // pantalla es el panel de inicio compartido (shared/components/panel-inicio).
 
 .cliente-anonimo-cartel {
@@ -31,8 +31,4 @@
   &:active {
     background: color-mix(in srgb, #2e8b57 85%, black);
   }
-}
-
-.cliente-anonimo-cartel--mostrador {
-  background: #2c5f8a;
 }
