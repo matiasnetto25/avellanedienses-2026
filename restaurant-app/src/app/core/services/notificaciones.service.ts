@@ -13,10 +13,17 @@ import { Auth } from './auth';
 import { ClientesService } from './clientes.service';
 import { Puesto } from '../models/empleado.model';
 import { MensajeMesa } from '../models/consulta.model';
+import { SectorItem } from '../models/pedido.model';
 
 const CLAVE_CLIENTE_ANONIMO_ID = 'merlot_cliente_anonimo_id';
 /** Largo máximo del texto del chat que se muestra en la push. */
 const MAX_CARACTERES_EXTRACTO = 80;
+
+/** A quién avisa y adónde lleva la push de un pedido confirmado, según el sector (punto 14). */
+const DESTINOS_POR_SECTOR: Record<SectorItem, { puestos: Puesto[]; ruta: string; cuerpo: string }> = {
+  cocina: { puestos: ['cocinero'], ruta: '/cocina/comandas', cuerpo: 'Hay platos para preparar.' },
+  bar: { puestos: ['cantinero'], ruta: '/cantina/comandas', cuerpo: 'Hay bebidas para preparar.' },
+};
 
 @Injectable({ providedIn: 'root' })
 export class NotificacionesService {
@@ -400,6 +407,27 @@ export class NotificacionesService {
     this.notificarCliente(
       'Tu pedido fue rechazado',
       this.extracto(motivo),
+      clienteId,
+      `/mesa/${mesaId}/estado-pedido`
+    );
+  }
+
+  /**
+   * El mozo confirma el pedido → cocineros y/o cantineros (punto 14). Una
+   * push por sector que interviene: a un sector sin ítems no le llega nada.
+   */
+  avisarPedidoDerivado(numeroMesa: number, sectores: SectorItem[]): void {
+    for (const sector of sectores) {
+      const destino = DESTINOS_POR_SECTOR[sector];
+      this.notificarEmpleados(`Nuevo pedido · Mesa ${numeroMesa}`, destino.cuerpo, destino.puestos, destino.ruta);
+    }
+  }
+
+  /** El mozo confirma el pedido → cliente de la estadía (punto 14). */
+  avisarPedidoConfirmado(clienteId: string, mesaId: string): void {
+    this.notificarCliente(
+      'Tu pedido fue confirmado',
+      'Ya lo están preparando.',
       clienteId,
       `/mesa/${mesaId}/estado-pedido`
     );

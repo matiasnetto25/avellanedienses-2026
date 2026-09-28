@@ -47,7 +47,7 @@ export class PedidosPendientesPage implements OnInit, OnDestroy {
   readonly cargando = signal(true);
   readonly errorCarga = signal(false);
   readonly pedidos = signal<Pedido[]>([]);
-  /** Pedido que se está rechazando: deshabilita sus botones (evita el doble toque). */
+  /** Pedido que se está confirmando o rechazando: deshabilita sus botones (evita el doble toque). */
   readonly procesandoId = signal<string | null>(null);
   /** Pedido cuyo motivo de rechazo se está pidiendo; null con el modal cerrado. */
   readonly pedidoARechazar = signal<Pedido | null>(null);
@@ -90,6 +90,38 @@ export class PedidosPendientesPage implements OnInit, OnDestroy {
 
   async reintentar(): Promise<void> {
     await this.loading.envolver(this.cargar());
+  }
+
+  /**
+   * Confirma el pedido y lo deriva a cocina y bar (punto 14). Sin diálogo
+   * previo: no es destructivo. Si falla, lo más probable es que otro mozo
+   * ya lo haya confirmado o rechazado: se relee la lista.
+   */
+  async confirmar(pedido: Pedido): Promise<void> {
+    if (this.procesandoId()) return;
+    this.procesandoId.set(pedido.id);
+    this.loading.mostrar();
+    try {
+      const resultado = await this.pedidosService.confirmar(pedido.id);
+      if (!resultado.ok) {
+        await this.avisos.error(resultado.mensaje ?? 'No se pudo confirmar el pedido.');
+        await this.cargar();
+        return;
+      }
+      // Igual que el rechazo: se saca ya; a los demás mozos, por Realtime.
+      this.pedidos.update((lista) => lista.filter((p) => p.id !== pedido.id));
+      // Sin await: la push no bloquea, y si falla la confirmación igual quedó hecha.
+      if (resultado.numeroMesa !== undefined && resultado.sectores) {
+        this.notificaciones.avisarPedidoDerivado(resultado.numeroMesa, resultado.sectores);
+      }
+      if (resultado.clienteId && resultado.mesaId) {
+        this.notificaciones.avisarPedidoConfirmado(resultado.clienteId, resultado.mesaId);
+      }
+      await this.avisos.exito(`Pedido de la Mesa ${pedido.numeroMesa} confirmado y enviado a preparar.`);
+    } finally {
+      this.procesandoId.set(null);
+      this.loading.ocultar();
+    }
   }
 
   pedirMotivoRechazo(pedido: Pedido): void {
