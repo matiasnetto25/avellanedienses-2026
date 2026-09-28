@@ -1,4 +1,5 @@
 import { Signal, inject } from '@angular/core';
+import { ClientesPendientesService } from '../services/clientes-pendientes.service';
 import { ListaEsperaService } from '../services/lista-espera.service';
 import { ResumenMozoService } from '../services/resumen-mozo.service';
 
@@ -50,4 +51,21 @@ export const PESTANAS_METRE: Pestana[] = [
     tonoContador: 'espera',
   },
   { ruta: 'registrar-cliente', etiqueta: 'Registrar cliente', icono: 'person-add-outline' },
+];
+
+export const PESTANAS_ADMIN: Pestana[] = [
+  {
+    ruta: 'ahora',
+    etiqueta: 'Ahora',
+    icono: 'flash-outline',
+    contador: () => {
+      const pendientes = inject(ClientesPendientesService);
+      pendientes.iniciar();
+      return pendientes.cantidad;
+    },
+    tonoContador: 'espera',
+  },
+  { ruta: 'personal', etiqueta: 'Personal', icono: 'id-card-outline' },
+  { ruta: 'salon', etiqueta: 'Salón', icono: 'restaurant-outline' },
+  { ruta: 'estadisticas', etiqueta: 'Estadísticas', icono: 'stats-chart-outline' },
 ];

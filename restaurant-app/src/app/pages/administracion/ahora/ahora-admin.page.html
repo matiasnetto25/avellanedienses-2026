@@ -1,0 +1,52 @@
+<ion-content class="densidad-compacta" [fullscreen]="true" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  <div class="pantalla">
+    <app-encabezado-perfil
+      [saludo]="'Hola, ' + (perfil()?.nombre ?? '')"
+      [titulo]="titulo()"
+      [nombre]="perfil()?.nombre ?? ''"
+      [foto]="perfil()?.foto ?? null"
+      [resumen]="resumen()" />
+
+    @if (!cargando()) {
+      @if (todoEnOrden()) {
+        <app-estado-vacio
+          icono="checkmark-done-outline"
+          titulo="Todo en orden por ahora"
+          frase="Cuando haya algo para resolver, va a aparecer acá." />
+      } @else {
+        <div class="bloques">
+          @if (cantidadPendientes() > 0) {
+            <section>
+              <div class="bloque-encabezado">
+                <h2 class="bloque-titulo">
+                  Clientes pendientes de aprobación <span class="bloque-contador num">{{ cantidadPendientes() }}</span>
+                </h2>
+                <a class="ver-todos" routerLink="/administracion/personal" [queryParams]="{ vista: 'clientes' }">Ver todos</a>
+              </div>
+              <div class="filas">
+                @for (cliente of clientes(); track cliente.id) {
+                  <app-fila-cliente-pendiente [cliente]="cliente" />
+                }
+              </div>
+            </section>
+          }
+
+          <!-- Punto 22: bloque «Pagos confirmados hoy» (tono Listo). -->
+
+          @if (hayMesas()) {
+            <section>
+              <div class="bloque-encabezado">
+                <h2 class="bloque-titulo">Salón</h2>
+              </div>
+              <button type="button" class="tarjeta fila-salon" (click)="irAlSalon()">
+                <ion-icon name="restaurant-outline" aria-hidden="true" />
+                <span class="salon-texto num">{{ textoOcupadas() }} · {{ textoLibres() }}</span>
+                <ion-icon name="chevron-forward-outline" aria-hidden="true" />
+              </button>
+            </section>
+          }
+        </div>
+      }
+    }
+  </div>
+</ion-content>

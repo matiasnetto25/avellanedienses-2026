@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { BUCKETS } from '../storage-buckets';
 import { ClienteRow, EstadoCliente, EstadoEnEspera, NuevoClienteRegistrado } from '../models/cliente.model';
@@ -6,6 +7,7 @@ import { plantillaClienteAprobado, plantillaClienteRechazado } from '../emails/e
 import { ResultadoBusqueda } from '../models/resultado-busqueda';
 
 const TABLA_CLIENTES = 'clientes';
+const INTERVALO_RESPALDO_MS = 30000;
 
 export interface ResultadoAltaCliente {
   ok: boolean;
@@ -91,6 +93,21 @@ export class ClientesService {
       return [];
     }
     return (data ?? []) as ClienteRow[];
+  }
+
+  /** Devuelve la función que deja de escuchar. */
+  observarClientes(alCambiar: () => void): () => void {
+    const canal: RealtimeChannel = this.supabase.client
+      .channel(`clientes-${crypto.randomUUID()}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: TABLA_CLIENTES }, () => alCambiar())
+      .subscribe();
+
+    const intervalo = setInterval(alCambiar, INTERVALO_RESPALDO_MS);
+
+    return () => {
+      clearInterval(intervalo);
+      this.supabase.client.removeChannel(canal);
+    };
   }
 
   async actualizarEstado(

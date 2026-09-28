@@ -7,6 +7,8 @@ import {
   chatbubblesOutline,
   flash,
   flashOutline,
+  idCard,
+  idCardOutline,
   people,
   peopleOutline,
   personAdd,
@@ -15,6 +17,8 @@ import {
   receiptOutline,
   restaurant,
   restaurantOutline,
+  statsChart,
+  statsChartOutline,
   wine,
   wineOutline,
 } from 'ionicons/icons';
@@ -40,9 +44,9 @@ export class PestanasPerfilComponent {
 
   constructor() {
     addIcons({
-      chatbubbles, chatbubblesOutline, flash, flashOutline,
+      chatbubbles, chatbubblesOutline, flash, flashOutline, idCard, idCardOutline,
       people, peopleOutline, personAdd, personAddOutline,
-      receipt, receiptOutline, restaurant, restaurantOutline,
+      receipt, receiptOutline, restaurant, restaurantOutline, statsChart, statsChartOutline,
       wine, wineOutline,
     });
   }

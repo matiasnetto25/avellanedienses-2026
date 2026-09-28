@@ -5,7 +5,7 @@ import { clienteAprobadoGuard } from './core/guards/cliente-aprobado.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
 import { estadiaEnMesaGuard } from './core/guards/estadia-en-mesa.guard';
 import { PUESTOS_ADMIN } from './core/models/empleado.model';
-import { PESTANAS_CANTINA, PESTANAS_COCINA, PESTANAS_METRE, PESTANAS_MOZO } from './core/models/pestanas-por-perfil';
+import { PESTANAS_ADMIN, PESTANAS_CANTINA, PESTANAS_COCINA, PESTANAS_METRE, PESTANAS_MOZO } from './core/models/pestanas-por-perfil';
 
 const routes: Routes = [
   {
@@ -46,12 +46,7 @@ const routes: Routes = [
     loadComponent: () => import('./pages/menu/menu.component').then(m => m.MenuComponent)
   },
   {
-    path: 'administracion',
-    canActivate: [puestoGuard(...PUESTOS_ADMIN)],
-    loadComponent: () => import('./pages/administracion/administracion.page').then(m => m.AdministracionPage)
-  },
-  {
-    path: 'administracion/personal',
+    path: 'administracion/personal/alta',
     canActivate: [puestoGuard(...PUESTOS_ADMIN)],
     loadComponent: () => import('./pages/administracion/alta-personal-page/personal.page').then(m => m.PersonalPage)
   },
@@ -60,15 +55,32 @@ const routes: Routes = [
     canActivate: [puestoGuard(...PUESTOS_ADMIN)],
     loadComponent: () => import('./pages/administracion/salon/crear-mesa/crear-mesa.page').then(m => m.CrearMesaPage)
   },
+  { path: 'administracion/salon/gestion', redirectTo: 'administracion/salon', pathMatch: 'full' },
+  { path: 'administracion/solicitudes', redirectTo: '/administracion/personal?vista=clientes', pathMatch: 'full' },
   {
-    path: 'administracion/salon/gestion',
+    path: 'administracion',
     canActivate: [puestoGuard(...PUESTOS_ADMIN)],
-    loadComponent: () => import('./pages/administracion/salon/gestion-mesas/gestion-mesas.page').then(m => m.GestionMesasPage)
-  },
-  {
-    path: 'administracion/solicitudes',
-    canActivate: [puestoGuard(...PUESTOS_ADMIN)],
-    loadComponent: () => import('./pages/administracion/solicitudes/solicitudes.page').then(m => m.SolicitudesClientesPage)
+    loadComponent: () => import('./shared/components/pestanas-perfil/pestanas-perfil.component').then(m => m.PestanasPerfilComponent),
+    data: { pestanas: PESTANAS_ADMIN },
+    children: [
+      {
+        path: 'ahora',
+        loadComponent: () => import('./pages/administracion/ahora/ahora-admin.page').then(m => m.AhoraAdminPage)
+      },
+      {
+        path: 'personal',
+        loadComponent: () => import('./pages/administracion/personal/personal-admin.page').then(m => m.PersonalAdminPage)
+      },
+      {
+        path: 'salon',
+        loadComponent: () => import('./pages/administracion/salon/gestion-mesas/gestion-mesas.page').then(m => m.GestionMesasPage)
+      },
+      {
+        path: 'estadisticas',
+        loadComponent: () => import('./pages/administracion/estadisticas/estadisticas.page').then(m => m.EstadisticasPage)
+      },
+      { path: '', redirectTo: 'ahora', pathMatch: 'full' },
+    ]
   },
   {
     // Fuera de las pestañas: el alta es una pantalla de tarea, sin barra.

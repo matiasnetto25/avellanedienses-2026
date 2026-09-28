@@ -9,7 +9,7 @@ export function rutaHomeSegunPuesto(puesto: Puesto): string {
   switch (puesto) {
     case 'dueño':
     case 'supervisor':
-      return '/administracion';
+      return '/administracion/ahora';
     case 'cocinero':
       return '/cocina/ahora';
     case 'cantinero':

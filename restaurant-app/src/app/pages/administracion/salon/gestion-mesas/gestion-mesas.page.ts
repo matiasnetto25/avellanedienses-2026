@@ -6,8 +6,6 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
-  IonBackButton,
-  IonButtons,
   IonCard,
   IonCardContent,
   IonToggle,
@@ -19,9 +17,14 @@ import {
   IonSelect,
   IonSelectOption,
   IonText,
+  IonFooter,
   AlertController,
+  NavController,
 } from '@ionic/angular/standalone';
 import { AlturaDisponibleDirective } from '../../../../shared/directives/altura-disponible.directive';
+import { AvatarPerfilComponent } from '../../../../shared/components/avatar-perfil/avatar-perfil.component';
+import { BarraAccionesComponent } from '../../../../shared/components/barra-acciones/barra-acciones.component';
+import { PerfilActual, PerfilActualService } from '../../../../core/services/perfil-actual.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { CamaraService } from '../../../../core/services/camara.service';
 import { MesasService } from '../../../../core/services/mesas.service';
@@ -40,8 +43,6 @@ import { MesaRow, TIPOS_MESA, etiquetaTipo } from '../../../../core/models/mesa.
     IonHeader,
     IonToolbar,
     IonTitle,
-    IonBackButton,
-    IonButtons,
     IonCard,
     IonCardContent,
     IonToggle,
@@ -53,6 +54,9 @@ import { MesaRow, TIPOS_MESA, etiquetaTipo } from '../../../../core/models/mesa.
     IonSelect,
     IonSelectOption,
     IonText,
+    IonFooter,
+    AvatarPerfilComponent,
+    BarraAccionesComponent,
   ],
   templateUrl: './gestion-mesas.page.html',
   styleUrls: ['./gestion-mesas.page.scss'],
@@ -65,6 +69,10 @@ export class GestionMesasPage implements OnInit {
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
   private readonly alertController = inject(AlertController);
+  private readonly nav = inject(NavController);
+  private readonly perfilActual = inject(PerfilActualService);
+
+  readonly perfil = signal<PerfilActual | null>(null);
 
   readonly tiposMesa = TIPOS_MESA;
   readonly etiquetaTipo = etiquetaTipo;
@@ -85,7 +93,16 @@ export class GestionMesasPage implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    void this.perfilActual.obtener().then((perfil) => this.perfil.set(perfil));
     await this.cargarMesas();
+  }
+
+  async ionViewWillEnter(): Promise<void> {
+    if (!this.cargandoLista() && !this.mesaEnEdicion()) this.mesas.set(await this.mesasService.listar());
+  }
+
+  nuevaMesa(): void {
+    this.nav.navigateForward('/administracion/salon/crear');
   }
 
   async cargarMesas(): Promise<void> {

@@ -1,0 +1,47 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Personal</ion-title>
+    <app-avatar-perfil slot="end" [nombre]="perfil()?.nombre ?? ''" [foto]="perfil()?.foto ?? null" />
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="densidad-compacta" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  <div class="pantalla">
+    <ion-segment class="selector" [value]="vista()" (ionChange)="cambiarVista($event.detail.value)">
+      <ion-segment-button value="empleados">
+        <ion-label>Empleados</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="clientes">
+        <ion-label>Clientes<span class="num">{{ cantidadClientes() > 0 ? ' (' + cantidadClientes() + ')' : '' }}</span></ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    @if (vista() === 'empleados') {
+      <app-estado-vacio
+        icono="id-card-outline"
+        titulo="Sumá a tu equipo"
+        frase="Cada empleado que des de alta va a poder ingresar con su correo y contraseña." />
+    } @else if (clientesCargados()) {
+      @if (clientes().length === 0) {
+        <app-estado-vacio
+          icono="person-add-outline"
+          titulo="No hay clientes pendientes de aprobación"
+          frase="Cuando alguien se registre, va a aparecer acá." />
+      } @else {
+        <div class="filas">
+          @for (cliente of clientes(); track cliente.id) {
+            <app-fila-cliente-pendiente [cliente]="cliente" />
+          }
+        </div>
+      }
+    }
+  </div>
+</ion-content>
+
+@if (vista() === 'empleados') {
+  <ion-footer class="ion-no-border">
+    <app-barra-acciones>
+      <ion-button class="accion-principal" expand="block" (click)="darDeAlta()">Dar de alta</ion-button>
+    </app-barra-acciones>
+  </ion-footer>
+}

@@ -1,9 +1,7 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/administracion" text=""></ion-back-button>
-    </ion-buttons>
-    <ion-title>Gestión de mesas</ion-title>
+    <ion-title>Salón</ion-title>
+    <app-avatar-perfil slot="end" [nombre]="perfil()?.nombre ?? ''" [foto]="perfil()?.foto ?? null" />
   </ion-toolbar>
 </ion-header>
 
@@ -120,3 +118,9 @@
     }
   </div>
 </ion-content>
+
+<ion-footer class="ion-no-border">
+  <app-barra-acciones>
+    <ion-button class="accion-principal" expand="block" (click)="nuevaMesa()">Nueva mesa</ion-button>
+  </app-barra-acciones>
+</ion-footer>

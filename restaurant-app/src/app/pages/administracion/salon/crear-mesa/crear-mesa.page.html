@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/administracion" text=""></ion-back-button>
+      <ion-back-button defaultHref="/administracion/salon" text=""></ion-back-button>
     </ion-buttons>
     <ion-title>Crear mesa</ion-title>
   </ion-toolbar>
@@ -21,13 +21,13 @@
         </div>
       } @else {
         <p class="crear-mesa-exito-nota">
-          La mesa se creó bien, pero hubo un problema generando el QR. Podés volver a intentarlo desde Gestión de mesas.
+          La mesa se creó bien, pero hubo un problema generando el QR. Podés volver a intentarlo desde el Salón.
         </p>
       }
 
       <ion-button expand="block" (click)="crearOtraMesa()">Crear otra mesa</ion-button>
-      <ion-button expand="block" fill="outline" routerLink="/administracion/salon/gestion">
-        Ir a Gestión de mesas
+      <ion-button expand="block" fill="outline" routerLink="/administracion/salon">
+        Ir al Salón
       </ion-button>
     </div>
   } @else {

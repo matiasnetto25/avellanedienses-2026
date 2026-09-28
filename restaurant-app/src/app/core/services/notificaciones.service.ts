@@ -260,7 +260,7 @@ export class NotificacionesService {
       'Mesa actualizada',
       `Se modificó la Mesa ${numeroMesa}.`,
       ['dueño', 'supervisor'],
-      '/administracion/salon/gestion'
+      '/administracion/salon'
     );
   }
 
@@ -270,7 +270,7 @@ export class NotificacionesService {
       'Mesa eliminada',
       `Se eliminó la Mesa ${numeroMesa}.`,
       ['dueño', 'supervisor'],
-      '/administracion/salon/gestion'
+      '/administracion/salon'
     );
   }
 
@@ -281,7 +281,7 @@ export class NotificacionesService {
       aprobado ? 'Cliente aprobado' : 'Cliente rechazado',
       `${nombreCompleto} fue ${aprobado ? 'aceptado' : 'rechazado'}.`,
       ['dueño', 'supervisor', 'metre'],
-      '/administracion/solicitudes'
+      '/administracion/personal?vista=clientes'
     );
   }
 
@@ -296,7 +296,7 @@ export class NotificacionesService {
       'Nuevo cliente pendiente',
       `${nombre} ${apellido} se registró y está pendiente de aprobación.`,
       desdeMetre ? ['dueño', 'supervisor', 'metre'] : ['dueño', 'supervisor'],
-      '/administracion'
+      '/administracion/ahora'
     );
   }
 

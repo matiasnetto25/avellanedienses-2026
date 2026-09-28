@@ -1,0 +1,23 @@
+<div class="linea-principal">
+  @if (foto(); as url) {
+    <img class="foto" [src]="url" [alt]="'Foto de ' + nombre()" loading="lazy" />
+  } @else {
+    <span class="foto foto--iniciales" aria-hidden="true">{{ iniciales() }}</span>
+  }
+  <div class="datos">
+    <span class="nombre">{{ nombre() }}</span>
+    @if (cliente().dni) {
+      <span class="dni">DNI <span class="num">{{ cliente().dni }}</span></span>
+    }
+  </div>
+  <app-chip-estado [estado]="estado" />
+</div>
+
+<div class="acciones">
+  <ion-button class="accion-destructiva accion-fila" [disabled]="procesando()" (click)="rechazar()">
+    Rechazar
+  </ion-button>
+  <ion-button class="accion-secundaria accion-fila" [disabled]="procesando()" (click)="aprobar()">
+    Aprobar
+  </ion-button>
+</div>
