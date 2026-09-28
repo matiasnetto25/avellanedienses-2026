@@ -7,6 +7,10 @@ import {
   chatbubblesOutline,
   flash,
   flashOutline,
+  people,
+  peopleOutline,
+  personAdd,
+  personAddOutline,
   receipt,
   receiptOutline,
   restaurant,
@@ -37,6 +41,7 @@ export class PestanasPerfilComponent {
   constructor() {
     addIcons({
       chatbubbles, chatbubblesOutline, flash, flashOutline,
+      people, peopleOutline, personAdd, personAddOutline,
       receipt, receiptOutline, restaurant, restaurantOutline,
       wine, wineOutline,
     });

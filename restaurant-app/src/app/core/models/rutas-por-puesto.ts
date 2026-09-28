@@ -15,7 +15,7 @@ export function rutaHomeSegunPuesto(puesto: Puesto): string {
     case 'cantinero':
       return '/cantina/ahora';
     case 'metre':
-      return '/metre';
+      return '/metre/lista-espera';
     case 'mozo':
       return '/mozo/ahora';
     default:

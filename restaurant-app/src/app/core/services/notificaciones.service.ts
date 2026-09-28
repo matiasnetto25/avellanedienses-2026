@@ -326,7 +326,7 @@ export class NotificacionesService {
       'Cliente pidió cerrar sesión',
       `El cliente de la Mesa ${numeroMesa} intentó cerrar sesión estando ya vinculado. Se le indicó acercarse al mostrador.`,
       ['metre'],
-      '/metre'
+      '/metre/lista-espera'
     );
   }
 

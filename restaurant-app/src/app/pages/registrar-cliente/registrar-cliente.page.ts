@@ -91,12 +91,8 @@ export class RegistrarClientePage {
     return this.auth.sesion()?.puesto === 'metre';
   }
 
-  get rutaVolver(): string {
-    return this.esMetre ? '/metre' : '/bienvenida';
-  }
-
   volver(): void {
-    this.router.navigate([this.rutaVolver]);
+    this.router.navigate(['/bienvenida']);
   }
 
   readonly form: FormGroup = this.fb.group({
@@ -229,15 +225,13 @@ export class RegistrarClientePage {
         return;
       }
 
-      // Sin toast verde: la confirmación la da la push (ver
-      // NotificacionesService.avisarNuevoClientePendiente).
       this.notificaciones.avisarNuevoClientePendiente(nombre, apellido, this.esMetre);
 
       this.form.reset();
       this.fotoDataUrl.set(null);
 
       if (this.esMetre) {
-        this.router.navigate(['/metre']);
+        await this.avisos.exito('Cliente registrado. Queda pendiente de aprobación.');
       } else {
         this.registroExitoso.set(true);
       }

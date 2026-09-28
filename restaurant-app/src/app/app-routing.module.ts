@@ -5,7 +5,7 @@ import { clienteAprobadoGuard } from './core/guards/cliente-aprobado.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
 import { estadiaEnMesaGuard } from './core/guards/estadia-en-mesa.guard';
 import { PUESTOS_ADMIN } from './core/models/empleado.model';
-import { PESTANAS_CANTINA, PESTANAS_COCINA, PESTANAS_MOZO } from './core/models/pestanas-por-perfil';
+import { PESTANAS_CANTINA, PESTANAS_COCINA, PESTANAS_METRE, PESTANAS_MOZO } from './core/models/pestanas-por-perfil';
 
 const routes: Routes = [
   {
@@ -124,25 +124,31 @@ const routes: Routes = [
   },
   {
     path: 'registrar-cliente',
-    // Sin guard: la usa tanto el cliente anónimo (desde bienvenida) como
-    // el metre logueado (desde su navbar) — el componente detecta quién
-    // está entrando mirando auth.sesion().
+    // Sin guard: registro desde la bienvenida. El metre usa la pestaña
+    // /metre/registrar-cliente, con el mismo componente.
     loadComponent: () => import('./pages/registrar-cliente/registrar-cliente.page').then(m => m.RegistrarClientePage)
   },
   {
     path: 'metre',
     canActivate: [puestoGuard('metre')],
-    loadComponent: () => import('./pages/metre/metre.page').then(m => m.MetrePage)
+    loadComponent: () => import('./shared/components/pestanas-perfil/pestanas-perfil.component').then(m => m.PestanasPerfilComponent),
+    data: { pestanas: PESTANAS_METRE },
+    children: [
+      {
+        path: 'lista-espera',
+        loadComponent: () => import('./pages/metre/lista-espera/lista-espera.page').then(m => m.ListaEsperaPage)
+      },
+      {
+        path: 'registrar-cliente',
+        loadComponent: () => import('./pages/registrar-cliente/registrar-cliente.page').then(m => m.RegistrarClientePage)
+      },
+      { path: '', redirectTo: 'lista-espera', pathMatch: 'full' },
+    ]
   },
   {
     path: 'cliente',
     canActivate: [clienteAprobadoGuard],
     loadComponent: () => import('./pages/cliente/landing-cliente.page').then(m => m.LandingClientePage)
-  },
-  {
-    path: 'metre/lista-espera',
-    canActivate: [puestoGuard('metre')],
-    loadComponent: () => import('./pages/metre/lista-espera/lista-espera.page').then(m => m.ListaEsperaPage)
   },
   {
     path: 'cliente-anonimo',

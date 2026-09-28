@@ -1,7 +1,7 @@
 <ion-content class="registro-content" [scrollY]="true">
 
   <div class="registro-hero">
-    @if (!registroExitoso()) {
+    @if (!registroExitoso() && !esMetre) {
       <button type="button" class="registro-volver" (click)="volver()" aria-label="Volver">
         <ion-icon name="arrow-back-outline"></ion-icon>
       </button>

@@ -1,14 +1,12 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/metre" text=""></ion-back-button>
-    </ion-buttons>
-    <ion-title>Lista de espera</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content class="espera-content densidad-compacta" [fullscreen]="true" appAlturaDisponible [margenAltura]="64">
+  <app-encabezado-perfil
+    [saludo]="'Hola, ' + (perfil()?.nombre ?? '')"
+    [titulo]="titulo"
+    [nombre]="perfil()?.nombre ?? ''"
+    [foto]="perfil()?.foto ?? null"
+    [resumen]="resumen()" />
 
-<ion-content class="espera-content" appAlturaDisponible [margenAltura]="64">
-  @if (!cargandoLista() && filas().length === 0) {
+  @if (listaEspera.cargada() && filas().length === 0) {
     <div class="espera-vacio">
       <p>No hay clientes en la lista de espera.</p>
     </div>

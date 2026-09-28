@@ -1,4 +1,5 @@
 import { Signal, inject } from '@angular/core';
+import { ListaEsperaService } from '../services/lista-espera.service';
 import { ResumenMozoService } from '../services/resumen-mozo.service';
 
 export interface Pestana {
@@ -34,4 +35,19 @@ export const PESTANAS_COCINA: Pestana[] = [
 export const PESTANAS_CANTINA: Pestana[] = [
   { ruta: 'ahora', etiqueta: 'Ahora', icono: 'flash-outline' },
   { ruta: 'bebidas', etiqueta: 'Bebidas', icono: 'wine-outline' },
+];
+
+export const PESTANAS_METRE: Pestana[] = [
+  {
+    ruta: 'lista-espera',
+    etiqueta: 'Lista de espera',
+    icono: 'people-outline',
+    contador: () => {
+      const listaEspera = inject(ListaEsperaService);
+      listaEspera.iniciar();
+      return listaEspera.enEspera;
+    },
+    tonoContador: 'espera',
+  },
+  { ruta: 'registrar-cliente', etiqueta: 'Registrar cliente', icono: 'person-add-outline' },
 ];

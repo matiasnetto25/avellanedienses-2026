@@ -100,6 +100,20 @@ export class SolicitudesMesaService {
 
   // ===== Lado del metre =====
 
+  observarListaEspera(alCambiar: () => void): () => void {
+    const canal: RealtimeChannel = this.supabase.client
+      .channel(`lista-espera-${crypto.randomUUID()}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitudes_mesa' }, () => alCambiar())
+      .subscribe();
+
+    const intervalo = setInterval(alCambiar, INTERVALO_RESPALDO_MS);
+
+    return () => {
+      clearInterval(intervalo);
+      this.supabase.client.removeChannel(canal);
+    };
+  }
+
   async listarListaEspera(): Promise<FilaListaEspera[]> {
     const { data, error } = await this.supabase.client.rpc('listar_lista_espera');
     if (error) {
