@@ -24,3 +24,17 @@
   text-align: center;
   margin: 0;
 }
+
+:host(.compacto) {
+  .marca-header {
+    gap: var(--espacio-2);
+  }
+
+  .marca-header-icon {
+    width: 72px;
+  }
+
+  .marca-header-nombre {
+    font-size: var(--texto-titulo);
+  }
+}

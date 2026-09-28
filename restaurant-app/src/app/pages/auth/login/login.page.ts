@@ -1,15 +1,18 @@
 import { Component, ElementRef, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ActionSheetButton, IonActionSheet, IonButton, IonContent, IonInput, IonItem, IonLabel } from '@ionic/angular/standalone';
+import { IonButton, IonContent, IonFooter, IonInput, IonIcon } from '@ionic/angular/standalone';
 import { MarcaHeaderComponent } from '../../../shared/components/marca-header/marca-header.component';
 import { AvisoCampoComponent } from '../../../shared/components/aviso-campo/aviso-campo.component';
+import { BarraAccionesComponent } from '../../../shared/components/barra-acciones/barra-acciones.component';
 import { USUARIOS_DEMO, UsuarioDemo } from '../../../core/usuarios-demo';
 import { AvisosService } from '../../../core/services/avisos.service';
 import { Auth } from '../../../core/services/auth';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { LoadingService } from '../../../core/services/loading.service';
 import { validarFormulario } from '../../../core/utils/formularios';
+import { addIcons } from 'ionicons';
+import { briefcaseOutline, shieldCheckmarkOutline, peopleOutline, restaurantOutline, flameOutline, wineOutline, personOutline } from 'ionicons/icons';
 
 // Definida con el equipo
 const PASSWORD_MIN_LENGTH = 6;
@@ -21,7 +24,7 @@ const MENSAJES_PASSWORD = { required: 'Escribí tu contraseña.' };
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, IonContent, IonItem, IonLabel, IonInput, IonButton, IonActionSheet, MarcaHeaderComponent, AvisoCampoComponent],
+  imports: [ReactiveFormsModule, IonContent, IonFooter, IonInput, IonButton, IonIcon, MarcaHeaderComponent, AvisoCampoComponent, BarraAccionesComponent],
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
@@ -36,9 +39,13 @@ export class LoginPage implements OnInit {
 
   readonly mensajesEmail = MENSAJES_EMAIL;
   readonly mensajesPassword = MENSAJES_PASSWORD;
+  readonly usuariosDemo = USUARIOS_DEMO;
 
-  mostrarAccesoRapido = false;
   cargando = false;
+
+  constructor() {
+    addIcons({ briefcaseOutline, shieldCheckmarkOutline, peopleOutline, restaurantOutline, flameOutline, wineOutline, personOutline });
+  }
 
   /**
    * Si ya hay una sesión activa (empleado o cliente aprobado) y alguien
@@ -55,16 +62,9 @@ export class LoginPage implements OnInit {
     password: ['', [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH)]],
   });
 
-  readonly botonesAccesoRapido: ActionSheetButton[] = [
-    ...USUARIOS_DEMO.map((usuario): ActionSheetButton => ({
-      text: usuario.etiqueta,
-      handler: () => this.autocompletar(usuario),
-    })),
-    { text: 'Cancelar', role: 'cancel' },
-  ];
-
   autocompletar(usuario: UsuarioDemo): void {
     this.form.patchValue({ email: usuario.email, password: usuario.password });
+    this.onSubmit(); // Enviar directo para ahorrar un toque
   }
 
   async onSubmit(): Promise<void> {

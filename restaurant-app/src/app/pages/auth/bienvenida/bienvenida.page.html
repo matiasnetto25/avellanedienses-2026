@@ -2,14 +2,16 @@
   <div class="bienvenida-container">
     <div class="bienvenida-centro">
       <app-marca-header />
-
-      <div class="bienvenida-acciones">
-        <ion-button expand="block" class="bienvenida-boton-principal" routerLink="/login">Iniciar sesión</ion-button>
-        <ion-button expand="block" fill="outline" class="bienvenida-boton-secundario" (click)="registrarse()">Registrarse</ion-button>
-        <ion-button expand="block" fill="clear" class="bienvenida-boton-terciario" routerLink="/principal" [replaceUrl]="true">Continuar sin registro</ion-button>
-      </div>
     </div>
 
-    <footer class="bienvenida-footer">{{ nombreGrupo }}</footer>
+    <p class="bienvenida-footer">{{ nombreGrupo }}</p>
   </div>
 </ion-content>
+
+<ion-footer class="ion-no-border">
+  <app-barra-acciones>
+    <ion-button class="accion-secundaria" expand="block" (click)="registrarse()">Registrarse</ion-button>
+    <ion-button class="accion-principal" expand="block" routerLink="/login">Iniciar sesión</ion-button>
+    <ion-button class="accion-terciaria" expand="block" fill="clear" routerLink="/principal" [replaceUrl]="true">Continuar sin registro</ion-button>
+  </app-barra-acciones>
+</ion-footer>

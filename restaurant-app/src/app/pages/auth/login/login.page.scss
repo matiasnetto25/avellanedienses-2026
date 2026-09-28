@@ -1,40 +1,23 @@
-:host {
-  display: block;
-  height: 100%;
-}
-
 .login-container {
-  height: 100%;
-  max-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px;
+  gap: var(--espacio-6);
+  min-height: 100%;
+  padding: var(--espacio-6) var(--margen-pantalla-amplia);
   box-sizing: border-box;
-  overflow: hidden;
 }
 
-// Ocupa todo el espacio libre entre los bordes de la pantalla y el trigger de
-// accesos rápidos, y centra ahí adentro el logo + el formulario. Con
-// min-height: 0 puede encogerse si hace falta, así el trigger nunca queda
-// empujado fuera del alto de pantalla.
-.login-centro {
-  flex: 1;
-  min-height: 0;
+.login-form,
+.ingreso-rapido {
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 32px;
+  max-width: 360px;
 }
 
 .login-form {
-  width: 100%;
-  max-width: 320px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--espacio-3);
 }
 
 .login-campo {
@@ -42,21 +25,69 @@
   flex-direction: column;
 }
 
-.login-item {
-  --background: transparent;
-  --border-color: var(--brand-text);
-  --color: var(--brand-text);
-  --highlight-color-focused: var(--brand-accent);
-  font-family: var(--brand-font-subtitle);
+.ingreso-rapido-titulo {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-size: var(--texto-subtitulo);
+  font-weight: var(--peso-regular);
+  color: var(--color-texto);
+  text-align: center;
 }
 
-.login-submit {
-  --background: var(--brand-accent);
-  --color: var(--brand-background);
-  margin-top: 4px;
+.ingreso-rapido-ayuda {
+  margin: var(--espacio-1) 0 var(--espacio-3);
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-cuerpo-compacto);
+  color: var(--color-texto-secundario);
+  text-align: center;
 }
 
-.login-accesos-trigger {
-  flex-shrink: 0;
-  --color: var(--brand-text);
+.perfiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espacio-2);
+}
+
+.perfil {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-1);
+  min-height: 64px;
+  padding: var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+  color: var(--color-accion-secundaria);
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-cuerpo-compacto);
+  font-weight: var(--peso-medio);
+  cursor: pointer;
+  transition: background var(--mov-rapido) var(--mov-curva);
+
+  ion-icon {
+    font-size: 24px;
+  }
+
+  &:active {
+    background: var(--color-accion-secundaria-fondo);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-foco);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    color: var(--color-deshabilitado-texto);
+    cursor: default;
+  }
+}
+
+.perfil--ancho {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  gap: var(--espacio-2);
 }

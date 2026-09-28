@@ -37,10 +37,10 @@
 }
 
 .splash-nombre-app {
-  font-family: var(--brand-font-logo);
-  color: var(--brand-text);
-  font-size: 1.75rem;
-  letter-spacing: 0.08em;
+  font-family: var(--fuente-marca);
+  color: var(--color-texto);
+  font-size: var(--texto-display);
+  letter-spacing: var(--tracking-marca);
   text-transform: uppercase;
   text-align: center;
   margin: 0;

@@ -1,7 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { IonButton, IonContent, IonRouterLink } from '@ionic/angular/standalone';
+import { IonButton, IonContent, IonFooter, IonRouterLink } from '@ionic/angular/standalone';
 import { MarcaHeaderComponent } from '../../../shared/components/marca-header/marca-header.component';
+import { BarraAccionesComponent } from '../../../shared/components/barra-acciones/barra-acciones.component';
 import { NOMBRE_GRUPO } from '../../../core/identidad-app';
 import { Auth } from '../../../core/services/auth';
 import { ClienteAnonimoService } from '../../../core/services/cliente-anonimo.service';
@@ -9,7 +10,7 @@ import { ClienteAnonimoService } from '../../../core/services/cliente-anonimo.se
 @Component({
   selector: 'app-bienvenida',
   standalone: true,
-  imports: [IonContent, IonButton, IonRouterLink, RouterLink, MarcaHeaderComponent],
+  imports: [IonContent, IonFooter, IonButton, IonRouterLink, RouterLink, MarcaHeaderComponent, BarraAccionesComponent],
   templateUrl: './bienvenida.page.html',
   styleUrls: ['./bienvenida.page.scss'],
 })
