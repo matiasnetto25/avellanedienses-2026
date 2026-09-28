@@ -1,0 +1,52 @@
+// Estado vacío (guía §7.12). Ocupa todo el alto disponible y centra su contenido.
+// --altura-disponible la calcula la directiva appAlturaDisponible del ion-content.
+
+:host {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  min-height: var(--altura-disponible, 100%);
+  padding: var(--espacio-6);
+  text-align: center;
+}
+
+.circulo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  margin-bottom: var(--espacio-2);
+  border-radius: 50%;
+  background: var(--color-superficie-hundida);
+
+  ion-icon {
+    font-size: 56px;
+    color: var(--color-borde-control);
+  }
+}
+
+.titulo {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 400;
+  font-size: var(--texto-subtitulo);
+  color: var(--color-texto);
+}
+
+.frase {
+  margin: 0;
+  max-width: 28ch;
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-cuerpo);
+  color: var(--color-texto-secundario);
+}
+
+// La acción secundaria proyectada, separada del texto. Con la encapsulación
+// de Angular, el contenido proyectado solo se alcanza con ::ng-deep (acotado al :host).
+:host ::ng-deep > ion-button {
+  margin-top: var(--espacio-3);
+}

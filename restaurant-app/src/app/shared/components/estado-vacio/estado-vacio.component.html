@@ -1,0 +1,8 @@
+<div class="circulo">
+  <ion-icon [name]="icono()" aria-hidden="true" />
+</div>
+<h2 class="titulo">{{ titulo() }}</h2>
+@if (frase(); as texto) {
+  <p class="frase">{{ texto }}</p>
+}
+<ng-content />

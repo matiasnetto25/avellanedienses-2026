@@ -9,9 +9,7 @@
 
 <ion-content class="solicitudes-content" appAlturaDisponible>
   @if (!cargandoLista() && clientes().length === 0) {
-    <div class="solicitudes-vacio">
-      <p>Actualmente no se encuentran solicitudes</p>
-    </div>
+    <app-estado-vacio icono="person-add-outline" titulo="No hay clientes pendientes de aprobación" />
   } @else {
     <div class="solicitudes-lista">
       @for (cliente of clientes(); track cliente.id) {

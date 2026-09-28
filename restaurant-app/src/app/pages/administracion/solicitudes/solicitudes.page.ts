@@ -12,6 +12,7 @@ import {
   IonButton,
 } from '@ionic/angular/standalone';
 import { AlturaDisponibleDirective } from '../../../shared/directives/altura-disponible.directive';
+import { EstadoVacioComponent } from '../../../shared/components/estado-vacio/estado-vacio.component';
 import { AvisosService } from '../../../core/services/avisos.service';
 import { ClientesService } from '../../../core/services/clientes.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
@@ -24,6 +25,7 @@ import { ClienteRow } from '../../../core/models/cliente.model';
   imports: [
     AlturaDisponibleDirective,
     CommonModule,
+    EstadoVacioComponent,
     IonContent,
     IonHeader,
     IonToolbar,

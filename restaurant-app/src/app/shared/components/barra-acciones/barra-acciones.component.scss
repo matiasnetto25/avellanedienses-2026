@@ -1,0 +1,17 @@
+// Barra de acciones fija (guía §7.2). Va dentro de ion-footer.
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3) var(--espacio-4) calc(var(--espacio-4) + env(safe-area-inset-bottom, 0px));
+  background: var(--color-superficie);
+  border-radius: var(--radio-xl) var(--radio-xl) 0 0;
+  box-shadow: var(--sombra-2);
+}
+
+// El gap ya separa los botones: se anula el margen que Ionic les pone.
+// Los botones son contenido proyectado: se alcanzan con ::ng-deep acotado al :host.
+:host ::ng-deep > ion-button {
+  margin: 0;
+}
