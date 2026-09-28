@@ -15,6 +15,21 @@ export type SectorItem = 'cocina' | 'bar';
  *  La base tiene el mismo límite (pedido_items_cantidad_check). */
 export const CANTIDAD_MAXIMA_ITEM = 20;
 
+/** Largo del motivo con que el mozo rechaza un pedido (punto 13), sin
+ *  contar los espacios de los bordes. La base tiene el mismo límite
+ *  (pedidos_motivo_rechazo_largo). */
+export const MOTIVO_RECHAZO_MIN = 5;
+export const MOTIVO_RECHAZO_MAX = 200;
+
+/** Devuelve el mensaje de error del motivo, o null si es válido. */
+export function validarMotivoRechazo(motivo: string): string | null {
+  const largo = motivo.trim().length;
+  if (largo === 0) return 'Escribí el motivo del rechazo.';
+  if (largo < MOTIVO_RECHAZO_MIN) return `El motivo tiene que tener al menos ${MOTIVO_RECHAZO_MIN} caracteres.`;
+  if (largo > MOTIVO_RECHAZO_MAX) return `El motivo puede tener hasta ${MOTIVO_RECHAZO_MAX} caracteres.`;
+  return null;
+}
+
 /** Lo que arma el cliente en la carta: un producto y cuántos quiere. */
 export interface LineaCarrito {
   menuId: string;
