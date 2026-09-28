@@ -16,6 +16,7 @@ import { Pedido } from '../../../../core/models/pedido.model';
 import { PedidosService } from '../../../../core/services/pedidos.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { LoadingService } from '../../../../core/services/loading.service';
+import { NotificacionesService } from '../../../../core/services/notificaciones.service';
 
 @Component({
   selector: 'app-pedidos-pendientes',
@@ -41,6 +42,7 @@ export class PedidosPendientesPage implements OnInit, OnDestroy {
   private readonly pedidosService = inject(PedidosService);
   private readonly avisos = inject(AvisosService);
   private readonly loading = inject(LoadingService);
+  private readonly notificaciones = inject(NotificacionesService);
 
   readonly cargando = signal(true);
   readonly errorCarga = signal(false);
@@ -118,6 +120,10 @@ export class PedidosPendientesPage implements OnInit, OnDestroy {
       // Se saca ya, sin esperar a Realtime (tarda uno o dos segundos en
       // releer la lista); a los demás mozos les desaparece por Realtime.
       this.pedidos.update((lista) => lista.filter((p) => p.id !== pedido.id));
+      // Sin await: la push no bloquea, y si falla el rechazo igual quedó hecho.
+      if (resultado.clienteId && resultado.mesaId) {
+        this.notificaciones.avisarPedidoRechazado(resultado.clienteId, resultado.mesaId, motivo.trim());
+      }
       await this.avisos.exito('Pedido rechazado. El cliente ya puede modificarlo.');
     } finally {
       this.procesandoId.set(null);

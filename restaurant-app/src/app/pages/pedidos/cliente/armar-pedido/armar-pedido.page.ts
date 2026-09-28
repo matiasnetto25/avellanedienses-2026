@@ -193,7 +193,7 @@ export class ArmarPedidoPage implements OnInit {
     try {
       const pedidoEnEdicion = this.pedidoEnEdicion();
       if (pedidoEnEdicion) {
-        await this.reenviar(pedidoEnEdicion);
+        await this.reenviar(pedidoEnEdicion, cantidadProductos, total, tiempo);
         return;
       }
 
@@ -241,7 +241,12 @@ export class ArmarPedidoPage implements OnInit {
    * falla, el carrito queda como estaba y el pedido sigue rechazado, así
    * que el cliente puede corregir y volver a intentar.
    */
-  private async reenviar(pedido: Pedido): Promise<void> {
+  private async reenviar(
+    pedido: Pedido,
+    cantidadProductos: number,
+    total: number,
+    tiempo: number
+  ): Promise<void> {
     const resultado = await this.pedidos.reenviar(pedido.id, this.carrito.lineas());
     if (!resultado.ok) {
       await this.avisos.error(resultado.mensaje ?? 'No se pudo reenviar el pedido. Probá de nuevo.');
@@ -250,6 +255,8 @@ export class ArmarPedidoPage implements OnInit {
 
     this.carrito.vaciar();
     this.pedidoEnEdicion.set(null);
+    // Sin await: la push no bloquea, y si falla el pedido igual quedó reenviado.
+    this.notificaciones.avisarPedidoModificado(pedido.numeroMesa, cantidadProductos, total, tiempo);
     this.cerrarResumenTrasEnviar();
     await this.avisos.exito('Pedido reenviado. Esperando confirmación del mozo.');
     this.irAlEstadoDelPedido();

@@ -82,8 +82,10 @@ export class NotificacionesService {
       PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
         // Si ya está en la pantalla a la que apunta la push (por ejemplo,
         // el chat de esa mesa), el cambio llega por Realtime: no se repite.
+        // Sin los query params: «Estado de mi pedido» se abre con ?mesa=N y
+        // la ruta de la push no los lleva.
         const ruta = notification.data?.['ruta'] as string | undefined;
-        if (ruta && this.router.url === ruta) return;
+        if (ruta && this.router.url.split('?')[0] === ruta) return;
 
         this.mostrarToastPush(notification.title ?? notification.body ?? 'Tenés una notificación nueva.');
       });
@@ -363,16 +365,49 @@ export class NotificacionesService {
 
   /** El cliente envía su pedido → todos los mozos (lo tiene que confirmar uno). */
   avisarNuevoPedido(numeroMesa: number, cantidadProductos: number, total: number, tiempoEstimadoMin: number): void {
-    const productos = `${cantidadProductos} ${cantidadProductos === 1 ? 'producto' : 'productos'}`;
     this.notificarEmpleados(
       `Nuevo pedido de la Mesa ${numeroMesa}`,
-      `${productos} · Total $${total.toLocaleString('es-AR')} · ~${tiempoEstimadoMin} min`,
+      this.resumenPedido(cantidadProductos, total, tiempoEstimadoMin),
       ['mozo'],
       '/mozo/pedidos'
     );
   }
 
-  /** Recorta el texto del chat para que entre en la notificación. */
+  /**
+   * El mozo rechaza el pedido → cliente de la estadía (punto 13). La ruta
+   * abre «Estado de mi pedido», que muestra el aviso con el motivo completo.
+   */
+  avisarPedidoRechazado(clienteId: string, mesaId: string, motivo: string): void {
+    this.notificarCliente(
+      'Tu pedido fue rechazado',
+      this.extracto(motivo),
+      clienteId,
+      `/mesa/${mesaId}/estado-pedido`
+    );
+  }
+
+  /** El cliente corrige y reenvía su pedido rechazado → todos los mozos (punto 13). */
+  avisarPedidoModificado(
+    numeroMesa: number,
+    cantidadProductos: number,
+    total: number,
+    tiempoEstimadoMin: number
+  ): void {
+    this.notificarEmpleados(
+      `Pedido modificado · Mesa ${numeroMesa}`,
+      `El cliente corrigió su pedido. ${this.resumenPedido(cantidadProductos, total, tiempoEstimadoMin)}`,
+      ['mozo'],
+      '/mozo/pedidos'
+    );
+  }
+
+  /** «3 productos · Total $26.000 · ~25 min», para las push de pedidos. */
+  private resumenPedido(cantidadProductos: number, total: number, tiempoEstimadoMin: number): string {
+    const productos = `${cantidadProductos} ${cantidadProductos === 1 ? 'producto' : 'productos'}`;
+    return `${productos} · Total $${total.toLocaleString('es-AR')} · ~${tiempoEstimadoMin} min`;
+  }
+
+  /** Recorta un texto (del chat o el motivo de un rechazo) para que entre en la notificación. */
   private extracto(texto: string): string {
     return texto.length > MAX_CARACTERES_EXTRACTO
       ? `${texto.slice(0, MAX_CARACTERES_EXTRACTO - 3)}…`
