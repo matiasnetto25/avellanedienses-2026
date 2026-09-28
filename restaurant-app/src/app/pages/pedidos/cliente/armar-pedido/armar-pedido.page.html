@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button [defaultHref]="rutaMesa" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Hacer pedido{{ numeroMesa() ? ' · Mesa ' + numeroMesa() : '' }}</ion-title>
+    <ion-title>{{ pedidoEnEdicion() ? 'Modificar pedido' : 'Hacer pedido' }}{{ numeroMesa() ? ' · Mesa ' + numeroMesa() : '' }}</ion-title>
   </ion-toolbar>
   @if (!cargando() && !errorCarga()) {
     <ion-toolbar>
@@ -87,6 +87,7 @@
       [tiempoEstimado]="carrito.tiempoEstimado()"
       [numeroMesa]="numeroMesa()"
       [enviando]="enviando()"
+      [textoEnviar]="pedidoEnEdicion() ? 'Reenviar pedido' : 'Enviar pedido'"
       (seguirEligiendo)="cerrarResumen()"
       (enviar)="enviarPedido()"
     />

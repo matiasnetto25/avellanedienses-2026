@@ -22,6 +22,7 @@ import { ProductoCardComponent } from '../../../components/producto-card/product
 import { ResumenPedidoComponent } from '../components/resumen-pedido/resumen-pedido.component';
 import { AlturaDisponibleDirective } from '../../../../shared/directives/altura-disponible.directive';
 import { Producto, CategoriaProducto } from '../../../../core/models/producto.model';
+import { Pedido } from '../../../../core/models/pedido.model';
 import { MenuItemsService } from '../../../../core/services/menu-items.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { LoadingService } from '../../../../core/services/loading.service';
@@ -84,6 +85,12 @@ export class ArmarPedidoPage implements OnInit {
   readonly resumenAbierto = signal(false);
   /** true mientras se envía: evita un segundo pedido por doble toque. */
   readonly enviando = signal(false);
+  /**
+   * Pedido rechazado que el cliente está corrigiendo (punto 13); null al
+   * armar uno nuevo. Se detecta al entrar: no viaja en la URL, así que no
+   * se puede abrir el pedido de otro cliente cambiándola.
+   */
+  readonly pedidoEnEdicion = signal<Pedido | null>(null);
 
   readonly productosFiltrados = computed(() =>
     this.productos().filter((producto) => producto.categoria === this.categoria())
@@ -96,7 +103,10 @@ export class ArmarPedidoPage implements OnInit {
   async ngOnInit(): Promise<void> {
     this.loading.mostrar();
     try {
-      const productos = await this.menuItems.listarActivos();
+      const [productos, pedidoRechazado] = await Promise.all([
+        this.menuItems.listarActivos(),
+        this.buscarPedidoRechazado(),
+      ]);
       if (!productos) {
         this.errorCarga.set(true);
         await this.avisos.error('No se pudo cargar la carta. Probá de nuevo.');
@@ -104,6 +114,7 @@ export class ArmarPedidoPage implements OnInit {
       }
 
       this.productos.set(productos);
+      if (pedidoRechazado) await this.editarPedidoRechazado(pedidoRechazado, productos);
     } catch (error) {
       console.error('Error cargando la carta:', error);
       this.errorCarga.set(true);
@@ -111,6 +122,35 @@ export class ArmarPedidoPage implements OnInit {
     } finally {
       this.cargando.set(false);
       this.loading.ocultar();
+    }
+  }
+
+  /**
+   * El pedido de la estadía, si está rechazado. Si no hay pedido o la
+   * consulta falla, la pantalla arma uno nuevo como siempre (y si ya había
+   * uno, crear() lo avisa y lleva al estado del pedido).
+   */
+  private async buscarPedidoRechazado(): Promise<Pedido | null> {
+    const clienteId = await this.clienteActual.obtenerClienteIdActual();
+    if (!clienteId) return null;
+    const resultado = await this.pedidos.obtenerMiPedidoActivo(clienteId);
+    return resultado.ok && resultado.dato?.estado === 'rechazado' ? resultado.dato : null;
+  }
+
+  /** Precarga el carrito con el pedido rechazado y avisa lo que no se pudo cargar. */
+  private async editarPedidoRechazado(pedido: Pedido, productos: Producto[]): Promise<void> {
+    this.pedidoEnEdicion.set(pedido);
+    const descartados = this.carrito.cargarDesdePedido(pedido.items, productos);
+
+    if (pedido.items.length === 0) {
+      await this.avisos.advertencia('Tu pedido quedó vacío. Volvé a elegir los productos.', 4000);
+    } else if (descartados.length === 1) {
+      await this.avisos.advertencia(`${descartados[0]} ya no está disponible y se quitó de tu pedido.`, 4000);
+    } else if (descartados.length > 1) {
+      await this.avisos.advertencia(
+        `${descartados.join(', ')} ya no están disponibles y se quitaron de tu pedido.`,
+        4000
+      );
     }
   }
 
@@ -151,6 +191,12 @@ export class ArmarPedidoPage implements OnInit {
     const tiempo = this.carrito.tiempoEstimado();
 
     try {
+      const pedidoEnEdicion = this.pedidoEnEdicion();
+      if (pedidoEnEdicion) {
+        await this.reenviar(pedidoEnEdicion);
+        return;
+      }
+
       // El guard ya validó la estadía; acá solo hace falta el id para el
       // pedido. Se resuelve al enviar, no al entrar.
       const clienteId = await this.clienteActual.obtenerClienteIdActual();
@@ -188,6 +234,25 @@ export class ArmarPedidoPage implements OnInit {
       this.enviando.set(false);
       this.loading.ocultar();
     }
+  }
+
+  /**
+   * Reenvía el pedido rechazado con lo que tiene el carrito (punto 13). Si
+   * falla, el carrito queda como estaba y el pedido sigue rechazado, así
+   * que el cliente puede corregir y volver a intentar.
+   */
+  private async reenviar(pedido: Pedido): Promise<void> {
+    const resultado = await this.pedidos.reenviar(pedido.id, this.carrito.lineas());
+    if (!resultado.ok) {
+      await this.avisos.error(resultado.mensaje ?? 'No se pudo reenviar el pedido. Probá de nuevo.');
+      return;
+    }
+
+    this.carrito.vaciar();
+    this.pedidoEnEdicion.set(null);
+    this.cerrarResumenTrasEnviar();
+    await this.avisos.exito('Pedido reenviado. Esperando confirmación del mozo.');
+    this.irAlEstadoDelPedido();
   }
 
   /**
