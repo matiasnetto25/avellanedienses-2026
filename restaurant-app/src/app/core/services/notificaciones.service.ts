@@ -21,8 +21,8 @@ const MAX_CARACTERES_EXTRACTO = 80;
 
 /** A quién avisa y adónde lleva la push de un pedido confirmado, según el sector (punto 14). */
 const DESTINOS_POR_SECTOR: Record<SectorItem, { puestos: Puesto[]; ruta: string; cuerpo: string }> = {
-  cocina: { puestos: ['cocinero'], ruta: '/cocina/comandas', cuerpo: 'Hay platos para preparar.' },
-  bar: { puestos: ['cantinero'], ruta: '/cantina/comandas', cuerpo: 'Hay bebidas para preparar.' },
+  cocina: { puestos: ['cocinero'], ruta: '/cocina/ahora', cuerpo: 'Hay platos para preparar.' },
+  bar: { puestos: ['cantinero'], ruta: '/cantina/ahora', cuerpo: 'Hay bebidas para preparar.' },
 };
 
 @Injectable({ providedIn: 'root' })

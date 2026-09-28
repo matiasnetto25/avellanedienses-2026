@@ -11,6 +11,8 @@ import {
   receiptOutline,
   restaurant,
   restaurantOutline,
+  wine,
+  wineOutline,
 } from 'ionicons/icons';
 import { Pestana } from '../../../core/models/pestanas-por-perfil';
 
@@ -36,6 +38,7 @@ export class PestanasPerfilComponent {
     addIcons({
       chatbubbles, chatbubblesOutline, flash, flashOutline,
       receipt, receiptOutline, restaurant, restaurantOutline,
+      wine, wineOutline,
     });
   }
 

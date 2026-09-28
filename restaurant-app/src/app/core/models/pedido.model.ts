@@ -84,6 +84,7 @@ export interface ItemComanda {
   /** Fecha ISO del pedido (created_at). Se formatea en la vista con DatePipe. */
   fecha: string;
   nombre: string;
+  foto: string | null;
   cantidad: number;
   estado: EstadoItem;
 }

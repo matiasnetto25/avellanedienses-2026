@@ -17,6 +17,7 @@ import {
   IonText,
   IonBackButton,
   IonButtons,
+  NavController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { cameraOutline } from 'ionicons/icons';
@@ -76,6 +77,7 @@ export class AgregarMenuItemPage {
   protected readonly camara = inject(CamaraService);
   private readonly menuItemsService = inject(MenuItemsService);
   private readonly loading = inject(LoadingService);
+  private readonly nav = inject(NavController);
 
   readonly tiposCocinero = TIPOS_COCINERO;
 
@@ -105,7 +107,7 @@ export class AgregarMenuItemPage {
   }
 
   get rutaVolver(): string {
-    return this.esCantinero ? '/cantina' : '/cocina';
+    return this.esCantinero ? '/cantina/bebidas' : '/cocina/platos';
   }
 
   readonly form: FormGroup = this.fb.group({
@@ -197,12 +199,7 @@ export class AgregarMenuItemPage {
       // Sin push: el alta de un plato o una bebida no avisa a nadie
       // (decisión del equipo). La confirmación la da este toast.
       await this.avisos.exito(`Se agregó "${nombreTrim}" al menú.`);
-
-      this.form.reset();
-      if (this.esCantinero) {
-        this.form.get('tipo')?.setValue('bebida');
-      }
-      this.fotos.set({ principal: null, cerca: null, contexto: null });
+      await this.nav.navigateBack(this.rutaVolver);
     } finally {
       this.cargando = false;
       this.loading.ocultar();

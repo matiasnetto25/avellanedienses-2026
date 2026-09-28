@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { BUCKETS } from '../storage-buckets';
 import { NuevoMenuItem, MenuItemRow } from '../models/menu-item.model';
@@ -14,6 +14,9 @@ export interface ResultadoAltaMenuItem {
 @Injectable({ providedIn: 'root' })
 export class MenuItemsService {
   private readonly supabase = inject(SupabaseService);
+
+  /** Sube con cada alta: las listas de productos la usan para refrescarse. */
+  readonly altas = signal(0);
 
 
   /** Productos activos de la carta, por nombre. null si falló la consulta. */
@@ -131,6 +134,7 @@ export class MenuItemsService {
       return { ok: false, mensaje: 'No se pudo guardar el producto. Probá de nuevo.' };
     }
 
+    this.altas.update((n) => n + 1);
     return { ok: true };
   }
 }

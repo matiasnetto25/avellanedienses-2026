@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
+import { BUCKETS } from '../storage-buckets';
 import {
   CANTIDAD_MAXIMA_ITEM,
   EstadoItem,
@@ -44,7 +45,7 @@ const SELECT_PEDIDO = `
  */
 const SELECT_COMANDA = `
   id, cantidad, estado,
-  menu ( nombre ),
+  menu ( nombre, foto_principal ),
   pedido:pedidos!inner (
     id, created_at, estado,
     solicitud:solicitudes_mesa ( mesa ( numero_mesa ) )
@@ -126,7 +127,7 @@ interface ComandaFila {
   id: string;
   cantidad: number;
   estado: EstadoItem;
-  menu: { nombre: string };
+  menu: { nombre: string; foto_principal: string | null };
   pedido: {
     id: string;
     created_at: string;
@@ -691,6 +692,7 @@ export class PedidosService {
       numeroMesa: fila.pedido.solicitud.mesa.numero_mesa,
       fecha: fila.pedido.created_at,
       nombre: fila.menu.nombre,
+      foto: this.supabase.urlPublica(BUCKETS.menu, fila.menu.foto_principal),
       cantidad: fila.cantidad,
       estado: fila.estado,
     };

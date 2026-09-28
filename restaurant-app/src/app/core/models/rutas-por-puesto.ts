@@ -11,9 +11,9 @@ export function rutaHomeSegunPuesto(puesto: Puesto): string {
     case 'supervisor':
       return '/administracion';
     case 'cocinero':
-      return '/cocina';
+      return '/cocina/ahora';
     case 'cantinero':
-      return '/cantina';
+      return '/cantina/ahora';
     case 'metre':
       return '/metre';
     case 'mozo':

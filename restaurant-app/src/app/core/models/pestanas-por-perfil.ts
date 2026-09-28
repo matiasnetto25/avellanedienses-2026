@@ -25,3 +25,13 @@ export const PESTANAS_MOZO: Pestana[] = [
   { ruta: 'consultas', etiqueta: 'Consultas', icono: 'chatbubbles-outline', contador: cifraMozo('consultasSinResponder'), tonoContador: 'espera' },
   { ruta: 'mesas', etiqueta: 'Mesas', icono: 'restaurant-outline' },
 ];
+
+export const PESTANAS_COCINA: Pestana[] = [
+  { ruta: 'ahora', etiqueta: 'Ahora', icono: 'flash-outline' },
+  { ruta: 'platos', etiqueta: 'Platos', icono: 'restaurant-outline' },
+];
+
+export const PESTANAS_CANTINA: Pestana[] = [
+  { ruta: 'ahora', etiqueta: 'Ahora', icono: 'flash-outline' },
+  { ruta: 'bebidas', etiqueta: 'Bebidas', icono: 'wine-outline' },
+];

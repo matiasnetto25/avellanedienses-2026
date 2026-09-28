@@ -5,7 +5,7 @@ import { clienteAprobadoGuard } from './core/guards/cliente-aprobado.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
 import { estadiaEnMesaGuard } from './core/guards/estadia-en-mesa.guard';
 import { PUESTOS_ADMIN } from './core/models/empleado.model';
-import { PESTANAS_MOZO } from './core/models/pestanas-por-perfil';
+import { PESTANAS_CANTINA, PESTANAS_COCINA, PESTANAS_MOZO } from './core/models/pestanas-por-perfil';
 
 const routes: Routes = [
   {
@@ -71,37 +71,56 @@ const routes: Routes = [
     loadComponent: () => import('./pages/administracion/solicitudes/solicitudes.page').then(m => m.SolicitudesClientesPage)
   },
   {
-    path: 'cocina',
-    canActivate: [puestoGuard('cocinero')],
-    loadComponent: () => import('./pages/cocina/cocina.page').then(m => m.CocinaPage)
-  },
-  {
+    // Fuera de las pestañas: el alta es una pantalla de tarea, sin barra.
     path: 'cocina/agregar-plato',
     canActivate: [puestoGuard('cocinero')],
     loadComponent: () => import('./pages/menu-item/agregar-menu-item.page').then(m => m.AgregarMenuItemPage)
   },
+  { path: 'cocina/comandas', redirectTo: 'cocina/ahora', pathMatch: 'full' },
   {
-    // Misma pantalla para cocina y bar: el sector va en data (punto 14).
-    path: 'cocina/comandas',
+    // Cocina y cantina comparten pantallas: el sector va en data.
+    path: 'cocina',
     canActivate: [puestoGuard('cocinero')],
-    data: { sector: 'cocina' },
-    loadComponent: () => import('./pages/pedidos/comandas/comandas.page').then(m => m.ComandasPage)
-  },
-  {
-    path: 'cantina',
-    canActivate: [puestoGuard('cantinero')],
-    loadComponent: () => import('./pages/cantina/cantina.page').then(m => m.CantinaPage)
+    loadComponent: () => import('./shared/components/pestanas-perfil/pestanas-perfil.component').then(m => m.PestanasPerfilComponent),
+    data: { pestanas: PESTANAS_COCINA },
+    children: [
+      {
+        path: 'ahora',
+        data: { sector: 'cocina' },
+        loadComponent: () => import('./pages/preparacion/ahora-preparacion.page').then(m => m.AhoraPreparacionPage)
+      },
+      {
+        path: 'platos',
+        data: { sector: 'cocina' },
+        loadComponent: () => import('./pages/preparacion/productos-sector.page').then(m => m.ProductosSectorPage)
+      },
+      { path: '', redirectTo: 'ahora', pathMatch: 'full' },
+    ]
   },
   {
     path: 'cantina/agregar-bebida',
     canActivate: [puestoGuard('cantinero')],
     loadComponent: () => import('./pages/menu-item/agregar-menu-item.page').then(m => m.AgregarMenuItemPage)
   },
+  { path: 'cantina/comandas', redirectTo: 'cantina/ahora', pathMatch: 'full' },
   {
-    path: 'cantina/comandas',
+    path: 'cantina',
     canActivate: [puestoGuard('cantinero')],
-    data: { sector: 'bar' },
-    loadComponent: () => import('./pages/pedidos/comandas/comandas.page').then(m => m.ComandasPage)
+    loadComponent: () => import('./shared/components/pestanas-perfil/pestanas-perfil.component').then(m => m.PestanasPerfilComponent),
+    data: { pestanas: PESTANAS_CANTINA },
+    children: [
+      {
+        path: 'ahora',
+        data: { sector: 'bar' },
+        loadComponent: () => import('./pages/preparacion/ahora-preparacion.page').then(m => m.AhoraPreparacionPage)
+      },
+      {
+        path: 'bebidas',
+        data: { sector: 'bar' },
+        loadComponent: () => import('./pages/preparacion/productos-sector.page').then(m => m.ProductosSectorPage)
+      },
+      { path: '', redirectTo: 'ahora', pathMatch: 'full' },
+    ]
   },
   {
     path: 'registrar-cliente',

@@ -1,0 +1,47 @@
+<ion-content class="densidad-compacta" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  <div class="pantalla">
+    <app-encabezado-perfil
+      [saludo]="'Hola, ' + (perfil()?.nombre ?? '')"
+      [titulo]="textos.titulo"
+      [nombre]="perfil()?.nombre ?? ''"
+      [foto]="perfil()?.foto ?? null"
+      [resumen]="resumen()" />
+
+    @if (!cargando()) {
+      @if (bloques().length === 0) {
+        <app-estado-vacio
+          [icono]="textos.icono"
+          titulo="No hay nada para preparar"
+          frase="Los pedidos confirmados van a aparecer acá." />
+      } @else {
+        <div class="bloques">
+          @for (bloque of bloques(); track bloque.titulo) {
+            <section>
+              <h2 class="bloque-titulo">
+                {{ bloque.titulo }} <span class="bloque-contador num">{{ bloque.cantidad }}</span>
+              </h2>
+              @for (grupo of bloque.grupos; track grupo.pedidoId) {
+                <div class="tarjeta">
+                  <h3 class="grupo-titulo">Mesa {{ grupo.numeroMesa }} · <span class="num">{{ grupo.fecha | date: 'HH:mm' }}</span></h3>
+                  @for (item of grupo.items; track item.id) {
+                    <div class="fila">
+                      @if (item.foto) {
+                        <img class="fila-miniatura" [src]="item.foto" alt="" loading="lazy" />
+                      } @else {
+                        <span class="fila-miniatura"></span>
+                      }
+                      <p class="fila-nombre">
+                        {{ item.nombre }} <span class="fila-cantidad num">×{{ item.cantidad }}</span>
+                      </p>
+                      <app-chip-estado [estado]="estadoItem(item.estado)" />
+                    </div>
+                  }
+                </div>
+              }
+            </section>
+          }
+        </div>
+      }
+    }
+  </div>
+</ion-content>

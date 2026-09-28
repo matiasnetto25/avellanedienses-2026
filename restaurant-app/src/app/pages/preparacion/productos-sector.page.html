@@ -1,0 +1,45 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>{{ textos.titulo }}</ion-title>
+    <app-avatar-perfil slot="end" [nombre]="perfil()?.nombre ?? ''" [foto]="perfil()?.foto ?? null" />
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="densidad-compacta" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  @if (!cargando()) {
+    @if (productos().length === 0) {
+      <app-estado-vacio [icono]="textos.icono" [titulo]="textos.vacio">
+        <ion-button class="accion-secundaria" (click)="agregar()">{{ textos.accion }}</ion-button>
+      </app-estado-vacio>
+    } @else {
+      <div class="lista">
+        @for (p of productos(); track p.id) {
+          <div class="tarjeta fila">
+            @if (p.imagenes[0]) {
+              <img class="fila-miniatura" [src]="p.imagenes[0]" alt="" loading="lazy" />
+            } @else {
+              <span class="fila-miniatura"></span>
+            }
+            <div class="fila-texto">
+              <p class="fila-nombre">{{ p.nombre }}</p>
+              @if (p.tiempoElaboracion) {
+                <p class="fila-tiempo num">
+                  <ion-icon name="time-outline" aria-hidden="true" /> {{ p.tiempoElaboracion }}
+                </p>
+              }
+            </div>
+            <span class="fila-precio num">${{ p.precio | number: '1.0-0' }}</span>
+          </div>
+        }
+      </div>
+    }
+  }
+</ion-content>
+
+@if (productos().length > 0) {
+  <ion-footer class="ion-no-border">
+    <app-barra-acciones>
+      <ion-button class="accion-principal" expand="block" (click)="agregar()">{{ textos.accion }}</ion-button>
+    </app-barra-acciones>
+  </ion-footer>
+}

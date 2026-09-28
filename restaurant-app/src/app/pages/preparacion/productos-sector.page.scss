@@ -1,0 +1,42 @@
+.lista {
+  padding: var(--espacio-3) var(--margen-pantalla) var(--espacio-6);
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+.fila-miniatura {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radio-sm);
+  background: var(--color-superficie-hundida);
+  object-fit: cover;
+}
+
+.fila-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.fila-nombre {
+  margin: 0;
+  font-weight: var(--peso-medio);
+}
+
+.fila-tiempo {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  margin: var(--espacio-1) 0 0;
+  font-size: var(--texto-etiqueta);
+  color: var(--color-texto-secundario);
+}
+
+.fila-precio {
+  flex: none;
+  font-weight: var(--peso-fuerte);
+}
