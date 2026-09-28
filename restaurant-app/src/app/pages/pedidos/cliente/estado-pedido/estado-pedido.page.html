@@ -24,7 +24,7 @@
       @switch (p.estado) {
         @case ('pendiente_confirmacion') {
           <div class="estado-etiqueta estado-etiqueta--pendiente">
-            <span class="estado-etiqueta-texto">{{ etiquetaEstado(p.estado) }}</span>
+            <span class="estado-etiqueta-texto">{{ estadoPedido(p.estado).texto }}</span>
             <span class="estado-etiqueta-detalle">
               Un mozo va a revisar tu pedido. Cuando lo confirme, pasa a la cocina y a la barra.
             </span>
@@ -33,7 +33,7 @@
         @case ('rechazado') {
           <!-- Recordatorio: el aviso completo es el modal de AvisoRechazoComponent. -->
           <div class="estado-etiqueta estado-etiqueta--rechazado">
-            <span class="estado-etiqueta-texto">{{ etiquetaEstado(p.estado) }}</span>
+            <span class="estado-etiqueta-texto">{{ estadoPedido(p.estado).texto }}</span>
             <span class="estado-etiqueta-detalle">Motivo: {{ p.motivoRechazo }}</span>
             <ion-button
               expand="block"
@@ -47,13 +47,13 @@
         }
         @case ('confirmado') {
           <div class="estado-etiqueta estado-etiqueta--confirmado">
-            <span class="estado-etiqueta-texto">{{ etiquetaEstado(p.estado) }}</span>
+            <span class="estado-etiqueta-texto">{{ estadoPedido(p.estado).texto }}</span>
             <span class="estado-etiqueta-detalle">Tu pedido ya está en la cocina y la barra.</span>
           </div>
         }
         @default {
           <div class="estado-etiqueta">
-            <span class="estado-etiqueta-texto">{{ etiquetaEstado(p.estado) }}</span>
+            <span class="estado-etiqueta-texto">{{ estadoPedido(p.estado).texto }}</span>
           </div>
         }
       }

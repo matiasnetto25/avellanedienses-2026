@@ -89,20 +89,6 @@ export interface ItemComanda {
 }
 
 /**
- * Parcial a propósito: un estado nuevo (punto 16 en adelante) compila
- * aunque todavía no tenga texto, y se muestra tal cual hasta agregarlo.
- */
-const ETIQUETAS_ESTADO_PEDIDO: Partial<Record<EstadoPedido, string>> = {
-  pendiente_confirmacion: 'Esperando confirmación del mozo',
-  rechazado: 'Rechazado por el mozo',
-  confirmado: 'Confirmado',
-};
-
-export function etiquetaEstadoPedido(estado: EstadoPedido): string {
-  return ETIQUETAS_ESTADO_PEDIDO[estado] ?? estado;
-}
-
-/**
  * El mozo ya confirmó el pedido (punto 14): habilita los juegos. Se define
  * por lo que NO es, así los estados que sumen los puntos 16 en adelante
  * (en preparación, listo, etc.) cuentan como confirmados sin tocar nada.

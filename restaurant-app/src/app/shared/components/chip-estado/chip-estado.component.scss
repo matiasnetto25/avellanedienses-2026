@@ -1,0 +1,54 @@
+// Chip de estado (guía §7.5). Los colores salen del tono: --color-{tono} y --color-{tono}-suave.
+
+:host {
+  display: inline-flex;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radio-pildora);
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-etiqueta);
+  font-weight: 500;
+  white-space: nowrap;
+  // Con «reducir movimiento» --mov-normal vale 0ms: cambia sin animación.
+  animation: chip-fundido var(--mov-normal) var(--mov-curva);
+
+  ion-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+}
+
+.chip--espera {
+  background: var(--color-espera-suave);
+  color: var(--color-espera);
+}
+
+.chip--en-curso {
+  background: var(--color-en-curso-suave);
+  color: var(--color-en-curso);
+}
+
+.chip--listo {
+  background: var(--color-listo-suave);
+  color: var(--color-listo);
+}
+
+.chip--rechazo {
+  background: var(--color-rechazo-suave);
+  color: var(--color-rechazo);
+}
+
+@keyframes chip-fundido {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

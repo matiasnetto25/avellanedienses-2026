@@ -10,7 +10,8 @@ import {
   IonBackButton,
   IonButton,
 } from '@ionic/angular/standalone';
-import { Pedido, etiquetaEstadoPedido } from '../../../../core/models/pedido.model';
+import { Pedido } from '../../../../core/models/pedido.model';
+import { estadoPedido } from '../../../../core/utils/estado-visual';
 import { PedidosService } from '../../../../core/services/pedidos.service';
 import { ClienteActualService } from '../../../../core/services/cliente-actual.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
@@ -42,7 +43,7 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
   private readonly loading = inject(LoadingService);
   private readonly avisoRechazo = inject(AvisoRechazoService);
 
-  readonly etiquetaEstado = etiquetaEstadoPedido;
+  readonly estadoPedido = estadoPedido;
 
   readonly idMesa = this.route.snapshot.paramMap.get('idMesa') ?? '';
   readonly rutaMesa = `/mesa/${this.idMesa}`;

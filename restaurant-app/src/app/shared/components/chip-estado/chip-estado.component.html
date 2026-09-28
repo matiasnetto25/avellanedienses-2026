@@ -1,0 +1,11 @@
+<!--
+  El @for de un solo elemento, trackeado por el texto, hace que Angular
+  cree un <span> nuevo cada vez que cambia el estado. Ese span nuevo corre
+  la animación de entrada del .scss: así se ve el fundido al cambiar.
+-->
+@for (e of [estado()]; track e.texto) {
+  <span class="chip chip--{{ e.tono }}">
+    <ion-icon [name]="e.icono" aria-hidden="true" />
+    {{ e.texto }}
+  </span>
+}
