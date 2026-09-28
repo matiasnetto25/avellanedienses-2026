@@ -80,6 +80,13 @@ const routes: Routes = [
     loadComponent: () => import('./pages/menu-item/agregar-menu-item.page').then(m => m.AgregarMenuItemPage)
   },
   {
+    // Misma pantalla para cocina y bar: el sector va en data (punto 14).
+    path: 'cocina/comandas',
+    canActivate: [puestoGuard('cocinero')],
+    data: { sector: 'cocina' },
+    loadComponent: () => import('./pages/pedidos/comandas/comandas.page').then(m => m.ComandasPage)
+  },
+  {
     path: 'cantina',
     canActivate: [puestoGuard('cantinero')],
     loadComponent: () => import('./pages/cantina/cantina.page').then(m => m.CantinaPage)
@@ -88,6 +95,12 @@ const routes: Routes = [
     path: 'cantina/agregar-bebida',
     canActivate: [puestoGuard('cantinero')],
     loadComponent: () => import('./pages/menu-item/agregar-menu-item.page').then(m => m.AgregarMenuItemPage)
+  },
+  {
+    path: 'cantina/comandas',
+    canActivate: [puestoGuard('cantinero')],
+    data: { sector: 'bar' },
+    loadComponent: () => import('./pages/pedidos/comandas/comandas.page').then(m => m.ComandasPage)
   },
   {
     path: 'registrar-cliente',

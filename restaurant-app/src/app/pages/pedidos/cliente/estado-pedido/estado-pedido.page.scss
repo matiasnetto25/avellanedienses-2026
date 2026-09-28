@@ -68,6 +68,16 @@ ion-toolbar {
   }
 }
 
+// Confirmado por el mozo (punto 14): tono verde.
+.estado-etiqueta--confirmado {
+  border-color: var(--ion-color-success);
+  background: color-mix(in srgb, var(--ion-color-success) 12%, var(--brand-background));
+
+  .estado-etiqueta-texto {
+    color: var(--ion-color-success-shade);
+  }
+}
+
 // Dentro de la etiqueta ocupa todo el ancho.
 .estado-boton--modificar {
   max-width: none;

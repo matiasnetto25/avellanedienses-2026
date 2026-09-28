@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   IonContent,
@@ -21,6 +21,7 @@ import { PedidosService } from '../../core/services/pedidos.service';
 import { AvisoRechazoService } from '../pedidos/cliente/components/aviso-rechazo/aviso-rechazo.service';
 import { MesaRow, etiquetaTipo } from '../../core/models/mesa.model';
 import { PUESTOS_VISTA_MESA } from '../../core/models/empleado.model';
+import { EstadoPedido, pedidoConfirmado } from '../../core/models/pedido.model';
 
 /**
  * Qué se muestra en la pantalla, según quién la abre:
@@ -76,11 +77,17 @@ export class MesaPage implements OnInit {
   readonly solicitudId = signal<string | null>(null);
 
   /**
-   * Hay un solo pedido por estadía: sin pedido se ofrece «Hacer pedido»; con
-   * pedido, ese mismo botón pasa a ser «Estado de mi pedido». Si la consulta
-   * falla queda en false: la base igual no deja crear un segundo pedido.
+   * Estado del pedido de la estadía, o null si todavía no pidió. Si la
+   * consulta falla queda en null: la base igual no deja crear un segundo
+   * pedido. Sin Realtime: se relee al volver a la pantalla.
    */
-  readonly tienePedido = signal(false);
+  readonly estadoPedido = signal<EstadoPedido | null>(null);
+
+  /**
+   * Hay un solo pedido por estadía: sin pedido se ofrece «Hacer pedido»; con
+   * pedido, ese mismo botón pasa a ser «Estado de mi pedido».
+   */
+  readonly tienePedido = computed(() => this.estadoPedido() !== null);
 
   /** Cliente de la estadía (solo en la vista 'cliente'): para volver a consultar su pedido. */
   private clienteId: string | null = null;
@@ -147,23 +154,37 @@ export class MesaPage implements OnInit {
     // Recién vinculado (o la app arrancó antes de que tuviera mesa): desde
     // acá se escucha el rechazo del pedido en cualquier pantalla.
     void this.avisoRechazo.vigilar();
-    await this.actualizarTienePedido();
+    await this.actualizarEstadoPedido();
     this.vista.set('cliente');
   }
 
   /**
    * Ionic deja esta pantalla guardada en la pila al ir a la carta o al
    * estado: al volver no se ejecuta ngOnInit. Sin esto, después de enviar
-   * un pedido el botón seguiría diciendo «Hacer pedido».
+   * un pedido el botón seguiría diciendo «Hacer pedido», y «Juegos» no se
+   * enteraría de que el mozo lo confirmó.
    */
   async ionViewWillEnter(): Promise<void> {
-    if (this.vista() === 'cliente') await this.actualizarTienePedido();
+    if (this.vista() === 'cliente') await this.actualizarEstadoPedido();
   }
 
-  private async actualizarTienePedido(): Promise<void> {
+  private async actualizarEstadoPedido(): Promise<void> {
     if (!this.clienteId) return;
     const resultado = await this.pedidos.obtenerMiPedidoActivo(this.clienteId);
-    this.tienePedido.set(resultado.ok && resultado.dato !== null);
+    this.estadoPedido.set(resultado.ok ? (resultado.dato?.estado ?? null) : null);
+  }
+
+  /**
+   * «Juegos» (punto 15, sin asignar) queda siempre tocable: se habilita
+   * cuando el mozo confirma el pedido (punto 14).
+   */
+  abrirJuegos(): void {
+    const estado = this.estadoPedido();
+    if (estado && pedidoConfirmado(estado)) {
+      void this.avisos.proximamente();
+    } else {
+      void this.avisos.info('Disponible cuando el mozo confirme tu pedido.');
+    }
   }
 
   urlFoto(mesa: MesaRow): string | null {

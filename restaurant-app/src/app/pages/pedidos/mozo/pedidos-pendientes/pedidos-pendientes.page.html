@@ -39,7 +39,7 @@
             <span class="pedido-total">${{ pedido.total | number: '1.0-0' }}</span>
           </div>
 
-          <!-- Acciones: «Rechazar» (punto 13); el 14 agrega «Confirmar». -->
+          <!-- Acciones: «Rechazar» (punto 13) y «Confirmar» (punto 14). -->
           <div class="pedido-acciones">
             <ion-button
               class="pedido-accion"
@@ -49,6 +49,13 @@
               (click)="pedirMotivoRechazo(pedido)"
             >
               Rechazar
+            </ion-button>
+            <ion-button
+              class="pedido-accion pedido-accion-confirmar"
+              [disabled]="procesandoId() === pedido.id"
+              (click)="confirmar(pedido)"
+            >
+              Confirmar
             </ion-button>
           </div>
         </ion-card>

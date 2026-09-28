@@ -107,6 +107,12 @@ ion-toolbar {
   font-weight: 600;
 }
 
+// «Confirmar» va relleno con el color de la marca; «Rechazar», con borde rojo.
+.pedido-accion-confirmar {
+  --background: var(--brand-accent);
+  --color: var(--brand-background);
+}
+
 // ===== Sin pedidos y error =====
 
 .pedidos-aviso {
