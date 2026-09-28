@@ -25,23 +25,28 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+// Sin modo oscuro: lo prohíbe la consigna (ver .scratch/nuevos-estilos).
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/*
+ * color-scheme: light evita que el WebView de Android oscurezca los controles
+ * nativos (scrollbars, selects) cuando el celular tiene el tema oscuro.
+ */
+:root {
+  color-scheme: light;
+}
+
+body {
+  font-family: var(--fuente-ui);
+  color: var(--color-texto);
+  -webkit-font-smoothing: antialiased;
+}
 
 /*
  * Fondo de marca para todo ion-content de la app (requisito transversal: sin
  * fondo blanco/negro puro). Definido acá para no repetirlo página por página.
  */
 ion-content {
-  --background: var(--brand-background);
+  --background: var(--color-fondo);
 }
 
 /*

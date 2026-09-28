@@ -1,41 +1,23 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+// =============================================================================
+// Merlot: tokens de diseño
+// -----------------------------------------------------------------------------
+// Fuente única de verdad para colores, tipografía, espaciado, radios, sombras y
+// movimiento. Documentados en .scratch/nuevos-estilos/guia-estilos.md.
+//
+// Reglas de uso:
+//   - En las páginas y componentes se usan SOLO los tokens semánticos
+//     (--color-*, --texto-*, --espacio-*, --radio-*, --sombra-*, --mov-*).
+//   - Los primitivos (--paleta-*) existen para armar los semánticos; no se
+//     usan directamente en una pantalla.
+//   - Ningún .scss de pages/ debería tener un color hex, un px de radio o una
+//     font-family escritos a mano.
+//   - Todos los pares texto/fondo están verificados con WCAG AA (≥ 4.5:1);
+//     los ratios están anotados al lado de cada token de texto.
+// =============================================================================
 
-/*
- * Paleta e identidad de marca (Merlot / Avellanedienses).
- * Definida acá porque la reutilizan varias specs (splash spec 3, login spec 4).
- */
-:root {
-  --brand-floral-white: #FFF9EC;
-  --brand-intense-cherry: #C52233;
-  --brand-ruby-red: #A51C30;
-  --brand-brown-red: #A7333F;
-  --brand-burgundy: #74121D;
-  --brand-night-bordeaux: #580C1F;
-
-  --brand-background: var(--brand-floral-white);
-  --brand-text: var(--brand-night-bordeaux);
-  --brand-accent: var(--brand-intense-cherry);
-
-  --brand-font-logo: 'Cinzel', serif;
-  --brand-font-subtitle: 'Tenor Sans', sans-serif;
-
-  /*
-   * Ionic calcula los estados "presionado"/"foco"/ripple de cualquier
-   * ion-button (y otros controles) a partir de --ion-color-primary, incluso
-   * si el botón no tiene el atributo [color] y aunque se le pise
-   * --background/--color a mano. Sin esto, esos estados siguen mostrando el
-   * azul default de Ionic. Se redefine acá, una sola vez, para que todo
-   * control de la app use el acento de marca por default.
-   */
-  --ion-color-primary: var(--brand-accent);
-  --ion-color-primary-rgb: 197, 34, 51;
-  --ion-color-primary-contrast: var(--brand-floral-white);
-  --ion-color-primary-contrast-rgb: 255, 249, 236;
-  --ion-color-primary-shade: var(--brand-ruby-red);
-  --ion-color-primary-tint: #CB3847;
-}
-
+// -----------------------------------------------------------------------------
+// Fuentes (self-hosted en /assets/fonts: la app tiene que andar sin internet)
+// -----------------------------------------------------------------------------
 @font-face {
   font-family: 'Cinzel';
   font-style: normal;
@@ -58,4 +40,305 @@
   font-weight: 400;
   font-display: swap;
   src: url('/assets/fonts/tenor-sans-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/assets/fonts/dm-sans-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/assets/fonts/dm-sans-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/assets/fonts/dm-sans-700.woff2') format('woff2');
+}
+
+:root {
+  // ===========================================================================
+  // 1. PRIMITIVOS: la paleta cruda. No usar directo en pantallas.
+  // ===========================================================================
+
+  // Marca (sin cambios respecto de la paleta actual)
+  --paleta-floral-white: #FFF9EC;
+  --paleta-intense-cherry: #C52233;
+  --paleta-ruby-red: #A51C30;
+  --paleta-brown-red: #A7333F;
+  --paleta-burgundy: #74121D;
+  --paleta-night-bordeaux: #580C1F;
+
+  // Cremas (fondos)
+  --paleta-crema-100: #FFF9EC; // = floral white
+  --paleta-crema-200: #F6EDDC; // fondo de pantalla
+  --paleta-crema-300: #EFE3CE; // fondo hundido (pestañas, segment)
+
+  // Grises cálidos
+  --paleta-arena-200: #E8DCCB;
+  --paleta-arena-300: #DCCDB8;
+  --paleta-arena-500: #9A897B;
+  --paleta-arena-600: #7D6B61;
+  --paleta-arena-700: #6B5A52;
+
+  // Estados (fuerte = texto/ícono, suave = fondo de chip)
+  --paleta-ocre-700: #855600;
+  --paleta-ocre-100: #F5E4BE;
+  --paleta-pizarra-700: #2C5A82;
+  --paleta-pizarra-100: #DDE7EF;
+  --paleta-salvia-700: #3D6A48;
+  --paleta-salvia-100: #DEE9D8;
+  --paleta-oxido-700: #A8431A;
+  --paleta-oxido-100: #F6DCCD;
+
+  // Detalle premium (uso excepcional)
+  --paleta-champagne-300: #D4B97E;
+  --paleta-champagne-600: #9C7A36;
+
+  // ===========================================================================
+  // 2. COLOR SEMÁNTICO: lo que usan las pantallas.
+  // ===========================================================================
+
+  // Fondos
+  --color-fondo: var(--paleta-crema-200);            // fondo de todo ion-content
+  --color-superficie: var(--paleta-crema-100);       // tarjetas, hojas, modales, barras
+  --color-superficie-hundida: var(--paleta-crema-300); // pistas de segment, inputs deshabilitados
+  --color-encabezado: var(--paleta-night-bordeaux);  // encabezado de perfil
+
+  // Texto
+  --color-texto: var(--paleta-night-bordeaux);        // 13.5:1 superficie · 12.2:1 fondo
+  --color-texto-secundario: var(--paleta-arena-700);  // 6.2:1 superficie · 5.6:1 fondo
+  --color-texto-terciario: var(--paleta-arena-600);   // 4.8:1 SOLO sobre superficie
+  --color-texto-sobre-acento: var(--paleta-floral-white); // 5.5:1 sobre cereza
+  --color-texto-sobre-encabezado: var(--paleta-floral-white);
+
+  // Acento y acciones
+  --color-accion: var(--paleta-intense-cherry);       // acción principal (una por pantalla)
+  --color-accion-presionada: var(--paleta-ruby-red);
+  --color-accion-secundaria: var(--paleta-burgundy);  // borde y texto de la acción secundaria
+  --color-destructiva: var(--paleta-oxido-700);       // acción destructiva (solo texto)
+  --color-foco: var(--paleta-burgundy);               // anillo de foco / borde de input activo
+
+  // Bordes
+  --color-borde-suave: var(--paleta-arena-200);       // separadores y borde de tarjeta (decorativo)
+  --color-borde: var(--paleta-arena-300);             // borde de tarjeta seleccionable
+  --color-borde-control: var(--paleta-arena-500);     // borde de inputs (≥ 3:1 sobre superficie)
+
+  // Deshabilitado
+  --color-deshabilitado-fondo: var(--paleta-arena-200);
+  --color-deshabilitado-texto: var(--paleta-arena-600);
+
+  // Tonos de estado (fuerte = texto e ícono · suave = fondo)
+  --color-espera: var(--paleta-ocre-700);             // 6.0:1 · chip 5.0:1
+  --color-espera-suave: var(--paleta-ocre-100);
+  --color-en-curso: var(--paleta-pizarra-700);        // 6.9:1 · chip 5.8:1
+  --color-en-curso-suave: var(--paleta-pizarra-100);
+  --color-listo: var(--paleta-salvia-700);            // 6.0:1 · chip 5.0:1
+  --color-listo-suave: var(--paleta-salvia-100);
+  --color-rechazo: var(--paleta-oxido-700);           // 5.8:1 · chip 4.6:1
+  --color-rechazo-suave: var(--paleta-oxido-100);
+
+  // Detalle premium (estrellas de encuesta, propina, nada más)
+  --color-detalle: var(--paleta-champagne-300);
+  --color-detalle-trazo: var(--paleta-champagne-600); // 3.8:1: válido para íconos/gráficos
+
+  // Gráficos (en este orden)
+  --color-grafico-1: var(--paleta-intense-cherry);
+  --color-grafico-2: var(--paleta-pizarra-700);
+  --color-grafico-3: var(--paleta-salvia-700);
+  --color-grafico-4: var(--paleta-ocre-700);
+  --color-grafico-5: var(--paleta-champagne-300);
+
+  // ===========================================================================
+  // 3. TIPOGRAFÍA: 3 niveles
+  // ===========================================================================
+  --fuente-marca: 'Cinzel', 'Times New Roman', serif;       // logo, títulos de pantalla grandes
+  --fuente-titulo: 'Tenor Sans', 'Helvetica Neue', sans-serif; // títulos de sección, barra superior
+  --fuente-ui: 'DM Sans', 'Roboto', system-ui, sans-serif;  // todo lo demás
+
+  // Escala (tamaño / alto de línea)
+  --texto-marca: 2rem;          // 32px: Cinzel, nombre del local / splash
+  --texto-display: 1.75rem;     // 28px: Cinzel, título del encabezado de perfil
+  --texto-titulo: 1.375rem;     // 22px: Tenor Sans, título de pantalla
+  --texto-subtitulo: 1.125rem;  // 18px: Tenor Sans, título de sección o de tarjeta amplia
+  --texto-cuerpo: 1rem;         // 16px: DM Sans, cuerpo en densidad amplia
+  --texto-cuerpo-compacto: 0.875rem; // 14px: DM Sans, cuerpo en densidad compacta
+  --texto-etiqueta: 0.8125rem;  // 13px: DM Sans 500, labels, chips, pestañas
+  --texto-micro: 0.75rem;       // 12px: DM Sans, contadores, ayudas. Mínimo absoluto.
+
+  --alto-linea-titulo: 1.2;
+  --alto-linea-cuerpo: 1.5;
+
+  --peso-regular: 400;
+  --peso-medio: 500;
+  --peso-fuerte: 700;
+
+  --tracking-marca: 0.06em;     // Cinzel siempre en mayúsculas con este espaciado
+  --tracking-etiqueta: 0.02em;
+
+  // ===========================================================================
+  // 4. ESPACIADO: base 4px
+  // ===========================================================================
+  --espacio-1: 4px;
+  --espacio-2: 8px;
+  --espacio-3: 12px;
+  --espacio-4: 16px;
+  --espacio-5: 20px;
+  --espacio-6: 24px;
+  --espacio-8: 32px;
+  --espacio-12: 48px;
+
+  --margen-pantalla-amplia: var(--espacio-5);    // 20px
+  --margen-pantalla-compacta: var(--espacio-4);  // 16px
+
+  --alto-toque-minimo: 44px;     // cualquier cosa tocable
+  --alto-boton: 48px;            // botones de ancho completo
+  --alto-boton-compacto: 36px;   // botones en fila (la zona tocable sigue siendo 44px)
+
+  // ===========================================================================
+  // 5. RADIOS: cuatro tamaños y la píldora. Nada más.
+  // ===========================================================================
+  --radio-sm: 8px;      // miniaturas, chips cuadrados, badges
+  --radio-md: 12px;     // inputs, tarjetas compactas
+  --radio-lg: 16px;     // tarjetas amplias, imágenes de producto
+  --radio-xl: 24px;     // hojas inferiores, modales, encabezado de perfil
+  --radio-pildora: 999px; // botones y chips de estado
+
+  // ===========================================================================
+  // 6. SOMBRAS: cálidas (bordó transparente), dos niveles
+  // ===========================================================================
+  --sombra-1: 0 1px 2px rgba(88, 12, 31, 0.06), 0 2px 8px rgba(88, 12, 31, 0.06);     // tarjetas
+  --sombra-2: 0 4px 12px rgba(88, 12, 31, 0.10), 0 12px 32px rgba(88, 12, 31, 0.12);  // hojas, diálogos, toasts, botón fijo
+
+  // ===========================================================================
+  // 7. MOVIMIENTO: mínimo y sutil
+  // ===========================================================================
+  --mov-rapido: 150ms;    // presionado, hover, cambio de color
+  --mov-normal: 200ms;    // aparición de chips, cambio de estado
+  --mov-lento: 250ms;     // hojas y diálogos
+  --mov-curva: cubic-bezier(0.2, 0, 0, 1);       // desacelera al llegar
+  --mov-curva-salida: cubic-bezier(0.4, 0, 1, 1);
+
+  // ===========================================================================
+  // 8. COMPATIBILIDAD: nombres viejos → tokens nuevos
+  // (se borran cuando ninguna pantalla los use)
+  // ===========================================================================
+  --brand-floral-white: var(--paleta-floral-white);
+  --brand-intense-cherry: var(--paleta-intense-cherry);
+  --brand-ruby-red: var(--paleta-ruby-red);
+  --brand-brown-red: var(--paleta-brown-red);
+  --brand-burgundy: var(--paleta-burgundy);
+  --brand-night-bordeaux: var(--paleta-night-bordeaux);
+  --brand-background: var(--color-fondo);
+  --brand-text: var(--color-texto);
+  --brand-accent: var(--color-accion);
+  --brand-font-logo: var(--fuente-marca);
+  --brand-font-subtitle: var(--fuente-titulo);
+
+  // ===========================================================================
+  // 9. IONIC: sus variables apuntan a los tokens
+  // ===========================================================================
+  --ion-font-family: var(--fuente-ui);
+  --ion-background-color: var(--color-fondo);
+  --ion-background-color-rgb: 246, 237, 220;
+  --ion-text-color: var(--color-texto);
+  --ion-text-color-rgb: 88, 12, 31;
+  --ion-toolbar-background: var(--color-superficie);
+  --ion-toolbar-color: var(--color-texto);
+  --ion-tab-bar-background: var(--color-superficie);
+  --ion-tab-bar-color: var(--color-texto-secundario);
+  --ion-tab-bar-color-selected: var(--color-texto);
+  --ion-item-background: var(--color-superficie);
+  --ion-border-color: var(--color-borde-suave);
+  --ion-placeholder-color: var(--color-texto-terciario);
+
+  // primary = acción principal (cereza)
+  --ion-color-primary: #C52233;
+  --ion-color-primary-rgb: 197, 34, 51;
+  --ion-color-primary-contrast: #FFF9EC;
+  --ion-color-primary-contrast-rgb: 255, 249, 236;
+  --ion-color-primary-shade: #A51C30;
+  --ion-color-primary-tint: #CB3847;
+
+  // secondary = acción secundaria (burgundy)
+  --ion-color-secondary: #74121D;
+  --ion-color-secondary-rgb: 116, 18, 29;
+  --ion-color-secondary-contrast: #FFF9EC;
+  --ion-color-secondary-contrast-rgb: 255, 249, 236;
+  --ion-color-secondary-shade: #66101A;
+  --ion-color-secondary-tint: #822A34;
+
+  // tertiary = En curso / info (pizarra)
+  --ion-color-tertiary: #2C5A82;
+  --ion-color-tertiary-rgb: 44, 90, 130;
+  --ion-color-tertiary-contrast: #FFF9EC;
+  --ion-color-tertiary-contrast-rgb: 255, 249, 236;
+  --ion-color-tertiary-shade: #274F72;
+  --ion-color-tertiary-tint: #416B8F;
+
+  // success = Listo (salvia)
+  --ion-color-success: #3D6A48;
+  --ion-color-success-rgb: 61, 106, 72;
+  --ion-color-success-contrast: #FFF9EC;
+  --ion-color-success-contrast-rgb: 255, 249, 236;
+  --ion-color-success-shade: #365D3F;
+  --ion-color-success-tint: #50795A;
+
+  // warning = Espera (ocre)
+  --ion-color-warning: #855600;
+  --ion-color-warning-rgb: 133, 86, 0;
+  --ion-color-warning-contrast: #FFF9EC;
+  --ion-color-warning-contrast-rgb: 255, 249, 236;
+  --ion-color-warning-shade: #754C00;
+  --ion-color-warning-tint: #91671A;
+
+  // danger = Rechazo (óxido); NO es la acción principal
+  --ion-color-danger: #A8431A;
+  --ion-color-danger-rgb: 168, 67, 26;
+  --ion-color-danger-contrast: #FFF9EC;
+  --ion-color-danger-contrast-rgb: 255, 249, 236;
+  --ion-color-danger-shade: #943B17;
+  --ion-color-danger-tint: #B15631;
+
+  // medium = texto secundario (arena)
+  --ion-color-medium: #6B5A52;
+  --ion-color-medium-rgb: 107, 90, 82;
+  --ion-color-medium-contrast: #FFF9EC;
+  --ion-color-medium-contrast-rgb: 255, 249, 236;
+  --ion-color-medium-shade: #5E4F48;
+  --ion-color-medium-tint: #7A6B63;
+
+  // light / dark: se pisan para que nada caiga en blanco o negro puro
+  --ion-color-light: #EFE3CE;
+  --ion-color-light-rgb: 239, 227, 206;
+  --ion-color-light-contrast: #580C1F;
+  --ion-color-light-contrast-rgb: 88, 12, 31;
+  --ion-color-light-shade: #D2C8B5;
+  --ion-color-light-tint: #F1E6D3;
+
+  --ion-color-dark: #580C1F;
+  --ion-color-dark-rgb: 88, 12, 31;
+  --ion-color-dark-contrast: #FFF9EC;
+  --ion-color-dark-contrast-rgb: 255, 249, 236;
+  --ion-color-dark-shade: #4D0B1B;
+  --ion-color-dark-tint: #692435;
+}
+
+// Movimiento reducido: el sistema operativo lo pide, la app lo respeta.
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --mov-rapido: 0ms;
+    --mov-normal: 0ms;
+    --mov-lento: 0ms;
+  }
 }
