@@ -243,7 +243,7 @@ export class GestionMesasPage implements OnInit {
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
-          text: 'Eliminar',
+          text: 'Eliminar mesa',
           role: 'destructive',
           handler: () => this.eliminarMesa(mesa),
         },

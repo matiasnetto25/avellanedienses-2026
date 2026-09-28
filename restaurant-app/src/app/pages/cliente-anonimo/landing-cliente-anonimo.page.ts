@@ -127,7 +127,7 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
 
     const alert = await this.alertController.create({
       header: 'Cerrar sesión',
-      message: 'Esta acción provocará que se borren sus datos. Deberá volver a iniciar sesión nuevamente.',
+      message: 'Se van a borrar tus datos y vas a tener que volver a ingresar.',
       cssClass: 'merlot-alert',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
@@ -155,13 +155,7 @@ export class LandingClienteAnonimoPage implements OnInit, OnDestroy {
           // el chequeo de arriba, tratado igual.
           this.avisoMostrador.set(true);
         } else {
-          const alert = await this.alertController.create({
-            header: 'No se pudo cerrar sesión',
-            message: resultado.mensaje ?? 'Probá de nuevo en un momento.',
-            cssClass: 'merlot-alert',
-            buttons: ['Aceptar'],
-          });
-          await alert.present();
+          await this.avisos.error(resultado.mensaje ?? 'No se pudo cerrar sesión. Probá de nuevo en un momento.');
         }
         return;
       }

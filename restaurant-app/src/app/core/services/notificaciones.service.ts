@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
 import { Preferences } from '@capacitor/preferences';
 import {
   PushNotifications,
@@ -9,6 +8,7 @@ import {
   ActionPerformed,
 } from '@capacitor/push-notifications';
 import { SupabaseService } from './supabase.service';
+import { AvisosService } from './avisos.service';
 import { Auth } from './auth';
 import { ClientesService } from './clientes.service';
 import { Puesto } from '../models/empleado.model';
@@ -33,7 +33,7 @@ export class NotificacionesService {
   // circular (ClienteActualService sí la tendría, vía ClienteAnonimoService).
   private readonly clientes = inject(ClientesService);
   private readonly router = inject(Router);
-  private readonly toastController = inject(ToastController);
+  private readonly avisos = inject(AvisosService);
 
   private inicializado = false;
 
@@ -88,8 +88,7 @@ export class NotificacionesService {
 
       // APP ABIERTA (foreground): el sistema operativo NO muestra la
       // notificación solo — hay que mostrarla nosotros manualmente.
-      // Se usa un toast propio (no avisos.info(), que va abajo) para que
-      // las push aparezcan arriba, como una notificación real.
+      // Se muestra como un aviso de info (toast arriba, tono En curso).
       PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
         // Si ya está en la pantalla a la que apunta la push (por ejemplo,
         // el chat de esa mesa), el cambio llega por Realtime: no se repite.
@@ -115,14 +114,7 @@ export class NotificacionesService {
   }
 
   private async mostrarToastPush(mensaje: string): Promise<void> {
-    const toast = await this.toastController.create({
-      message: mensaje,
-      duration: 3000,
-      position: 'top',
-      color: 'medium',
-      cssClass: 'aviso-toast',
-    });
-    await toast.present();
+    await this.avisos.info(mensaje, 3000);
   }
 
   /**

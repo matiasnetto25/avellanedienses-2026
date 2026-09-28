@@ -283,7 +283,122 @@ ion-content.densidad-compacta {
 }
 
 // -----------------------------------------------------------------------------
-// 6. Utilidades
+// 6. Avisos: toasts, diálogos y modales (guía §7.10 y §7.11)
+// -----------------------------------------------------------------------------
+
+// Toast: lo crea AvisosService con cssClass ['aviso-toast', 'aviso-toast--<tono>'].
+// No se pinta entero de color: el tono va en el borde izquierdo y en el ícono.
+ion-toast.aviso-toast {
+  --background: var(--color-superficie);
+  --color: var(--color-texto);
+  --border-radius: var(--radio-md);
+  --border-style: solid;
+  --border-width: 0 0 0 4px; // el borde va en el wrapper: sigue el radio
+  --border-color: var(--tono-toast);
+  --box-shadow: var(--sombra-2);
+  --start: var(--espacio-4);
+  --end: var(--espacio-4);
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-cuerpo-compacto);
+
+  &::part(icon) {
+    color: var(--tono-toast);
+    font-size: 20px;
+  }
+}
+
+ion-toast.aviso-toast--listo { --tono-toast: var(--color-listo); }
+ion-toast.aviso-toast--en-curso { --tono-toast: var(--color-en-curso); }
+ion-toast.aviso-toast--espera { --tono-toast: var(--color-espera); }
+ion-toast.aviso-toast--rechazo { --tono-toast: var(--color-rechazo); }
+
+// Diálogo de confirmación: todo alertController.create() pasa
+// cssClass: 'merlot-alert'. ion-alert no usa shadow DOM, así que se estiliza
+// por sus clases internas; el prefijo ion-alert.merlot-alert les gana en
+// especificidad a los estilos de Ionic.
+// Botones: role 'cancel' en texto secundario, role 'destructive' en óxido y
+// el resto (lo que confirma algo positivo) en burgundy.
+ion-alert.merlot-alert {
+  --background: var(--color-superficie);
+  --backdrop-opacity: 0.3;
+
+  .alert-wrapper {
+    border-radius: var(--radio-xl);
+    box-shadow: var(--sombra-2);
+  }
+
+  .alert-head {
+    padding: var(--espacio-6) var(--espacio-6) var(--espacio-2);
+  }
+
+  .alert-title {
+    font-family: var(--fuente-titulo);
+    font-size: var(--texto-subtitulo);
+    font-weight: var(--peso-regular);
+    line-height: var(--alto-linea-titulo);
+    color: var(--color-texto);
+  }
+
+  .alert-message {
+    padding: 0 var(--espacio-6) var(--espacio-4);
+    font-family: var(--fuente-ui);
+    font-size: var(--texto-cuerpo);
+    line-height: var(--alto-linea-cuerpo);
+    color: var(--color-texto-secundario);
+  }
+
+  .alert-input {
+    padding: var(--espacio-3);
+    border: 1px solid var(--color-borde-control);
+    border-radius: var(--radio-md);
+    background: var(--color-superficie);
+    font-family: var(--fuente-ui);
+    color: var(--color-texto);
+
+    &:focus {
+      border: 2px solid var(--color-foco);
+      padding: calc(var(--espacio-3) - 1px);
+    }
+  }
+
+  .alert-button-group {
+    padding: var(--espacio-2) var(--espacio-3) var(--espacio-3);
+  }
+
+  .alert-button {
+    min-height: var(--alto-toque-minimo);
+    border-radius: var(--radio-pildora);
+    font-family: var(--fuente-ui);
+    font-size: var(--texto-cuerpo-compacto);
+    font-weight: var(--peso-medio);
+    color: var(--color-accion-secundaria);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .alert-button-role-cancel {
+    color: var(--color-texto-secundario);
+  }
+
+  .alert-button-role-destructive {
+    font-weight: var(--peso-fuerte);
+    color: var(--color-destructiva);
+  }
+}
+
+// Modal con forma de diálogo (componente propio abierto con ModalController):
+// modalController.create({ component, cssClass: 'merlot-modal' }).
+ion-modal.merlot-modal {
+  --width: min(90vw, 360px);
+  --height: auto;
+  --border-radius: var(--radio-xl);
+  --background: var(--color-superficie);
+  --box-shadow: var(--sombra-2);
+  --backdrop-opacity: 0.3;
+}
+
+// -----------------------------------------------------------------------------
+// 7. Utilidades
 // -----------------------------------------------------------------------------
 
 // Números alineados: precios, tiempos y cantidades.

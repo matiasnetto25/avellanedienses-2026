@@ -1,19 +1,36 @@
 import { Injectable, inject } from '@angular/core';
 import { ToastController } from '@ionic/angular';
 import { Haptics, NotificationType } from '@capacitor/haptics';
+import { addIcons } from 'ionicons';
+import {
+  alertCircleOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  informationCircleOutline,
+} from 'ionicons/icons';
 
 export type TipoAviso = 'exito' | 'error' | 'advertencia' | 'info';
+
+/** Tono de estado de la guía (§7.10): define el color del borde y del ícono. */
+type TonoAviso = 'listo' | 'en-curso' | 'espera' | 'rechazo';
 
 @Injectable({ providedIn: 'root' })
 export class AvisosService {
   private readonly toastController = inject(ToastController);
 
-  private readonly colorPorTipo: Record<TipoAviso, string> = {
-    exito: 'success',
-    error: 'danger',
-    advertencia: 'warning',
-    info: 'medium',
+  private readonly estiloPorTipo: Record<TipoAviso, { tono: TonoAviso; icono: string }> = {
+    exito: { tono: 'listo', icono: 'checkmark-circle-outline' },
+    info: { tono: 'en-curso', icono: 'information-circle-outline' },
+    advertencia: { tono: 'espera', icono: 'alert-circle-outline' },
+    error: { tono: 'rechazo', icono: 'close-circle-outline' },
   };
+
+  /** El toast visible: se cierra antes de mostrar otro, para que no se apilen. */
+  private toastActual?: HTMLIonToastElement;
+
+  constructor() {
+    addIcons({ alertCircleOutline, checkmarkCircleOutline, closeCircleOutline, informationCircleOutline });
+  }
 
   async error(mensaje: string, duracionMs = 3000): Promise<void> {
     await this.vibrarError();
@@ -46,13 +63,32 @@ export class AvisosService {
   }
 
   private async mostrar(mensaje: string, tipo: TipoAviso, duracionMs: number): Promise<void> {
+    const { tono, icono } = this.estiloPorTipo[tipo];
     const toast = await this.toastController.create({
       message: mensaje,
       duration: duracionMs,
-      position: 'bottom',
-      color: this.colorPorTipo[tipo],
-      cssClass: 'aviso-toast',
+      // Siempre arriba: abajo taparía la acción principal fija.
+      position: 'top',
+      positionAnchor: this.barraSuperiorVisible(),
+      icon: icono,
+      cssClass: ['aviso-toast', `aviso-toast--${tono}`],
     });
+
+    const anterior = this.toastActual;
+    this.toastActual = toast;
+    await anterior?.dismiss().catch(() => undefined);
     await toast.present();
+  }
+
+  /**
+   * El ion-header de la pantalla que se está viendo, para que el toast salga
+   * debajo y no tape el título. Si la pantalla no tiene barra superior, el
+   * toast va arriba de todo (Ionic ya deja libre la barra de estado).
+   */
+  private barraSuperiorVisible(): HTMLElement | undefined {
+    const headers = Array.from(document.querySelectorAll<HTMLElement>('ion-header'));
+    return headers
+      .filter((header) => !header.closest('.ion-page-hidden') && header.getBoundingClientRect().height > 0)
+      .pop();
   }
 }
