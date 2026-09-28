@@ -20,7 +20,7 @@
     <div class="estado-pantalla">
       <p class="estado-encabezado">Mesa {{ p.numeroMesa }} · pedido de las {{ p.creadoEn | date: 'HH:mm' }}</p>
 
-      <!-- Un bloque por estado: los puntos 13 y 14 agregan el suyo. -->
+      <!-- Un bloque por estado: los puntos 16 en adelante agregan el suyo. -->
       @switch (p.estado) {
         @case ('pendiente_confirmacion') {
           <div class="estado-etiqueta estado-etiqueta--pendiente">
@@ -43,6 +43,12 @@
             >
               Modificar pedido
             </ion-button>
+          </div>
+        }
+        @case ('confirmado') {
+          <div class="estado-etiqueta estado-etiqueta--confirmado">
+            <span class="estado-etiqueta-texto">{{ etiquetaEstado(p.estado) }}</span>
+            <span class="estado-etiqueta-detalle">Tu pedido ya está en la cocina y la barra.</span>
           </div>
         }
         @default {

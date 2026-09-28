@@ -102,6 +102,15 @@ export function etiquetaEstadoPedido(estado: EstadoPedido): string {
   return ETIQUETAS_ESTADO_PEDIDO[estado] ?? estado;
 }
 
+/**
+ * El mozo ya confirmó el pedido (punto 14): habilita los juegos. Se define
+ * por lo que NO es, así los estados que sumen los puntos 16 en adelante
+ * (en preparación, listo, etc.) cuentan como confirmados sin tocar nada.
+ */
+export function pedidoConfirmado(estado: EstadoPedido): boolean {
+  return estado !== 'pendiente_confirmacion' && estado !== 'rechazado';
+}
+
 /** Suma de precio por cantidad. La usan PedidosService y CarritoService (barra de la carta, issue 04). */
 export function calcularTotal(lineas: { precioUnitario: number; cantidad: number }[]): number {
   return lineas.reduce((total, linea) => total + linea.precioUnitario * linea.cantidad, 0);
