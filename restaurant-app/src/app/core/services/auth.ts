@@ -165,7 +165,7 @@ export class Auth {
   /**
    * El usuario autenticado no es empleado — se fija si es un cliente y en
    * qué estado. Si está "aprobado", el login es válido: se deja la sesión
-   * de Supabase Auth activa (clienteAprobadoGuard la vuelve a validar del
+   * de Supabase Auth activa (clienteGuard la vuelve a validar del
    * lado del servidor antes de dejarlo entrar a /cliente) y se devuelve
    * ok:true con tipo:'cliente' para que login.page.ts sepa navegarlo ahí
    * en vez de al flujo de empleados. Para pendiente/rechazado/no
@@ -223,7 +223,7 @@ export class Auth {
 
     const cliente = await this.clientes.obtenerClienteActual();
     if (cliente?.estado === 'aprobado') {
-      this.router.navigate(['/cliente'], { replaceUrl: true });
+      this.router.navigate(['/cliente/inicio'], { replaceUrl: true });
       return true;
     }
 

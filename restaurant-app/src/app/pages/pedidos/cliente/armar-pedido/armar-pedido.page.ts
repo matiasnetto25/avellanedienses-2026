@@ -70,6 +70,7 @@ export class ArmarPedidoPage implements OnInit {
 
   readonly idMesa = this.route.snapshot.paramMap.get('idMesa') ?? '';
   readonly rutaMesa = `/mesa/${this.idMesa}`;
+  readonly rutaInicio = '/cliente/inicio';
 
   /**
    * Número de mesa que llega por query param desde /mesa/:idMesa

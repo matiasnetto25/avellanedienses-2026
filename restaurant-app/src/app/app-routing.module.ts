@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { puestoGuard } from './core/guards/puesto.guard';
-import { clienteAprobadoGuard } from './core/guards/cliente-aprobado.guard';
+import { clienteGuard } from './core/guards/cliente.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
 import { estadiaEnMesaGuard } from './core/guards/estadia-en-mesa.guard';
 import { PUESTOS_ADMIN } from './core/models/empleado.model';
-import { PESTANAS_ADMIN, PESTANAS_CANTINA, PESTANAS_COCINA, PESTANAS_METRE, PESTANAS_MOZO } from './core/models/pestanas-por-perfil';
+import { PESTANAS_ADMIN, PESTANAS_CANTINA, PESTANAS_COCINA, PESTANAS_METRE, PESTANAS_MOZO, pestanasCliente } from './core/models/pestanas-por-perfil';
 
 const routes: Routes = [
   {
@@ -158,17 +158,33 @@ const routes: Routes = [
     ]
   },
   {
+    // Anónimo y registrado: las pestañas cambian según la etapa del cliente.
     path: 'cliente',
-    canActivate: [clienteAprobadoGuard],
-    loadComponent: () => import('./pages/cliente/landing-cliente.page').then(m => m.LandingClientePage)
+    canActivate: [clienteGuard],
+    loadComponent: () => import('./shared/components/pestanas-perfil/pestanas-perfil.component').then(m => m.PestanasPerfilComponent),
+    data: { pestanas: pestanasCliente },
+    children: [
+      {
+        path: 'inicio',
+        loadComponent: () => import('./pages/cliente/inicio/inicio-cliente.page').then(m => m.InicioClientePage)
+      },
+      {
+        path: 'menu',
+        data: { enPestana: true },
+        loadComponent: () => import('./pages/menu/menu.component').then(m => m.MenuComponent)
+      },
+      {
+        path: 'consultas',
+        loadComponent: () => import('./pages/cliente/consultas/consultas-cliente.page').then(m => m.ConsultasClientePage)
+      },
+      {
+        path: 'juegos',
+        loadComponent: () => import('./pages/cliente/juegos/juegos-cliente.page').then(m => m.JuegosClientePage)
+      },
+      { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+    ]
   },
-  {
-    path: 'cliente-anonimo',
-    // Sin guard: la identidad se resuelve con el id guardado en el
-    // dispositivo (Capacitor Preferences), no con Supabase Auth — un
-    // cliente anónimo no tiene sesión que un guard pueda revisar.
-    loadComponent: () => import('./pages/cliente-anonimo/landing-cliente-anonimo.page').then(m => m.LandingClienteAnonimoPage)
-  },
+  { path: 'cliente-anonimo', redirectTo: 'cliente/inicio', pathMatch: 'full' },
   {
     path: 'cliente-anonimo/escaneo-qr',
     loadComponent: () => import('./pages/cliente-anonimo/escaneo-qr/escaneo-qr.page').then(m => m.EscaneoQrPage)

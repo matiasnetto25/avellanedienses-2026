@@ -163,7 +163,7 @@ export class ChatPage implements OnInit, OnDestroy {
       return true;
     }
 
-    this.rutaVolver.set(await this.clienteActual.rutaInicioCliente());
+    this.rutaVolver.set(this.clienteActual.rutaInicioCliente());
     const clienteId = await this.clienteActual.obtenerClienteIdActual();
     const solicitud = clienteId ? await this.solicitudesMesa.obtenerMiSolicitud(clienteId) : null;
 
@@ -172,7 +172,7 @@ export class ChatPage implements OnInit, OnDestroy {
       return false;
     }
 
-    this.rutaVolver.set(`/mesa/${solicitud.mesa_id}`);
+    this.rutaVolver.set('/cliente/inicio');
 
     if (solicitud.id !== this.solicitudId) {
       await this.salir('Ese chat no es de tu mesa.');

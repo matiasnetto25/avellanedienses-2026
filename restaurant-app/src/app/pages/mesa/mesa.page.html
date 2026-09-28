@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button [defaultHref]="rutaVolver()" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ vista() === 'staff' || vista() === 'sinPermiso' ? 'Información de la mesa' : 'Tu mesa' }}</ion-title>
+    <ion-title>{{ vista() === 'staff' || vista() === 'sinPermiso' ? 'Información de la mesa' : 'Mesa' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -42,52 +42,18 @@
         </div>
       }
 
-      @case ('cliente') {
-        <div class="mesa-pantalla">
-          <div class="mesa-imagen-viewport mesa-imagen-viewport--compacta">
-            @if (urlFoto(m); as url) {
-              <img [src]="url" [alt]="'Foto de la Mesa ' + m.numero_mesa" class="mesa-imagen" />
-            } @else {
-              <span class="mesa-imagen-placeholder">Sin foto</span>
-            }
-          </div>
-
-          <div class="mesa-info">
-            <div class="mesa-info-encabezado">
-              <h1 class="mesa-numero">Mesa {{ m.numero_mesa }}</h1>
-              <ion-badge class="mesa-badge">{{ etiquetaTipo(m.tipo) }}</ion-badge>
-            </div>
-            <p class="mesa-dato">{{ m.cant_comensales }} comensales</p>
-
-            <div class="mesa-opciones">
-              <!-- Un solo pedido por estadía: el mismo lugar ofrece pedir o ver el pedido. -->
-              @if (tienePedido()) {
-                <ion-button expand="block" class="mesa-opcion" [routerLink]="['/mesa', m.id, 'estado-pedido']" [queryParams]="{ mesa: m.numero_mesa }">Estado de mi pedido</ion-button>
-              } @else {
-                <ion-button expand="block" class="mesa-opcion" [routerLink]="['/mesa', m.id, 'pedido']" [queryParams]="{ mesa: m.numero_mesa }">Hacer pedido</ion-button>
-              }
-              <ion-button expand="block" class="mesa-opcion" [routerLink]="['/consultas', solicitudId()]">Consultar al mozo</ion-button>
-              <ion-button expand="block" class="mesa-opcion" routerLink="/menu" [queryParams]="{ mesa: m.numero_mesa }">Ver el menú</ion-button>
-              <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Encuesta de satisfacción</ion-button>
-              <ion-button expand="block" class="mesa-opcion" (click)="abrirJuegos()">Juegos</ion-button>
-              <ion-button expand="block" class="mesa-opcion" (click)="avisos.proximamente()">Pagar la cuenta</ion-button>
-            </div>
-          </div>
-        </div>
-      }
-
       @case ('otraMesa') {
         <div class="mesa-aviso">
           <h2 class="mesa-aviso-titulo">Esta no es tu mesa</h2>
           <p class="mesa-aviso-detalle">Tu mesa asignada es la <strong>Mesa {{ miMesa()?.numero }}</strong>.</p>
-          <ion-button expand="block" class="mesa-boton-principal" (click)="irAMiMesa()">Ir a la Mesa {{ miMesa()?.numero }}</ion-button>
+          <ion-button expand="block" class="mesa-boton-principal" (click)="irAMiMesa()">Ir a Mi mesa</ion-button>
         </div>
       }
 
       @case ('sinMesa') {
         <div class="mesa-aviso">
           <h2 class="mesa-aviso-titulo">Todavía no tenés una mesa asignada</h2>
-          <p class="mesa-aviso-detalle">Para usar una mesa, primero anotate en la lista de espera y esperá a que el metre te la asigne.</p>
+          <p class="mesa-aviso-detalle">Para usar una mesa, primero anotate en la lista de espera y esperá a que el maître te la asigne.</p>
           <ion-button expand="block" class="mesa-boton-principal" (click)="volverAlInicio()">Volver al inicio</ion-button>
         </div>
       }

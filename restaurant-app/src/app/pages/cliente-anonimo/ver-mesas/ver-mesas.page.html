@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/cliente-anonimo" text=""></ion-back-button>
+      <ion-back-button defaultHref="/cliente/inicio" text=""></ion-back-button>
     </ion-buttons>
     <ion-title>Ver mesas</ion-title>
   </ion-toolbar>
@@ -24,7 +24,7 @@
           <p class="vermesas-detalle">{{ etiquetaTipo(solicitud.tipo) }} · {{ solicitud.cant_comensales }} comensales</p>
 
           @if (solicitud.estado === 'vinculado') {
-            <ion-button fill="solid" class="vermesas-boton" (click)="irAMiMesa(solicitud.mesa_id)">
+            <ion-button fill="solid" class="vermesas-boton" (click)="irAMiMesa()">
               Ir a mi mesa
             </ion-button>
           }

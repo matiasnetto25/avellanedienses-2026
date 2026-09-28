@@ -43,7 +43,7 @@ export class PrincipalPage implements OnInit {
       // Ya se había registrado antes en este dispositivo: no le volvemos
       // a pedir nada. De paso, refrescamos su push token por si cambió.
       await this.clienteAnonimo.registrarPushToken(cliente.id);
-      this.router.navigate(['/cliente-anonimo'], { replaceUrl: true });
+      this.router.navigate(['/cliente/inicio'], { replaceUrl: true });
       return;
     }
 
@@ -90,7 +90,7 @@ export class PrincipalPage implements OnInit {
 
       this.notificaciones.avisarClienteAnonimoIngreso(nombre, apellido);
 
-      this.router.navigate(['/cliente-anonimo'], { replaceUrl: true });
+      this.router.navigate(['/cliente/inicio'], { replaceUrl: true });
     } finally {
       this.cargando = false;
       this.loading.ocultar();

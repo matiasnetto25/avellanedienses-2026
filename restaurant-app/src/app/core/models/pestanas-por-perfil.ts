@@ -1,4 +1,5 @@
-import { Signal, inject } from '@angular/core';
+import { Signal, computed, inject } from '@angular/core';
+import { EtapaClienteService } from '../services/etapa-cliente.service';
 import { ClientesPendientesService } from '../services/clientes-pendientes.service';
 import { ListaEsperaService } from '../services/lista-espera.service';
 import { ResumenMozoService } from '../services/resumen-mozo.service';
@@ -69,3 +70,20 @@ export const PESTANAS_ADMIN: Pestana[] = [
   { ruta: 'salon', etiqueta: 'Salón', icono: 'restaurant-outline' },
   { ruta: 'estadisticas', etiqueta: 'Estadísticas', icono: 'stats-chart-outline' },
 ];
+
+export function pestanasCliente(): Signal<Pestana[]> {
+  const etapaCliente = inject(EtapaClienteService);
+  void etapaCliente.iniciar();
+  return computed(() => {
+    const menu: Pestana = { ruta: 'menu', etiqueta: 'Menú', icono: 'book-outline' };
+    if (!etapaCliente.enEstadia()) {
+      return [{ ruta: 'inicio', etiqueta: 'Inicio', icono: 'home-outline' }, menu];
+    }
+    return [
+      { ruta: 'inicio', etiqueta: 'Mi mesa', icono: 'restaurant-outline' },
+      menu,
+      { ruta: 'consultas', etiqueta: 'Consultas', icono: 'chatbubbles-outline' },
+      { ruta: 'juegos', etiqueta: 'Juegos', icono: 'game-controller-outline' },
+    ];
+  });
+}

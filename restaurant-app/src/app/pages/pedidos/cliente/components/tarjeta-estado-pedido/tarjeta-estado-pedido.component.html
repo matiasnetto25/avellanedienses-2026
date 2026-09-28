@@ -1,0 +1,18 @@
+<div class="tarjeta tarjeta-estado" [attr.data-tono]="estado()?.tono ?? 'neutro'">
+  <div class="arriba">
+    <span class="icono">
+      <ion-icon [name]="estado()?.icono ?? 'receipt-outline'" aria-hidden="true" />
+    </span>
+    <div class="texto">
+      @if (estado(); as e) {
+        <app-chip-estado [estado]="e" />
+      }
+      <h2 class="titulo">{{ titulo() }}</h2>
+      <p class="frase">{{ frase() }}</p>
+    </div>
+  </div>
+
+  @if (pedido()?.estado === 'rechazado') {
+    <ion-button class="accion-secundaria" expand="block" (click)="revisar.emit()">Revisar pedido</ion-button>
+  }
+</div>

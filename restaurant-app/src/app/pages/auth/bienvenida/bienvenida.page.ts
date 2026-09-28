@@ -40,7 +40,7 @@ export class BienvenidaPage implements OnInit {
 
     const clienteAnonimo = await this.clienteAnonimo.obtenerClienteActual();
     if (clienteAnonimo) {
-      this.router.navigate(['/cliente-anonimo'], { replaceUrl: true });
+      this.router.navigate(['/cliente/inicio'], { replaceUrl: true });
     }
   }
 

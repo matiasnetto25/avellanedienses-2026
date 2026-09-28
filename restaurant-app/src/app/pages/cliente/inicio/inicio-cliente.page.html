@@ -1,0 +1,120 @@
+<ion-content class="densidad-amplia" [fullscreen]="true">
+  <app-encabezado-perfil
+    [saludo]="'Hola, ' + (perfil()?.nombre ?? '')"
+    [titulo]="titulo()"
+    [nombre]="perfil()?.nombre ?? ''"
+    [foto]="perfil()?.foto ?? null" />
+
+  @if (etapa(); as e) {
+    @switch (e.tipo) {
+      @case ('sin-mesa') {
+        <div class="etapa">
+          @if (solicitudRechazada()) {
+            <div class="tarjeta aviso-rechazo" role="alert">
+              <ion-icon name="close-circle-outline" aria-hidden="true" />
+              <p>El maître no pudo asignarte una mesa. Podés volver a anotarte.</p>
+            </div>
+          }
+
+          <div class="tarjeta tarjeta-estado">
+            <div class="arriba">
+              <span class="icono"><ion-icon name="qr-code-outline" aria-hidden="true" /></span>
+              <div class="texto">
+                <h2 class="titulo">Escaneá el QR de la entrada</h2>
+                <p class="frase">Así te anotás en la lista de espera y el maître te asigna una mesa.</p>
+              </div>
+            </div>
+          </div>
+
+          <section class="tarjeta encuestas">
+            <h2 class="titulo-seccion">Encuestas anteriores</h2>
+            <app-estado-vacio
+              icono="star-outline"
+              titulo="Todavía no hay encuestas"
+              frase="Cuando los clientes las completen, vas a ver acá cómo nos calificaron." />
+          </section>
+        </div>
+      }
+
+      @case ('en-espera') {
+        <div class="etapa">
+          <div class="tarjeta tarjeta-estado" data-tono="espera">
+            <div class="arriba">
+              <span class="icono"><ion-icon name="time-outline" aria-hidden="true" /></span>
+              <div class="texto">
+                <app-chip-estado [estado]="estadoSolicitudMesa('en_espera')" />
+                <h2 class="titulo">Estás en la lista de espera</h2>
+                <p class="frase">
+                  Elegiste la Mesa {{ e.solicitud.numero_mesa }}.
+                  @if (posicionEnLista(); as posicion) {
+                    <span class="num">Posición {{ posicion }}.</span>
+                  }
+                  Te avisamos cuando el maître te la asigne.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @case ('mesa-asignada') {
+        <div class="etapa">
+          <div class="tarjeta tarjeta-estado" data-tono="en-curso">
+            <div class="arriba">
+              <span class="icono"><ion-icon name="sync-outline" aria-hidden="true" /></span>
+              <div class="texto">
+                <app-chip-estado [estado]="estadoSolicitudMesa('aceptado')" />
+                <h2 class="titulo">Tu mesa está lista: Mesa {{ e.solicitud.numero_mesa }}</h2>
+                <p class="frase">Acercate y escaneá el QR que está sobre la mesa.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @case ('estadia') {
+        <div class="etapa">
+          <app-tarjeta-estado-pedido [pedido]="e.pedido" (revisar)="irAlMenu()" />
+
+          @if (e.pedido && e.pedido.estado !== 'rechazado') {
+            <button type="button" class="tarjeta tarjeta-acceso" (click)="verPedido()">
+              <ion-icon name="receipt-outline" aria-hidden="true" />
+              <span class="texto">
+                <span class="titulo-acceso">Tu pedido</span>
+                <span class="descripcion">Mirá el detalle y el tiempo estimado.</span>
+              </span>
+              <ion-icon name="chevron-forward-outline" class="chevron" aria-hidden="true" />
+            </button>
+          }
+
+          <button type="button" class="tarjeta tarjeta-acceso" (click)="consultarAlMozo()">
+            <ion-icon name="chatbubbles-outline" aria-hidden="true" />
+            <span class="texto">
+              <span class="titulo-acceso">Consultar al mozo</span>
+              <span class="descripcion">Escribile tu duda y te responde acá.</span>
+            </span>
+            <ion-icon name="chevron-forward-outline" class="chevron" aria-hidden="true" />
+          </button>
+        </div>
+      }
+    }
+  }
+</ion-content>
+
+@if (accionPrincipal(); as accion) {
+  <ion-footer class="ion-no-border">
+    <app-barra-acciones>
+      @switch (accion) {
+        @case ('escanear-entrada') {
+          <ion-button class="accion-principal" expand="block" (click)="escanearQrEntrada()">Escanear QR</ion-button>
+        }
+        @case ('escanear-mesa') {
+          <ion-button class="accion-principal" expand="block" (click)="escanearQrMesa()">Escanear el QR de la mesa</ion-button>
+        }
+        @case ('ver-menu') {
+          <ion-button class="accion-principal" expand="block" (click)="irAlMenu()">Ver el menú</ion-button>
+        }
+      }
+    </app-barra-acciones>
+  </ion-footer>
+}

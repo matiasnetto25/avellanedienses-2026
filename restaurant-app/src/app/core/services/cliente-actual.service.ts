@@ -28,9 +28,8 @@ export class ClienteActualService {
     return null;
   }
 
-  /** Ruta de la pantalla principal que le corresponde al cliente actual. */
-  async rutaInicioCliente(): Promise<string> {
-    const anonimo = await this.clienteAnonimo.obtenerClienteActual();
-    return anonimo ? '/cliente-anonimo' : '/cliente';
+  /** Anónimo y registrado comparten el mismo inicio. */
+  rutaInicioCliente(): string {
+    return '/cliente';
   }
 }

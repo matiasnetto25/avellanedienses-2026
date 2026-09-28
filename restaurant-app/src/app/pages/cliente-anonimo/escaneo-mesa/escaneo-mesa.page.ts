@@ -5,7 +5,8 @@ import { addIcons } from 'ionicons';
 import { qrCodeOutline } from 'ionicons/icons';
 import { AvisosService } from '../../../core/services/avisos.service';
 import { QrService } from '../../../core/services/qr.service';
-import { ClienteAnonimoService } from '../../../core/services/cliente-anonimo.service';
+import { ClienteActualService } from '../../../core/services/cliente-actual.service';
+import { EtapaClienteService } from '../../../core/services/etapa-cliente.service';
 import { SolicitudesMesaService } from '../../../core/services/solicitudes-mesa.service';
 import { LoadingService } from '../../../core/services/loading.service';
 
@@ -20,7 +21,8 @@ export class EscaneoMesaPage implements OnInit {
   private readonly router = inject(Router);
   private readonly avisos = inject(AvisosService);
   private readonly qr = inject(QrService);
-  private readonly clienteAnonimo = inject(ClienteAnonimoService);
+  private readonly clienteActual = inject(ClienteActualService);
+  private readonly etapaCliente = inject(EtapaClienteService);
   private readonly solicitudesMesa = inject(SolicitudesMesaService);
   private readonly loading = inject(LoadingService);
 
@@ -34,19 +36,19 @@ export class EscaneoMesaPage implements OnInit {
   async ngOnInit(): Promise<void> {
     this.loading.mostrar();
     try {
-      const cliente = await this.clienteAnonimo.obtenerClienteActual();
-      if (!cliente) {
+      const clienteId = await this.clienteActual.obtenerClienteIdActual();
+      if (!clienteId) {
         await this.avisos.error('No se pudo identificar tu ingreso. Volvé a intentar desde el inicio.');
         this.router.navigate(['/principal'], { replaceUrl: true });
         return;
       }
-      this.clienteId = cliente.id;
+      this.clienteId = clienteId;
 
       // Si ya está vinculado, no tiene sentido mostrarle el escaneo de
       // nuevo: lo mandamos directo a la pantalla de su mesa.
-      const solicitud = await this.solicitudesMesa.obtenerMiSolicitud(cliente.id);
+      const solicitud = await this.solicitudesMesa.obtenerMiSolicitud(clienteId);
       if (solicitud?.estado === 'vinculado') {
-        this.router.navigate(['/mesa', solicitud.mesa_id], { replaceUrl: true });
+        this.router.navigate(['/cliente/inicio'], { replaceUrl: true });
       }
     } finally {
       this.loading.ocultar();
@@ -76,7 +78,8 @@ export class EscaneoMesaPage implements OnInit {
         return;
       }
 
-      this.router.navigate(['/mesa', resultado.mesaId], { replaceUrl: true });
+      await this.etapaCliente.refrescar();
+      this.router.navigate(['/cliente/inicio'], { replaceUrl: true });
     } finally {
       this.escaneando = false;
     }

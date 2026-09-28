@@ -62,6 +62,8 @@ export class MenuComponent implements OnInit {
    */
   readonly numeroMesa = this.leerNumeroMesa();
 
+  readonly enPestana = !!this.route.snapshot.data['enPestana'];
+
   productos: Producto[] = [];
   productosFiltrados: Producto[] = [];
 

@@ -4,7 +4,8 @@ import { Router } from '@angular/router';
 import { IonContent, IonHeader, IonToolbar, IonTitle, IonBackButton, IonButtons, IonCard, IonCardContent, IonButton } from '@ionic/angular/standalone';
 import { AlturaDisponibleDirective } from '../../../shared/directives/altura-disponible.directive';
 import { AvisosService } from '../../../core/services/avisos.service';
-import { ClienteAnonimoService } from '../../../core/services/cliente-anonimo.service';
+import { ClienteActualService } from '../../../core/services/cliente-actual.service';
+import { EtapaClienteService } from '../../../core/services/etapa-cliente.service';
 import { SolicitudesMesaService } from '../../../core/services/solicitudes-mesa.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { LoadingService } from '../../../core/services/loading.service';
@@ -22,7 +23,8 @@ import { MiSolicitud } from '../../../core/models/solicitud-mesa.model';
 export class VerMesasPage implements OnInit {
   private readonly router = inject(Router);
   private readonly avisos = inject(AvisosService);
-  private readonly clienteAnonimo = inject(ClienteAnonimoService);
+  private readonly clienteActual = inject(ClienteActualService);
+  private readonly etapaCliente = inject(EtapaClienteService);
   private readonly solicitudesMesa = inject(SolicitudesMesaService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
@@ -42,8 +44,8 @@ export class VerMesasPage implements OnInit {
     this.router.navigate(['/cliente-anonimo/escaneo-mesa']);
   }
 
-  irAMiMesa(mesaId: string): void {
-    this.router.navigate(['/mesa', mesaId]);
+  irAMiMesa(): void {
+    this.router.navigate(['/cliente/inicio']);
   }
 
   private clienteId: string | null = null;
@@ -61,14 +63,15 @@ export class VerMesasPage implements OnInit {
     this.loading.mostrar();
 
     try {
-      const cliente = await this.clienteAnonimo.obtenerClienteActual();
-      if (!cliente) {
+      const clienteId = await this.clienteActual.obtenerClienteIdActual();
+      if (!clienteId) {
         await this.avisos.error('No se pudo identificar tu ingreso. Volvé a intentar desde el inicio.');
         return;
       }
-      this.clienteId = cliente.id;
+      this.clienteId = clienteId;
 
-      const solicitud = await this.solicitudesMesa.obtenerMiSolicitud(cliente.id);
+      const leida = await this.solicitudesMesa.obtenerMiSolicitud(clienteId);
+      const solicitud = leida?.estado === 'rechazado' ? null : leida;
       this.miSolicitud.set(solicitud);
 
       if (!solicitud) {
@@ -97,16 +100,8 @@ export class VerMesasPage implements OnInit {
 
       this.notificaciones.avisarClienteEnListaEspera(mesa.numero_mesa);
 
-      // Actualiza la interfaz al toque, sin esperar a recargar del todo.
-      this.miSolicitud.set({
-        id: '',
-        estado: 'en_espera',
-        mesa_id: mesa.id,
-        numero_mesa: mesa.numero_mesa,
-        tipo: mesa.tipo,
-        cant_comensales: mesa.cant_comensales,
-        foto: mesa.foto,
-      });
+      await this.etapaCliente.refrescar();
+      this.router.navigate(['/cliente/inicio'], { replaceUrl: true });
     } finally {
       this.solicitando.set(null);
       this.loading.ocultar();

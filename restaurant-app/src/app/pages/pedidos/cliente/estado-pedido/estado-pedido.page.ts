@@ -47,6 +47,7 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
 
   readonly idMesa = this.route.snapshot.paramMap.get('idMesa') ?? '';
   readonly rutaMesa = `/mesa/${this.idMesa}`;
+  readonly rutaInicio = '/cliente/inicio';
   /** Viene de la pantalla de la mesa (?mesa=N); se reenvía a «Hacer pedido». */
   readonly queryMesa = this.route.snapshot.queryParams;
 

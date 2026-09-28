@@ -55,7 +55,7 @@ export class ClientesService {
   /**
    * Cliente registrado vinculado a un usuario de Supabase Auth. Es el
    * único lugar de la app que consulta clientes por su usuario de Auth
-   * (login, redirección con sesión activa y clienteAprobadoGuard).
+   * (login, redirección con sesión activa y clienteGuard).
    */
   async obtenerPorAuthId(authUserId: string): Promise<ResultadoBusqueda<ClienteRow>> {
     const { data, error } = await this.supabase.client

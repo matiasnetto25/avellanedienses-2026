@@ -7,6 +7,7 @@ import { SolicitudesMesaService } from './solicitudes-mesa.service';
 import { NotificacionesService } from './notificaciones.service';
 import { LoadingService } from './loading.service';
 import { AvisosService } from './avisos.service';
+import { EtapaClienteService } from './etapa-cliente.service';
 import { PerfilActual } from './perfil-actual.service';
 
 /**
@@ -31,6 +32,7 @@ export class SesionService {
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
   private readonly avisos = inject(AvisosService);
+  private readonly etapaCliente = inject(EtapaClienteService);
 
   async salir(perfil: PerfilActual): Promise<void> {
     if (perfil.tipo === 'cliente-anonimo') {
@@ -99,6 +101,7 @@ export class SesionService {
       }
 
       this.notificaciones.avisarClienteCerroSesion(nombre, resultado.mesaLiberada);
+      this.etapaCliente.detener();
       this.irABienvenida();
     } finally {
       this.loading.ocultar();

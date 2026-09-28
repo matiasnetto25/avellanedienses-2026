@@ -44,6 +44,25 @@ export class SolicitudesMesaService {
     return (data as MiSolicitud) ?? null;
   }
 
+  /** Lugar en la lista de espera (1 = el próximo), o null si no se pudo calcular. */
+  async obtenerPosicionEnLista(solicitudId: string): Promise<number | null> {
+    const { data: propia, error } = await this.supabase.client
+      .from('solicitudes_mesa')
+      .select('created_at')
+      .eq('id', solicitudId)
+      .maybeSingle();
+    if (error || !propia) return null;
+
+    const { count, error: errorConteo } = await this.supabase.client
+      .from('solicitudes_mesa')
+      .select('id', { count: 'exact', head: true })
+      .eq('estado', 'en_espera')
+      .lt('created_at', propia.created_at);
+    if (errorConteo || count === null) return null;
+
+    return count + 1;
+  }
+
   async crearSolicitud(clienteId: string, mesaId: string): Promise<ResultadoOperacion> {
     const { data, error } = await this.supabase.client.rpc('crear_solicitud_mesa', {
       p_cliente_id: clienteId,

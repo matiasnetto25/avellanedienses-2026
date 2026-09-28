@@ -347,7 +347,7 @@ export class NotificacionesService {
       'Mesa asignada',
       'Tu solicitud fue aceptada. Ya tenés una mesa asignada.',
       clienteId,
-      '/cliente-anonimo'
+      '/cliente/inicio'
     );
   }
 

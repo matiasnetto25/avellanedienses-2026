@@ -12,7 +12,7 @@ ion-toolbar {
   --background: var(--brand-background);
 }
 
-// ===== Vista de la mesa (personal y cliente) =====
+// ===== Vista de la mesa (personal) =====
 
 .mesa-pantalla {
   min-height: 100%;
@@ -42,14 +42,6 @@ ion-toolbar {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-// Vista del cliente: la foto tiene un alto fijo por proporción, así quedan
-// lugar para todas las opciones.
-.mesa-imagen-viewport--compacta {
-  flex: 0 0 auto;
-  aspect-ratio: 16 / 9;
-  min-height: 0;
 }
 
 // Posicionada sobre el contenedor para que lo llene siempre, sin franjas,
@@ -120,25 +112,6 @@ ion-toolbar {
 
 .mesa-disponibilidad--ocupada {
   background: var(--brand-accent);
-}
-
-.mesa-opciones {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.mesa-opcion {
-  --background: var(--brand-accent);
-  --background-hover: color-mix(in srgb, var(--brand-accent) 88%, black);
-  --color: var(--brand-background);
-  --border-radius: 12px;
-  font-family: var(--brand-font-subtitle);
-  text-transform: none;
-  font-weight: 500;
-  height: 46px;
-  margin: 0;
 }
 
 // ===== Avisos: mesa no encontrada, otra mesa, sin mesa, sin permiso =====

@@ -1,0 +1,133 @@
+@keyframes fundido {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.etapa {
+  display: flex;
+  flex-direction: column;
+  gap: var(--separacion-tarjetas);
+  padding: var(--espacio-5) var(--margen-pantalla) var(--espacio-6);
+  animation: fundido var(--mov-normal) var(--mov-curva);
+
+  .tarjeta + .tarjeta {
+    margin-top: 0;
+  }
+}
+
+.tarjeta-estado {
+  --tono: var(--color-accion-secundaria);
+  --tono-suave: var(--color-superficie-hundida);
+  border-left: 4px solid var(--tono);
+
+  &[data-tono='espera'] { --tono: var(--color-espera); --tono-suave: var(--color-espera-suave); }
+  &[data-tono='en-curso'] { --tono: var(--color-en-curso); --tono-suave: var(--color-en-curso-suave); }
+}
+
+.arriba {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-3);
+}
+
+.icono {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--tono-suave);
+  color: var(--tono);
+
+  ion-icon {
+    font-size: 32px;
+  }
+}
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-1);
+  min-width: 0;
+}
+
+.titulo {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: var(--peso-regular);
+  font-size: var(--texto-subtitulo);
+  line-height: var(--alto-linea-titulo);
+}
+
+.frase {
+  margin: 0;
+  color: var(--color-texto-secundario);
+}
+
+.aviso-rechazo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-2);
+  border-left: 4px solid var(--color-rechazo);
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 24px;
+    color: var(--color-rechazo);
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.encuestas app-estado-vacio {
+  min-height: auto;
+  padding: var(--espacio-4) 0 var(--espacio-2);
+}
+
+.titulo-seccion {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: var(--peso-regular);
+  font-size: var(--texto-subtitulo);
+}
+
+.tarjeta-acceso {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  width: 100%;
+  min-height: var(--alto-toque-minimo);
+  font-family: var(--fuente-ui);
+  text-align: start;
+  cursor: pointer;
+
+  > ion-icon:first-child {
+    flex-shrink: 0;
+    font-size: 24px;
+    color: var(--color-accion-secundaria);
+  }
+
+  .texto {
+    flex: 1;
+  }
+
+  .chevron {
+    flex-shrink: 0;
+    font-size: 20px;
+    color: var(--color-texto-secundario);
+  }
+}
+
+.titulo-acceso {
+  font-weight: var(--peso-medio);
+}
+
+.descripcion {
+  font-size: var(--texto-cuerpo-compacto);
+  color: var(--color-texto-secundario);
+}

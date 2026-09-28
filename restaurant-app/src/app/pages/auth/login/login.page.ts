@@ -92,7 +92,7 @@ export class LoginPage implements OnInit {
         // para empleados) — va directo a su propia landing. También
         // registra el token de push: el mozo le avisa si rechaza su pedido.
         this.notificaciones.guardarTokenPendienteSiHaySesion();
-        this.router.navigate(['/cliente'], { replaceUrl: true });
+        this.router.navigate(['/cliente/inicio'], { replaceUrl: true });
         return;
       }
 
