@@ -1,0 +1,114 @@
+// Contenido del modal. La ventana que lo contiene (.motivo-modal: ancho,
+// bordes redondeados, fondo) la define la página que abre el <ion-modal>.
+//
+// Los colores del campo van explícitos: la app importa la paleta oscura
+// de Ionic (dark.system.css), y sin esto el campo se ve negro cuando el
+// celular está en modo oscuro.
+
+.motivo {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 20px 20px;
+  box-sizing: border-box;
+  color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+}
+
+.motivo-titulo {
+  margin: 0;
+  font-family: var(--brand-font-logo);
+  font-size: 1.5rem;
+  color: var(--brand-accent);
+}
+
+.motivo-mesa {
+  margin: 4px 0 20px;
+  font-size: 1.05rem;
+  opacity: 0.8;
+}
+
+.motivo-etiqueta {
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.motivo-campo {
+  width: 100%;
+  min-height: 112px;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  resize: none;
+  border: 1px solid color-mix(in srgb, var(--brand-text) 30%, transparent);
+  border-radius: 12px;
+  outline: none;
+  background: #ffffff;
+  color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+  font-size: 1rem;
+  line-height: 1.4;
+
+  &::placeholder {
+    color: color-mix(in srgb, var(--brand-text) 45%, transparent);
+  }
+
+  &:focus {
+    border-color: var(--brand-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-accent) 15%, transparent);
+  }
+}
+
+.motivo-campo--error,
+.motivo-campo--error:focus {
+  border-color: var(--ion-color-danger);
+}
+
+.motivo-ayuda {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 1.2em;
+  margin-top: 6px;
+  font-size: 0.85rem;
+}
+
+.motivo-error {
+  color: var(--ion-color-danger);
+}
+
+.motivo-contador {
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.motivo-acciones {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.motivo-cancelar,
+.motivo-rechazar {
+  flex: 1;
+  height: 48px;
+  margin: 0;
+  --border-radius: 12px;
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// Secundario: sin fondo ni borde, en el color del texto.
+.motivo-cancelar {
+  --color: var(--brand-text);
+  --background-hover: color-mix(in srgb, var(--brand-text) 8%, transparent);
+  opacity: 0.85;
+}
+
+// Principal y destructivo: relleno en el color de la marca.
+.motivo-rechazar {
+  --background: var(--brand-accent);
+  --background-activated: var(--brand-ruby-red);
+  --color: var(--brand-floral-white);
+}

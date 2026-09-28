@@ -1,0 +1,30 @@
+<div class="motivo">
+  <h2 class="motivo-titulo">Rechazar pedido</h2>
+  <p class="motivo-mesa">Mesa {{ numeroMesa }}</p>
+
+  <label class="motivo-etiqueta" for="motivo-rechazo">Motivo del rechazo</label>
+  <textarea
+    #campo
+    id="motivo-rechazo"
+    class="motivo-campo"
+    [class.motivo-campo--error]="error"
+    rows="4"
+    [attr.maxlength]="maximo"
+    [readonly]="procesando"
+    placeholder="Contale al cliente qué tiene que cambiar. Por ejemplo: no queda flan, elegí otro postre."
+    [formControl]="motivo"
+  ></textarea>
+  <div class="motivo-ayuda">
+    <span class="motivo-error">{{ error }}</span>
+    <span class="motivo-contador">{{ motivo.value.length }}/{{ maximo }}</span>
+  </div>
+
+  <div class="motivo-acciones">
+    <ion-button class="motivo-cancelar" fill="clear" [disabled]="procesando" (click)="cancelar.emit()">
+      Cancelar
+    </ion-button>
+    <ion-button class="motivo-rechazar" [disabled]="procesando" (click)="enviar()">
+      Rechazar pedido
+    </ion-button>
+  </div>
+</div>

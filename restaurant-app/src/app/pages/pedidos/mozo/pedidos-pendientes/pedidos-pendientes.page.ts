@@ -7,9 +7,11 @@ import {
   IonCard,
   IonContent,
   IonHeader,
+  IonModal,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
+import { MotivoRechazoComponent } from '../components/motivo-rechazo/motivo-rechazo.component';
 import { Pedido } from '../../../../core/models/pedido.model';
 import { PedidosService } from '../../../../core/services/pedidos.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
@@ -27,8 +29,10 @@ import { LoadingService } from '../../../../core/services/loading.service';
     IonCard,
     IonContent,
     IonHeader,
+    IonModal,
     IonTitle,
     IonToolbar,
+    MotivoRechazoComponent,
   ],
   templateUrl: './pedidos-pendientes.page.html',
   styleUrls: ['./pedidos-pendientes.page.scss'],
@@ -41,6 +45,10 @@ export class PedidosPendientesPage implements OnInit, OnDestroy {
   readonly cargando = signal(true);
   readonly errorCarga = signal(false);
   readonly pedidos = signal<Pedido[]>([]);
+  /** Pedido que se está rechazando: deshabilita sus botones (evita el doble toque). */
+  readonly procesandoId = signal<string | null>(null);
+  /** Pedido cuyo motivo de rechazo se está pidiendo; null con el modal cerrado. */
+  readonly pedidoARechazar = signal<Pedido | null>(null);
 
   private dejarDeEscuchar: (() => void) | null = null;
 
@@ -80,5 +88,49 @@ export class PedidosPendientesPage implements OnInit, OnDestroy {
 
   async reintentar(): Promise<void> {
     await this.loading.envolver(this.cargar());
+  }
+
+  pedirMotivoRechazo(pedido: Pedido): void {
+    if (!this.procesandoId()) this.pedidoARechazar.set(pedido);
+  }
+
+  /** «Cancelar» o tocar fuera del modal: no cambia nada. */
+  cerrarMotivoRechazo(): void {
+    if (!this.procesandoId()) this.pedidoARechazar.set(null);
+  }
+
+  /**
+   * El modal ya validó el motivo. Se cierra siempre al terminar: si salió
+   * bien, el pedido ya no está en la lista; si falló, lo más probable es
+   * que otro mozo ya lo haya confirmado o rechazado.
+   */
+  async rechazar(pedido: Pedido, motivo: string): Promise<void> {
+    this.procesandoId.set(pedido.id);
+    this.loading.mostrar();
+    try {
+      const resultado = await this.pedidosService.rechazar(pedido.id, motivo);
+      this.cerrarModalTrasProcesar();
+      if (!resultado.ok) {
+        await this.avisos.error(resultado.mensaje ?? 'No se pudo rechazar el pedido.');
+        await this.cargar();
+        return;
+      }
+      // Se saca ya, sin esperar a Realtime (tarda uno o dos segundos en
+      // releer la lista); a los demás mozos les desaparece por Realtime.
+      this.pedidos.update((lista) => lista.filter((p) => p.id !== pedido.id));
+      await this.avisos.exito('Pedido rechazado. El cliente ya puede modificarlo.');
+    } finally {
+      this.procesandoId.set(null);
+      this.loading.ocultar();
+    }
+  }
+
+  /**
+   * Primero baja «procesando»: mientras está activo, [canDismiss] no deja
+   * cerrar el modal (igual que el resumen del pedido en armar-pedido).
+   */
+  private cerrarModalTrasProcesar(): void {
+    this.procesandoId.set(null);
+    this.pedidoARechazar.set(null);
   }
 }

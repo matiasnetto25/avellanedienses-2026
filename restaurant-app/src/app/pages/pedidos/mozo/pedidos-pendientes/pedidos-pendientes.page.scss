@@ -97,6 +97,16 @@ ion-toolbar {
   }
 }
 
+// Las acciones se reparten el ancho de la tarjeta, sin cortar el texto.
+.pedido-accion {
+  flex: 1;
+  margin: 0;
+  --border-radius: 12px;
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 600;
+}
+
 // ===== Sin pedidos y error =====
 
 .pedidos-aviso {
@@ -126,4 +136,15 @@ ion-toolbar {
   font-family: var(--brand-font-subtitle);
   text-transform: none;
   font-weight: 600;
+}
+
+// ===== Modal del motivo del rechazo =====
+// Va acá (y no en el componente) porque el <ion-modal> es de la página.
+// Ventana centrada, más ancha que un alert, con el alto de su contenido.
+.motivo-modal {
+  --width: min(92vw, 460px);
+  --height: auto;
+  --border-radius: 20px;
+  --background: var(--brand-background);
+  --box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }
