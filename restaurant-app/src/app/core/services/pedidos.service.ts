@@ -5,6 +5,7 @@ import {
   CANTIDAD_MAXIMA_ITEM,
   EstadoItem,
   EstadoPedido,
+  ItemComanda,
   LineaCarrito,
   Pedido,
   PedidoItem,
@@ -37,6 +38,22 @@ const SELECT_PEDIDO = `
   )
 `;
 
+/**
+ * Comandas de cocina y bar (punto 14): se lee desde los ítems hacia el
+ * pedido. El pedido va con !inner para poder filtrar por su estado.
+ */
+const SELECT_COMANDA = `
+  id, cantidad, estado,
+  menu ( nombre ),
+  pedido:pedidos!inner (
+    id, created_at, estado,
+    solicitud:solicitudes_mesa ( mesa ( numero_mesa ) )
+  )
+`;
+
+/** Estados de pedido cuyos ítems ven cocina y bar. Los puntos 16 y 17 suman los suyos. */
+const ESTADOS_EN_COMANDAS: EstadoPedido[] = ['confirmado'];
+
 /** Códigos de Postgres que se traducen a mensajes para el cliente. */
 const CODIGO_RLS = '42501';
 const CODIGO_DUPLICADO = '23505';
@@ -44,6 +61,9 @@ const CODIGO_DUPLICADO = '23505';
 /** La política de pedido_items rechazó un ítem: cambió el precio o se dio de baja el producto. */
 const MENSAJE_PRODUCTOS_CAMBIARON =
   'Algunos productos cambiaron de precio o ya no están disponibles. Revisá tu pedido.';
+
+/** El update del mozo no encontró el pedido pendiente: otro mozo se adelantó. Lo usan rechazar() y confirmar(). */
+const MENSAJE_PEDIDO_YA_RESUELTO = 'Este pedido ya fue confirmado o rechazado por otro mozo.';
 
 /** Espera antes de avisar un cambio: el pedido y sus ítems llegan como
  *  varios eventos seguidos (uno por fila), y así se relee una sola vez. */
@@ -61,6 +81,15 @@ export interface ResultadoRechazo extends ResultadoOperacion {
   /** Para la push al cliente y su ruta (punto 13, issue 05). */
   clienteId?: string;
   mesaId?: string;
+}
+
+export interface ResultadoConfirmacion extends ResultadoOperacion {
+  /** Para las push al cliente, a cocina y a bar (punto 14, issue 03). */
+  clienteId?: string;
+  mesaId?: string;
+  numeroMesa?: number;
+  /** Sectores con ítems en el pedido, sin repetir: a quiénes avisar. */
+  sectores?: SectorItem[];
 }
 
 interface PedidoFila {
@@ -82,6 +111,28 @@ interface PedidoFila {
     estado: EstadoItem;
     menu: { nombre: string; demora: number | null };
   }[];
+}
+
+interface ConfirmacionFila {
+  solicitud: {
+    cliente_id: string;
+    mesa_id: string;
+    mesa: { numero_mesa: number };
+  };
+  items: { sector: SectorItem }[];
+}
+
+interface ComandaFila {
+  id: string;
+  cantidad: number;
+  estado: EstadoItem;
+  menu: { nombre: string };
+  pedido: {
+    id: string;
+    created_at: string;
+    estado: EstadoPedido;
+    solicitud: { mesa: { numero_mesa: number } };
+  };
 }
 
 interface ProductoFila {
@@ -268,7 +319,7 @@ export class PedidosService {
       }
 
       const fila = (data as unknown as { solicitud: { cliente_id: string; mesa_id: string } }[])[0];
-      if (!fila) return { ok: false, mensaje: 'Este pedido ya fue confirmado o rechazado por otro mozo.' };
+      if (!fila) return { ok: false, mensaje: MENSAJE_PEDIDO_YA_RESUELTO };
 
       return { ok: true, clienteId: fila.solicitud.cliente_id, mesaId: fila.solicitud.mesa_id };
     } catch (error: unknown) {
@@ -341,6 +392,80 @@ export class PedidosService {
     } catch (error: unknown) {
       console.error('Error inesperado reenviando pedido:', error);
       return { ok: false, mensaje: 'No se pudo reenviar el pedido. Revisá tu conexión.' };
+    }
+  }
+
+  // ===== Confirmación (punto 14) =====
+
+  /**
+   * El mozo confirma un pedido que espera confirmación: desde ese momento
+   * sus ítems aparecen en las comandas. La base (RLS) solo lo acepta de un
+   * mozo activo, sobre un pedido 'pendiente_confirmacion' y con ítems.
+   *
+   * El mismo update devuelve lo que necesitan las push (cliente, mesa y
+   * sectores), sin una segunda consulta. Si otro mozo ya lo confirmó o
+   * rechazó, vuelve sin filas y se avisa, igual que en rechazar().
+   */
+  async confirmar(pedidoId: string): Promise<ResultadoConfirmacion> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ estado: 'confirmado' })
+        .eq('id', pedidoId)
+        .eq('estado', 'pendiente_confirmacion')
+        .select('solicitud:solicitudes_mesa ( cliente_id, mesa_id, mesa ( numero_mesa ) ), items:pedido_items ( sector )');
+
+      if (error) {
+        console.error('Error confirmando pedido:', error);
+        // Falló el with check: el pedido no tiene productos.
+        if (error.code === CODIGO_RLS) return { ok: false, mensaje: 'No se puede confirmar un pedido sin productos.' };
+        return { ok: false, mensaje: 'No se pudo confirmar el pedido. Probá de nuevo.' };
+      }
+
+      const fila = (data as unknown as ConfirmacionFila[])[0];
+      if (!fila) return { ok: false, mensaje: MENSAJE_PEDIDO_YA_RESUELTO };
+
+      return {
+        ok: true,
+        clienteId: fila.solicitud.cliente_id,
+        mesaId: fila.solicitud.mesa_id,
+        numeroMesa: fila.solicitud.mesa.numero_mesa,
+        sectores: this.sectoresDe(fila.items),
+      };
+    } catch (error: unknown) {
+      console.error('Error inesperado confirmando pedido:', error);
+      return { ok: false, mensaje: 'No se pudo confirmar el pedido. Revisá tu conexión.' };
+    }
+  }
+
+  // ===== Comandas (punto 14) =====
+
+  /**
+   * Ítems de un sector (cocina o bar) de los pedidos confirmados, del
+   * pedido más viejo al más nuevo y con los ítems de cada pedido juntos.
+   * null si falló la consulta.
+   *
+   * Se ordena acá y no en la consulta: ordenar pedido_items por una
+   * columna del pedido embebido no es directo en supabase-js.
+   */
+  async listarComandas(sector: SectorItem): Promise<ItemComanda[] | null> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from(TABLA_ITEMS)
+        .select(SELECT_COMANDA)
+        .eq('sector', sector)
+        .in('pedido.estado', ESTADOS_EN_COMANDAS);
+
+      if (error) {
+        console.error('Error listando comandas:', error);
+        return null;
+      }
+      return (data as unknown as ComandaFila[])
+        .map((fila) => this.aItemComanda(fila))
+        .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.pedidoId.localeCompare(b.pedidoId));
+    } catch (error: unknown) {
+      console.error('Error inesperado listando comandas:', error);
+      return null;
     }
   }
 
@@ -419,6 +544,11 @@ export class PedidosService {
     return tipo === 'bebida' ? 'bar' : 'cocina';
   }
 
+  /** Sectores de los ítems, sin repetir: un pedido con comida y bebida da ['cocina', 'bar']. */
+  private sectoresDe(items: { sector: SectorItem }[]): SectorItem[] {
+    return [...new Set(items.map((item) => item.sector))];
+  }
+
   // ===== Tiempo real =====
 
   /**
@@ -458,6 +588,20 @@ export class PedidosService {
    */
   suscribirseAPedidos(alCambiar: () => void): () => void {
     return this.escucharCambios('pedidos-todos', {}, async () => alCambiar());
+  }
+
+  /**
+   * Avisa cuando puede cambiar la comanda de un sector: un pedido cambia
+   * de estado (el mozo lo confirma) o un ítem del sector cambia (cocina y
+   * bar lo preparan, puntos 16 y 17). La pantalla vuelve a pedir la lista
+   * con listarComandas().
+   */
+  suscribirseAComandas(sector: SectorItem, alCambiar: () => void): () => void {
+    return this.escucharCambios(
+      `comandas-${sector}`,
+      { items: `sector=eq.${sector}` },
+      async () => alCambiar()
+    );
   }
 
   /**
@@ -537,6 +681,18 @@ export class PedidosService {
       total: calcularTotal(items),
       tiempoEstimadoMin: calcularTiempoEstimado(items.map((item) => item.demoraMin)),
       items,
+    };
+  }
+
+  private aItemComanda(fila: ComandaFila): ItemComanda {
+    return {
+      id: fila.id,
+      pedidoId: fila.pedido.id,
+      numeroMesa: fila.pedido.solicitud.mesa.numero_mesa,
+      fecha: fila.pedido.created_at,
+      nombre: fila.menu.nombre,
+      cantidad: fila.cantidad,
+      estado: fila.estado,
     };
   }
 }

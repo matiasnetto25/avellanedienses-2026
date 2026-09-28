@@ -73,6 +73,22 @@ export interface Pedido {
 }
 
 /**
+ * Un renglón de la comanda de cocina o de bar (punto 14): un ítem de un
+ * pedido confirmado, con la mesa y el nombre del producto ya aplanados.
+ */
+export interface ItemComanda {
+  /** Id de la fila de pedido_items: los puntos 16 y 17 cambian su estado. */
+  id: string;
+  pedidoId: string;
+  numeroMesa: number;
+  /** Fecha ISO del pedido (created_at). Se formatea en la vista con DatePipe. */
+  fecha: string;
+  nombre: string;
+  cantidad: number;
+  estado: EstadoItem;
+}
+
+/**
  * Parcial a propósito: un estado nuevo (punto 16 en adelante) compila
  * aunque todavía no tenga texto, y se muestra tal cual hasta agregarlo.
  */
