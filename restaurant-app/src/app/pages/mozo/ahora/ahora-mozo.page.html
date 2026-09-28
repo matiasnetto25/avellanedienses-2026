@@ -1,0 +1,61 @@
+<ion-content class="densidad-compacta" [fullscreen]="true" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  <div class="pantalla">
+    <app-encabezado-perfil
+      [saludo]="'Hola, ' + (perfil()?.nombre ?? '')"
+      titulo="MOZO"
+      [nombre]="perfil()?.nombre ?? ''"
+      [foto]="perfil()?.foto ?? null"
+      [resumen]="resumen()" />
+
+    @if (!cargando()) {
+      @if (todoEnOrden()) {
+        <app-estado-vacio
+          icono="checkmark-done-outline"
+          titulo="Todo en orden por ahora"
+          frase="Cuando haya algo para resolver, va a aparecer acá." />
+      } @else {
+        <div class="bloques">
+          @if (porConfirmar() > 0) {
+            <section>
+              <div class="bloque-encabezado">
+                <h2 class="bloque-titulo">
+                  Pedidos por confirmar <span class="bloque-contador num">{{ porConfirmar() }}</span>
+                </h2>
+                <a class="ver-todos" routerLink="/mozo/pedidos">Ver todos</a>
+              </div>
+              <div class="filas">
+                @for (pedido of pedidos(); track pedido.id) {
+                  <app-fila-pedido [pedido]="pedido" />
+                }
+              </div>
+            </section>
+          }
+
+          @if (consultasSinResponder() > 0) {
+            <section>
+              <div class="bloque-encabezado">
+                <h2 class="bloque-titulo">
+                  Consultas sin responder <span class="bloque-contador num">{{ consultasSinResponder() }}</span>
+                </h2>
+                <a class="ver-todos" routerLink="/mozo/consultas">Ver todos</a>
+              </div>
+              <div class="filas">
+                @for (consulta of consultas(); track consulta.solicitud_id) {
+                  <button type="button" class="tarjeta fila-consulta" (click)="abrirConsulta(consulta)">
+                    <span class="fila-consulta-arriba">
+                      <span class="mesa">Mesa {{ consulta.numero_mesa }}</span>
+                      @if (consulta.ultimo_created_at) {
+                        <span class="hora num">{{ consulta.ultimo_created_at | date: 'HH:mm' }}</span>
+                      }
+                    </span>
+                    <span class="cita">«{{ consulta.ultimo_texto }}»</span>
+                  </button>
+                }
+              </div>
+            </section>
+          }
+        </div>
+      }
+    }
+  </div>
+</ion-content>

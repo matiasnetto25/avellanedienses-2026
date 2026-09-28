@@ -12,105 +12,9 @@ ion-toolbar {
 .pedidos-lista {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-}
-
-// Mismo estilo de tarjeta que lista-espera y solicitudes.
-.pedido-card {
-  margin: 0;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--brand-text) 15%, transparent);
-  background: var(--brand-background);
-  box-shadow: none;
-  color: var(--brand-text);
-  font-family: var(--brand-font-subtitle);
-}
-
-.pedido-encabezado {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 4px 12px;
-}
-
-.pedido-mesa {
-  margin: 0;
-  font-family: var(--brand-font-logo);
-  font-size: 1.6rem;
-}
-
-.pedido-fecha {
-  font-size: 0.9rem;
-  opacity: 0.8;
-  white-space: nowrap;
-}
-
-.pedido-items {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.pedido-item {
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.pedido-pie {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  padding-top: 10px;
-  border-top: 1px solid color-mix(in srgb, var(--brand-text) 15%, transparent);
-}
-
-.pedido-tiempo {
-  font-size: 0.9rem;
-  white-space: nowrap;
-}
-
-.pedido-total {
-  color: var(--brand-accent);
-  font-size: 1.4rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-// Reservado para «Rechazar» (13) y «Confirmar» (14). Vacío no ocupa lugar.
-.pedido-acciones {
-  display: flex;
-  gap: 8px;
-
-  &:empty {
-    display: none;
-  }
-}
-
-// Las acciones se reparten el ancho de la tarjeta, sin cortar el texto.
-.pedido-accion {
-  flex: 1;
-  margin: 0;
-  --border-radius: 12px;
-  font-family: var(--brand-font-subtitle);
-  text-transform: none;
-  font-weight: 600;
-}
-
-// «Confirmar» va relleno con el color de la marca; «Rechazar», con borde rojo.
-.pedido-accion-confirmar {
-  --background: var(--brand-accent);
-  --color: var(--brand-background);
+  gap: var(--separacion-tarjetas);
+  padding: var(--margen-pantalla);
+  padding-bottom: calc(var(--espacio-6) + env(safe-area-inset-bottom, 0px));
 }
 
 // ===== Sin pedidos y error =====
@@ -142,15 +46,4 @@ ion-toolbar {
   font-family: var(--brand-font-subtitle);
   text-transform: none;
   font-weight: 600;
-}
-
-// ===== Modal del motivo del rechazo =====
-// Va acá (y no en el componente) porque el <ion-modal> es de la página.
-// Ventana centrada, más ancha que un alert, con el alto de su contenido.
-.motivo-modal {
-  --width: min(92vw, 460px);
-  --height: auto;
-  --border-radius: 20px;
-  --background: var(--brand-background);
-  --box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
 }

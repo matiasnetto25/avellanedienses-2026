@@ -4,7 +4,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="pedidos-content">
+<ion-content class="pedidos-content densidad-compacta">
   @if (cargando()) {
     <!-- El spinner global con el logo cubre la espera. -->
   } @else if (errorCarga()) {
@@ -19,63 +19,8 @@
   } @else {
     <div class="pedidos-lista">
       @for (pedido of pedidos(); track pedido.id) {
-        <ion-card class="pedido-card">
-          <div class="pedido-encabezado">
-            <h2 class="pedido-mesa">Mesa {{ pedido.numeroMesa }}</h2>
-            <span class="pedido-fecha">{{ pedido.creadoEn | date: 'dd/MM/yyyy HH:mm' }}</span>
-          </div>
-
-          <ul class="pedido-items">
-            @for (item of pedido.items; track item.menuId) {
-              <li class="pedido-item">{{ item.cantidad }} × {{ item.nombre }}</li>
-            }
-          </ul>
-
-          <div class="pedido-pie">
-            <span class="pedido-tiempo">Aprox. {{ pedido.tiempoEstimadoMin }} min</span>
-            <span class="pedido-total">${{ pedido.total | number: '1.0-0' }}</span>
-          </div>
-
-          <!-- Acciones: «Rechazar» (punto 13) y «Confirmar» (punto 14). -->
-          <div class="pedido-acciones">
-            <ion-button
-              class="pedido-accion"
-              fill="outline"
-              color="danger"
-              [disabled]="procesandoId() === pedido.id"
-              (click)="pedirMotivoRechazo(pedido)"
-            >
-              Rechazar
-            </ion-button>
-            <ion-button
-              class="pedido-accion pedido-accion-confirmar"
-              [disabled]="procesandoId() === pedido.id"
-              (click)="confirmar(pedido)"
-            >
-              Confirmar
-            </ion-button>
-          </div>
-        </ion-card>
+        <app-fila-pedido [pedido]="pedido" [conDetalle]="true" />
       }
     </div>
   }
 </ion-content>
-
-<!-- Motivo del rechazo (punto 13). -->
-<ion-modal
-  class="motivo-modal"
-  [isOpen]="pedidoARechazar() !== null"
-  [canDismiss]="procesandoId() === null"
-  (didDismiss)="cerrarMotivoRechazo()"
->
-  <ng-template>
-    @if (pedidoARechazar(); as pedido) {
-      <app-motivo-rechazo
-        [numeroMesa]="pedido.numeroMesa"
-        [procesando]="procesandoId() === pedido.id"
-        (cancelar)="cerrarMotivoRechazo()"
-        (confirmar)="rechazar(pedido, $event)"
-      />
-    }
-  </ng-template>
-</ion-modal>

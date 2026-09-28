@@ -1,0 +1,41 @@
+<div class="linea-principal">
+  <span class="mesa">Mesa {{ pedido().numeroMesa }}</span>
+  <app-chip-estado [estado]="estado()" />
+</div>
+<p class="linea-secundaria">
+  {{ cantidadProductos() }} · {{ hace() }}<span class="num"> · $ {{ pedido().total | number: '1.0-0' }}</span>
+</p>
+
+@if (conDetalle()) {
+  <ul class="productos">
+    @for (item of pedido().items; track item.menuId) {
+      <li><span class="num">{{ item.cantidad }} ×</span> {{ item.nombre }}</li>
+    }
+  </ul>
+  <p class="linea-secundaria">Unos {{ pedido().tiempoEstimadoMin }} minutos de preparación</p>
+}
+
+<div class="acciones">
+  <ion-button class="accion-destructiva accion-fila" [disabled]="procesando()" (click)="pedirMotivo()">
+    Rechazar
+  </ion-button>
+  <ion-button class="accion-secundaria accion-fila" [disabled]="procesando()" (click)="confirmar()">
+    Confirmar
+  </ion-button>
+</div>
+
+<ion-modal
+  class="motivo-modal"
+  [isOpen]="pidiendoMotivo()"
+  [canDismiss]="!procesando()"
+  (didDismiss)="cerrarMotivo()"
+>
+  <ng-template>
+    <app-motivo-rechazo
+      [numeroMesa]="pedido().numeroMesa"
+      [procesando]="procesando()"
+      (cancelar)="cerrarMotivo()"
+      (confirmar)="rechazar($event)"
+    />
+  </ng-template>
+</ion-modal>

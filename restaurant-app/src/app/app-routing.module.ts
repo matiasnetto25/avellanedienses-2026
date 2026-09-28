@@ -149,7 +149,7 @@ const routes: Routes = [
     children: [
       {
         path: 'ahora',
-        loadComponent: () => import('./pages/mozo/mozo.page').then(m => m.MozoPage)
+        loadComponent: () => import('./pages/mozo/ahora/ahora-mozo.page').then(m => m.AhoraMozoPage)
       },
       {
         // Tiene que coincidir con la ruta de la push avisarNuevoPedido().
@@ -159,6 +159,10 @@ const routes: Routes = [
       {
         path: 'consultas',
         loadComponent: () => import('./pages/consultas/conversaciones/conversaciones.page').then(m => m.ConversacionesPage)
+      },
+      {
+        path: 'mesas',
+        loadComponent: () => import('./pages/mozo/mesas/mesas-mozo.page').then(m => m.MesasMozoPage)
       },
       { path: '', redirectTo: 'ahora', pathMatch: 'full' },
     ]

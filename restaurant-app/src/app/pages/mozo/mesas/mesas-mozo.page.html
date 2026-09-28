@@ -1,0 +1,29 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Mesas</ion-title>
+    <app-avatar-perfil slot="end" [nombre]="perfil()?.nombre ?? ''" [foto]="perfil()?.foto ?? null" />
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="densidad-compacta" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  @if (!cargando()) {
+    @if (mesas().length === 0) {
+      <app-estado-vacio
+        icono="restaurant-outline"
+        titulo="Todavía no hay mesas"
+        frase="Cuando el dueño cargue las mesas del salón, van a aparecer acá." />
+    } @else {
+      <div class="lista">
+        @for (mesa of mesas(); track mesa.id) {
+          <button type="button" class="tarjeta fila-mesa" (click)="abrir(mesa)">
+            <span class="datos">
+              <span class="mesa">Mesa {{ mesa.numero_mesa }}</span>
+              <span class="detalle">{{ etiquetaTipo(mesa.tipo) }} · <span class="num">{{ comensales(mesa.cant_comensales) }}</span></span>
+            </span>
+            <app-chip-estado [estado]="estadoMesa(mesa.disponibilidad)" />
+          </button>
+        }
+      </div>
+    }
+  }
+</ion-content>

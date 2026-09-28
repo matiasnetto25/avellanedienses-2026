@@ -1,4 +1,5 @@
-import { Signal } from '@angular/core';
+import { Signal, inject } from '@angular/core';
+import { ResumenMozoService } from '../services/resumen-mozo.service';
 
 export interface Pestana {
   ruta: string;
@@ -10,8 +11,17 @@ export interface Pestana {
   tonoContador?: 'espera' | 'rechazo';
 }
 
+function cifraMozo(cifra: 'porConfirmar' | 'consultasSinResponder'): () => Signal<number> {
+  return () => {
+    const resumen = inject(ResumenMozoService);
+    void resumen.iniciar();
+    return resumen[cifra];
+  };
+}
+
 export const PESTANAS_MOZO: Pestana[] = [
   { ruta: 'ahora', etiqueta: 'Ahora', icono: 'flash-outline' },
-  { ruta: 'pedidos', etiqueta: 'Pedidos', icono: 'receipt-outline' },
-  { ruta: 'consultas', etiqueta: 'Consultas', icono: 'chatbubbles-outline' },
+  { ruta: 'pedidos', etiqueta: 'Pedidos', icono: 'receipt-outline', contador: cifraMozo('porConfirmar'), tonoContador: 'espera' },
+  { ruta: 'consultas', etiqueta: 'Consultas', icono: 'chatbubbles-outline', contador: cifraMozo('consultasSinResponder'), tonoContador: 'espera' },
+  { ruta: 'mesas', etiqueta: 'Mesas', icono: 'restaurant-outline' },
 ];

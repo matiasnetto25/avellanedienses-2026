@@ -12,9 +12,8 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
-import { AvisosService } from '../../../core/services/avisos.service';
-import { ConsultasService } from '../../../core/services/consultas.service';
 import { LoadingService } from '../../../core/services/loading.service';
+import { ResumenMozoService } from '../../../core/services/resumen-mozo.service';
 import { SonidosService } from '../../../core/services/sonidos.service';
 import { ConversacionActiva, MensajeMesa, esDeCliente } from '../../../core/models/consulta.model';
 
@@ -42,37 +41,33 @@ import { ConversacionActiva, MensajeMesa, esDeCliente } from '../../../core/mode
 })
 export class ConversacionesPage implements OnInit, OnDestroy {
   private readonly router = inject(Router);
-  private readonly avisos = inject(AvisosService);
   private readonly loading = inject(LoadingService);
-  private readonly consultas = inject(ConsultasService);
+  private readonly resumen = inject(ResumenMozoService);
   private readonly sonidos = inject(SonidosService);
 
   readonly cargando = signal(true);
-  readonly conversaciones = signal<ConversacionActiva[]>([]);
+  readonly conversaciones = this.resumen.conversaciones;
 
-  private desuscribirse: (() => void) | null = null;
+  private readonly dejarDeEscuchar = this.resumen.alRecibirMensaje((mensaje) => this.alNuevoMensaje(mensaje));
 
   /**
-   * Ionic mantiene viva esta pantalla (y su suscripción) mientras el mozo
-   * está dentro de un chat: sin esto, cada mensaje sonaría dos veces.
+   * Ionic mantiene viva esta pantalla mientras el mozo está dentro de un
+   * chat: sin esto, cada mensaje sonaría dos veces.
    */
   private visible = false;
 
   async ngOnInit(): Promise<void> {
-    this.loading.mostrar();
     try {
-      await this.cargar();
-      this.desuscribirse = this.consultas.suscribirse(null, (mensaje) => this.alNuevoMensaje(mensaje));
+      await this.loading.envolver(this.resumen.iniciar());
     } finally {
       this.cargando.set(false);
-      this.loading.ocultar();
     }
   }
 
   /** Al volver de un chat, refresca por si se respondió desde ahí. */
   async ionViewWillEnter(): Promise<void> {
     this.visible = true;
-    if (!this.cargando()) await this.cargar();
+    if (!this.cargando()) await this.resumen.recargarConversaciones();
   }
 
   ionViewWillLeave(): void {
@@ -80,41 +75,13 @@ export class ConversacionesPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.desuscribirse?.();
+    this.dejarDeEscuchar();
   }
 
-  private async cargar(): Promise<void> {
-    const conversaciones = await this.consultas.listarConversaciones();
-    if (conversaciones === null) {
-      await this.avisos.error('No se pudieron cargar las conversaciones. Probá de nuevo.');
-      return;
-    }
-    this.conversaciones.set(conversaciones);
-  }
-
-  /** Sube la conversación del mensaje nuevo arriba de todo y actualiza su extracto. */
-  private async alNuevoMensaje(mensaje: MensajeMesa): Promise<void> {
+  private alNuevoMensaje(mensaje: MensajeMesa): void {
     if (this.visible && esDeCliente(mensaje)) {
       this.sonidos.mensajeRecibido();
     }
-
-    const actual = this.conversaciones().find((c) => c.solicitud_id === mensaje.solicitud_id);
-    if (!actual) {
-      // Una estadía que no estaba en la lista (se vinculó después de cargarla).
-      await this.cargar();
-      return;
-    }
-
-    const actualizada: ConversacionActiva = {
-      ...actual,
-      ultimo_texto: mensaje.texto,
-      ultimo_created_at: mensaje.created_at,
-      sin_responder: esDeCliente(mensaje),
-    };
-    this.conversaciones.update((lista) => [
-      actualizada,
-      ...lista.filter((c) => c.solicitud_id !== mensaje.solicitud_id),
-    ]);
   }
 
   abrir(conversacion: ConversacionActiva): void {
