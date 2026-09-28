@@ -1,0 +1,11 @@
+<div class="aviso">
+  <h2 class="aviso-titulo">Tu pedido fue rechazado</h2>
+  <p class="aviso-mesa">Mesa {{ numeroMesa }}</p>
+
+  <span class="aviso-etiqueta">Motivo del mozo</span>
+  <p class="aviso-motivo">{{ motivo }}</p>
+
+  <p class="aviso-detalle">Podés cambiar productos y cantidades, y volver a enviarlo.</p>
+
+  <ion-button expand="block" class="aviso-modificar" (click)="modificar()">Modificar pedido</ion-button>
+</div>

@@ -15,6 +15,7 @@ import { PedidosService } from '../../../../core/services/pedidos.service';
 import { ClienteActualService } from '../../../../core/services/cliente-actual.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { LoadingService } from '../../../../core/services/loading.service';
+import { AvisoRechazoService } from '../components/aviso-rechazo/aviso-rechazo.service';
 
 @Component({
   selector: 'app-estado-pedido',
@@ -39,6 +40,7 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
   private readonly clienteActual = inject(ClienteActualService);
   private readonly avisos = inject(AvisosService);
   private readonly loading = inject(LoadingService);
+  private readonly avisoRechazo = inject(AvisoRechazoService);
 
   readonly etiquetaEstado = etiquetaEstadoPedido;
 
@@ -58,6 +60,17 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
     await this.cargar();
   }
 
+  /**
+   * Cada vez que el cliente vuelve a esta pantalla (Ionic la deja en la
+   * pila) y el pedido sigue rechazado, se muestra el aviso. La primera vez
+   * lo muestra cargar().
+   */
+  ionViewDidEnter(): void {
+    if (this.cargando()) return;
+    const pedido = this.pedido();
+    if (pedido) void this.avisoRechazo.mostrar(pedido);
+  }
+
   ngOnDestroy(): void {
     this.dejarDeEscuchar?.();
   }
@@ -75,7 +88,11 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
       }
 
       this.pedido.set(resultado.dato);
-      if (resultado.dato) this.escuchar(resultado.dato.id);
+      if (resultado.dato) {
+        this.escuchar(resultado.dato.id);
+        // mostrar() no hace nada si el pedido no está rechazado.
+        void this.avisoRechazo.mostrar(resultado.dato);
+      }
     } catch (error) {
       console.error('Error cargando el estado del pedido:', error);
       this.errorCarga.set(true);
@@ -86,10 +103,25 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
     }
   }
 
-  /** Cada cambio del pedido (estado o ítems) llega por Realtime y reemplaza el que se ve. */
+  /**
+   * Cada cambio del pedido (estado o ítems) llega por Realtime y reemplaza
+   * el que se ve. Si el mozo lo acaba de rechazar, aparece el aviso (si el
+   * vigilante global ya lo abrió, mostrar() no abre otro).
+   *
+   * Solo cuando PASA a rechazado: mientras el cliente reenvía, esta
+   * pantalla sigue viva en la pila y recibe los cambios de ítems con el
+   * pedido todavía rechazado; sin esta condición, el aviso aparecería
+   * encima del armado.
+   */
   private escuchar(pedidoId: string): void {
     this.dejarDeEscuchar?.();
-    this.dejarDeEscuchar = this.pedidos.suscribirseAMiPedido(pedidoId, (pedido) => this.pedido.set(pedido));
+    this.dejarDeEscuchar = this.pedidos.suscribirseAMiPedido(pedidoId, (pedido) => {
+      const estadoAnterior = this.pedido()?.estado;
+      this.pedido.set(pedido);
+      if (pedido?.estado === 'rechazado' && estadoAnterior !== 'rechazado') {
+        void this.avisoRechazo.mostrar(pedido);
+      }
+    });
   }
 
   reintentar(): void {

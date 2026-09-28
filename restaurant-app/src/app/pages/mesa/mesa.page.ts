@@ -18,6 +18,7 @@ import { AvisosService } from '../../core/services/avisos.service';
 import { ClienteActualService } from '../../core/services/cliente-actual.service';
 import { SolicitudesMesaService } from '../../core/services/solicitudes-mesa.service';
 import { PedidosService } from '../../core/services/pedidos.service';
+import { AvisoRechazoService } from '../pedidos/cliente/components/aviso-rechazo/aviso-rechazo.service';
 import { MesaRow, etiquetaTipo } from '../../core/models/mesa.model';
 import { PUESTOS_VISTA_MESA } from '../../core/models/empleado.model';
 
@@ -59,6 +60,7 @@ export class MesaPage implements OnInit {
   private readonly clienteActual = inject(ClienteActualService);
   private readonly solicitudesMesa = inject(SolicitudesMesaService);
   private readonly pedidos = inject(PedidosService);
+  private readonly avisoRechazo = inject(AvisoRechazoService);
 
   readonly etiquetaTipo = etiquetaTipo;
 
@@ -142,6 +144,9 @@ export class MesaPage implements OnInit {
 
     this.clienteId = clienteId;
     this.solicitudId.set(solicitud.id);
+    // Recién vinculado (o la app arrancó antes de que tuviera mesa): desde
+    // acá se escucha el rechazo del pedido en cualquier pantalla.
+    void this.avisoRechazo.vigilar();
     await this.actualizarTienePedido();
     this.vista.set('cliente');
   }

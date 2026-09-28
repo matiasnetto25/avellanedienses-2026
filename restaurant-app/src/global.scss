@@ -90,6 +90,17 @@ ion-action-sheet {
   opacity: 0.85;
 }
 
+// Modal «Tu pedido fue rechazado» (punto 13). Va acá porque lo abre un
+// servicio (AvisoRechazoService), no una página. Ventana centrada con el
+// alto de su contenido.
+.aviso-rechazo-modal {
+  --width: min(92vw, 460px);
+  --height: auto;
+  --border-radius: 20px;
+  --background: var(--brand-background);
+  --box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
 .merlot-alert .alert-button-group {
   padding: 8px;
 }

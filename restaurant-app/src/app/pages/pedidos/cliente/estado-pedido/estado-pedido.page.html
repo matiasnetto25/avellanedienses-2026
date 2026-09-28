@@ -30,6 +30,21 @@
             </span>
           </div>
         }
+        @case ('rechazado') {
+          <!-- Recordatorio: el aviso completo es el modal de AvisoRechazoComponent. -->
+          <div class="estado-etiqueta estado-etiqueta--rechazado">
+            <span class="estado-etiqueta-texto">{{ etiquetaEstado(p.estado) }}</span>
+            <span class="estado-etiqueta-detalle">Motivo: {{ p.motivoRechazo }}</span>
+            <ion-button
+              expand="block"
+              class="estado-boton estado-boton--modificar"
+              [routerLink]="[rutaMesa, 'pedido']"
+              [queryParams]="queryMesa"
+            >
+              Modificar pedido
+            </ion-button>
+          </div>
+        }
         @default {
           <div class="estado-etiqueta">
             <span class="estado-etiqueta-texto">{{ etiquetaEstado(p.estado) }}</span>
@@ -37,28 +52,33 @@
         }
       }
 
-      <ul class="estado-lineas">
-        @for (item of p.items; track item.menuId) {
-          <li class="estado-linea">
-            <div class="estado-linea-detalle">
-              <span class="estado-linea-nombre">{{ item.cantidad }} × {{ item.nombre }}</span>
-              <span class="estado-linea-unitario">${{ item.precioUnitario | number: '1.0-0' }} c/u</span>
-            </div>
-            <span class="estado-linea-subtotal">${{ item.subtotal | number: '1.0-0' }}</span>
-          </li>
-        }
-      </ul>
+      <!-- Sin ítems solo si un reenvío anterior se cortó a mitad de camino (punto 13). -->
+      @if (p.items.length > 0) {
+        <ul class="estado-lineas">
+          @for (item of p.items; track item.menuId) {
+            <li class="estado-linea">
+              <div class="estado-linea-detalle">
+                <span class="estado-linea-nombre">{{ item.cantidad }} × {{ item.nombre }}</span>
+                <span class="estado-linea-unitario">${{ item.precioUnitario | number: '1.0-0' }} c/u</span>
+              </div>
+              <span class="estado-linea-subtotal">${{ item.subtotal | number: '1.0-0' }}</span>
+            </li>
+          }
+        </ul>
 
-      <div class="estado-totales">
-        <div class="estado-fila">
-          <span>Total</span>
-          <span class="estado-total">${{ p.total | number: '1.0-0' }}</span>
+        <div class="estado-totales">
+          <div class="estado-fila">
+            <span>Total</span>
+            <span class="estado-total">${{ p.total | number: '1.0-0' }}</span>
+          </div>
+          <div class="estado-fila">
+            <span>Tiempo estimado</span>
+            <span class="sin-corte">{{ p.tiempoEstimadoMin }} min</span>
+          </div>
         </div>
-        <div class="estado-fila">
-          <span>Tiempo estimado</span>
-          <span class="sin-corte">{{ p.tiempoEstimadoMin }} min</span>
-        </div>
-      </div>
+      } @else {
+        <p class="estado-sin-items">Tu pedido quedó sin productos. Tocá «Modificar pedido» para volver a elegirlos.</p>
+      }
     </div>
   } @else {
     <div class="estado-aviso">

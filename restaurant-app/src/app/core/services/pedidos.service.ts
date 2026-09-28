@@ -439,6 +439,20 @@ export class PedidosService {
   }
 
   /**
+   * Avisa cada cambio del pedido de una estadía, aunque todavía no exista
+   * cuando se empieza a escuchar (se filtra por solicitud_id, no por el id
+   * del pedido). Solo mira la tabla pedidos: sirve para enterarse de los
+   * cambios de estado, por ejemplo el rechazo del mozo (punto 13).
+   */
+  suscribirseAPedidoDeEstadia(solicitudId: string, alCambiar: (pedido: Pedido | null) => void): () => void {
+    return this.escucharCambios(
+      `pedido-estadia-${solicitudId}`,
+      { pedidos: `solicitud_id=eq.${solicitudId}`, items: null },
+      async (fila) => alCambiar(fila?.id ? await this.obtener(fila.id) : null)
+    );
+  }
+
+  /**
    * Avisa cuando cambia cualquier pedido (uno nuevo, un cambio de estado o
    * de ítems). Es la lista del mozo: la pantalla vuelve a pedir la lista.
    */
@@ -446,18 +460,24 @@ export class PedidosService {
     return this.escucharCambios('pedidos-todos', {}, async () => alCambiar());
   }
 
+  /**
+   * filtros.items en null: no escucha los ítems. avisar recibe la última
+   * fila de pedidos que cambió (null si el último cambio fue de un ítem).
+   */
   private escucharCambios(
     nombre: string,
-    filtros: { pedidos?: string; items?: string },
-    avisar: () => Promise<void>
+    filtros: { pedidos?: string; items?: string | null },
+    avisar: (filaPedido: { id?: string } | null) => Promise<void>
   ): () => void {
     let espera: ReturnType<typeof setTimeout> | undefined;
-    const programarAviso = () => {
+    let ultimaFila: { id?: string } | null = null;
+    const programarAviso = (fila: { id?: string } | null) => {
+      ultimaFila = fila;
       clearTimeout(espera);
-      espera = setTimeout(() => void avisar(), ESPERA_AGRUPAR_CAMBIOS_MS);
+      espera = setTimeout(() => void avisar(ultimaFila), ESPERA_AGRUPAR_CAMBIOS_MS);
     };
 
-    const canal: RealtimeChannel = this.supabase.client
+    let canal: RealtimeChannel = this.supabase.client
       .channel(`${nombre}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
@@ -467,9 +487,11 @@ export class PedidosService {
           table: TABLA_PEDIDOS,
           ...(filtros.pedidos ? { filter: filtros.pedidos } : {}),
         },
-        programarAviso
-      )
-      .on(
+        (cambio) => programarAviso(cambio.new as { id?: string })
+      );
+
+    if (filtros.items !== null) {
+      canal = canal.on(
         'postgres_changes',
         {
           event: '*',
@@ -477,9 +499,11 @@ export class PedidosService {
           table: TABLA_ITEMS,
           ...(filtros.items ? { filter: filtros.items } : {}),
         },
-        programarAviso
-      )
-      .subscribe();
+        () => programarAviso(null)
+      );
+    }
+
+    canal.subscribe();
 
     return () => {
       clearTimeout(espera);

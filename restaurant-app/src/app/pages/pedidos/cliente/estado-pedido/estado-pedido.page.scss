@@ -58,6 +58,22 @@ ion-toolbar {
   }
 }
 
+// Rechazado por el mozo: tono rojo. El motivo completo está en el modal (AvisoRechazoComponent).
+.estado-etiqueta--rechazado {
+  border-color: var(--ion-color-danger);
+  background: color-mix(in srgb, var(--ion-color-danger) 10%, var(--brand-background));
+
+  .estado-etiqueta-texto {
+    color: var(--ion-color-danger-shade);
+  }
+}
+
+// Dentro de la etiqueta ocupa todo el ancho.
+.estado-boton--modificar {
+  max-width: none;
+  margin: 8px 0 0;
+}
+
 // ===== Ítems y totales =====
 
 .estado-lineas {
@@ -164,4 +180,10 @@ ion-toolbar {
   width: 100%;
   max-width: 320px;
   height: 46px;
+}
+
+.estado-sin-items {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.8;
 }
