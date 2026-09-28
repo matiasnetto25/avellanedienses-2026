@@ -17,7 +17,7 @@ export function rutaHomeSegunPuesto(puesto: Puesto): string {
     case 'metre':
       return '/metre';
     case 'mozo':
-      return '/mozo';
+      return '/mozo/ahora';
     default:
       return '/principal';
   }

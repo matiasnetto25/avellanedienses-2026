@@ -2,9 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
-  IonBackButton,
   IonBadge,
-  IonButtons,
   IonContent,
   IonHeader,
   IonItem,
@@ -29,9 +27,7 @@ import { ConversacionActiva, MensajeMesa, esDeCliente } from '../../../core/mode
   standalone: true,
   imports: [
     DatePipe,
-    IonBackButton,
     IonBadge,
-    IonButtons,
     IonContent,
     IonHeader,
     IonItem,

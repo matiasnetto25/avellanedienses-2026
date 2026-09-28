@@ -159,7 +159,7 @@ export class ChatPage implements OnInit, OnDestroy {
       }
       this.rol.set('mozo');
       this.empleadoId = sesion.id;
-      this.rutaVolver.set('/consultas');
+      this.rutaVolver.set('/mozo/consultas');
       return true;
     }
 

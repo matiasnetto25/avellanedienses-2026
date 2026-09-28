@@ -18,7 +18,7 @@ export class MozoPage {
   readonly foto = computed(() => this.sesion()?.foto ?? null);
 
   readonly acciones: AccionPanel[] = [
-    { texto: 'Consultas', ruta: '/consultas' },
+    { texto: 'Consultas', ruta: '/mozo/consultas' },
     { texto: 'Pedidos', ruta: '/mozo/pedidos' },
     { texto: 'Próximamente', accion: () => this.avisos.proximamente() },
   ];

@@ -5,6 +5,7 @@ import { clienteAprobadoGuard } from './core/guards/cliente-aprobado.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
 import { estadiaEnMesaGuard } from './core/guards/estadia-en-mesa.guard';
 import { PUESTOS_ADMIN } from './core/models/empleado.model';
+import { PESTANAS_MOZO } from './core/models/pestanas-por-perfil';
 
 const routes: Routes = [
   {
@@ -143,13 +144,24 @@ const routes: Routes = [
   {
     path: 'mozo',
     canActivate: [puestoGuard('mozo')],
-    loadComponent: () => import('./pages/mozo/mozo.page').then(m => m.MozoPage)
-  },
-  {
-    // Tiene que coincidir con la ruta de la push avisarNuevoPedido().
-    path: 'mozo/pedidos',
-    canActivate: [puestoGuard('mozo')],
-    loadComponent: () => import('./pages/pedidos/mozo/pedidos-pendientes/pedidos-pendientes.page').then(m => m.PedidosPendientesPage)
+    loadComponent: () => import('./shared/components/pestanas-perfil/pestanas-perfil.component').then(m => m.PestanasPerfilComponent),
+    data: { pestanas: PESTANAS_MOZO },
+    children: [
+      {
+        path: 'ahora',
+        loadComponent: () => import('./pages/mozo/mozo.page').then(m => m.MozoPage)
+      },
+      {
+        // Tiene que coincidir con la ruta de la push avisarNuevoPedido().
+        path: 'pedidos',
+        loadComponent: () => import('./pages/pedidos/mozo/pedidos-pendientes/pedidos-pendientes.page').then(m => m.PedidosPendientesPage)
+      },
+      {
+        path: 'consultas',
+        loadComponent: () => import('./pages/consultas/conversaciones/conversaciones.page').then(m => m.ConversacionesPage)
+      },
+      { path: '', redirectTo: 'ahora', pathMatch: 'full' },
+    ]
   },
   {
     path: 'cliente-anonimo/ver-mesas',
@@ -179,8 +191,8 @@ const routes: Routes = [
   },
   {
     path: 'consultas',
-    canActivate: [puestoGuard('mozo')],
-    loadComponent: () => import('./pages/consultas/conversaciones/conversaciones.page').then(m => m.ConversacionesPage)
+    pathMatch: 'full',
+    redirectTo: 'mozo/consultas'
   },
   {
     path: 'consultas/:solicitudId',

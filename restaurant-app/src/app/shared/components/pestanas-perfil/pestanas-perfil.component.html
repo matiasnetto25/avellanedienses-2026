@@ -1,0 +1,17 @@
+<ion-tabs (ionTabsDidChange)="activa.set($event.tab)">
+  <ion-tab-bar slot="bottom">
+    @for (p of pestanas; track p.ruta) {
+      <ion-tab-button [tab]="p.ruta">
+        <span class="pestana-icono">
+          <ion-icon [name]="icono(p)" aria-hidden="true" />
+          @if (p.cantidad && p.cantidad() > 0) {
+            <span class="pestana-contador num" [class.pestana-contador--rechazo]="p.tonoContador === 'rechazo'">
+              {{ p.cantidad() }}
+            </span>
+          }
+        </span>
+        <ion-label>{{ p.etiqueta }}</ion-label>
+      </ion-tab-button>
+    }
+  </ion-tab-bar>
+</ion-tabs>

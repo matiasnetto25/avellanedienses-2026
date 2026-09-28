@@ -126,6 +126,7 @@
   --color-accion: var(--paleta-intense-cherry);       // acción principal (una por pantalla)
   --color-accion-presionada: var(--paleta-ruby-red);
   --color-accion-secundaria: var(--paleta-burgundy);  // borde y texto de la acción secundaria
+  --color-accion-secundaria-fondo: rgba(116, 18, 29, 0.08); // píldora de pestaña activa y secundaria presionada
   --color-destructiva: var(--paleta-oxido-700);       // acción destructiva (solo texto)
   --color-foco: var(--paleta-burgundy);               // anillo de foco / borde de input activo
 

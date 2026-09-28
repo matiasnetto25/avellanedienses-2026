@@ -50,12 +50,12 @@ ion-button.accion-principal {
 // Acción secundaria: píldora con borde burgundy, sin relleno.
 ion-button.accion-secundaria {
   --background: transparent;
-  --background-activated: var(--color-accion-secundaria);
-  --background-activated-opacity: 0.08;
-  --background-focused: var(--color-accion-secundaria);
-  --background-focused-opacity: 0.08;
-  --background-hover: var(--color-accion-secundaria);
-  --background-hover-opacity: 0.08;
+  --background-activated: var(--color-accion-secundaria-fondo);
+  --background-activated-opacity: 1;
+  --background-focused: var(--color-accion-secundaria-fondo);
+  --background-focused-opacity: 1;
+  --background-hover: var(--color-accion-secundaria-fondo);
+  --background-hover-opacity: 1;
   --color: var(--color-accion-secundaria);
   --border-color: var(--color-accion-secundaria);
   --border-width: 1.5px;
@@ -398,7 +398,81 @@ ion-modal.merlot-modal {
 }
 
 // -----------------------------------------------------------------------------
-// 7. Utilidades
+// 7. Barra de pestañas (guía §7.8)
+// -----------------------------------------------------------------------------
+// La arma app-pestanas-perfil; las pestañas de cada perfil están en
+// core/models/pestanas-por-perfil.ts.
+
+ion-tab-bar {
+  --background: var(--color-superficie);
+  --border: 0;
+  // Ionic suma la zona segura inferior como padding (content-box).
+  height: 64px;
+}
+
+ion-tab-button {
+  --color: var(--color-texto-secundario);
+  --color-selected: var(--color-accion-secundaria);
+  --ripple-color: transparent;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  gap: 2px;
+
+  ion-label {
+    margin: 0;
+    font-family: var(--fuente-ui);
+    font-size: var(--texto-etiqueta);
+    font-weight: var(--peso-medio);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+}
+
+.pestana-icono {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 32px;
+  border-radius: var(--radio-pildora);
+  transition: background var(--mov-rapido) var(--mov-curva);
+
+  ion-icon {
+    margin: 0;
+    font-size: 24px;
+  }
+
+  .tab-selected & {
+    background: var(--color-accion-secundaria-fondo);
+  }
+}
+
+.pestana-contador {
+  position: absolute;
+  top: -2px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radio-pildora);
+  background: var(--color-espera);
+  color: var(--paleta-floral-white);
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-micro);
+  font-weight: var(--peso-fuerte);
+  line-height: 1;
+
+  &.pestana-contador--rechazo {
+    background: var(--color-rechazo);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 8. Utilidades
 // -----------------------------------------------------------------------------
 
 // Números alineados: precios, tiempos y cantidades.

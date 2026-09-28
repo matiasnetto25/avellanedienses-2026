@@ -1,9 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import {
-  IonBackButton,
   IonButton,
-  IonButtons,
   IonCard,
   IonContent,
   IonHeader,
@@ -24,9 +22,7 @@ import { NotificacionesService } from '../../../../core/services/notificaciones.
   imports: [
     DatePipe,
     DecimalPipe,
-    IonBackButton,
     IonButton,
-    IonButtons,
     IonCard,
     IonContent,
     IonHeader,
