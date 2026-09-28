@@ -1,0 +1,292 @@
+// =============================================================================
+// Merlot: clases globales de componentes
+// -----------------------------------------------------------------------------
+// Aspecto de la guía de estilos (.scratch/nuevos-estilos/guia-estilos.md §7)
+// aplicable solo con clases, sin SCSS propio en cada página.
+//
+// Todo sale de los tokens de theme/variables.scss: acá no va ningún color hex,
+// radio en px ni font-family literal.
+//
+// Ojo con los componentes de Ionic: una regla de acá (fuera del shadow DOM)
+// le gana a los :host(...) internos del componente. Si se pisa una variable
+// que Ionic cambia según el estado (por ejemplo --border-color al enfocar un
+// input), hay que volver a definir ese estado acá.
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 1. Botones (guía §7.1)
+// -----------------------------------------------------------------------------
+// Uso: <ion-button class="accion-principal" expand="block">Enviar pedido</ion-button>
+// La clase define el aspecto: en los botones de la app ya no se usan
+// los atributos `fill` ni `color`.
+
+// Default para cualquier ion-button, aunque no tenga clase: Ionic en Android
+// (modo md) pone el texto en MAYÚSCULAS y con espaciado.
+ion-button {
+  font-family: var(--fuente-ui);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+// Acción principal: píldora cereza rellena. Máximo una por pantalla.
+ion-button.accion-principal {
+  --background: var(--color-accion);
+  --background-activated: var(--color-accion-presionada);
+  --background-activated-opacity: 1;
+  --background-focused: var(--color-accion-presionada);
+  --background-focused-opacity: 1;
+  --background-hover: var(--color-accion-presionada);
+  --background-hover-opacity: 1;
+  --color: var(--color-texto-sobre-acento);
+  --border-radius: var(--radio-pildora);
+  --box-shadow: none;
+  --padding-start: var(--espacio-6);
+  --padding-end: var(--espacio-6);
+  height: var(--alto-boton);
+  font-weight: var(--peso-medio);
+  font-size: var(--texto-cuerpo);
+}
+
+// Acción secundaria: píldora con borde burgundy, sin relleno.
+ion-button.accion-secundaria {
+  --background: transparent;
+  --background-activated: var(--color-accion-secundaria);
+  --background-activated-opacity: 0.08;
+  --background-focused: var(--color-accion-secundaria);
+  --background-focused-opacity: 0.08;
+  --background-hover: var(--color-accion-secundaria);
+  --background-hover-opacity: 0.08;
+  --color: var(--color-accion-secundaria);
+  --border-color: var(--color-accion-secundaria);
+  --border-width: 1.5px;
+  --border-style: solid;
+  --border-radius: var(--radio-pildora);
+  --box-shadow: none;
+  --padding-start: var(--espacio-6);
+  --padding-end: var(--espacio-6);
+  height: var(--alto-boton);
+  font-weight: var(--peso-medio);
+  font-size: var(--texto-cuerpo);
+}
+
+// Acción destructiva: solo texto óxido, nunca rellena.
+ion-button.accion-destructiva {
+  --background: transparent;
+  --background-activated: var(--color-destructiva);
+  --background-activated-opacity: 0.08;
+  --background-focused: var(--color-destructiva);
+  --background-focused-opacity: 0.08;
+  --background-hover: var(--color-destructiva);
+  --background-hover-opacity: 0.08;
+  --color: var(--color-destructiva);
+  --border-width: 0;
+  --border-radius: var(--radio-pildora);
+  --box-shadow: none;
+  --padding-start: var(--espacio-4);
+  --padding-end: var(--espacio-4);
+  height: var(--alto-toque-minimo);
+  font-weight: var(--peso-medio);
+  font-size: var(--texto-cuerpo);
+}
+
+// Acción en fila: modificador de tamaño para filas compactas. Se combina con
+// uno de los tres tipos: class="accion-secundaria accion-fila".
+// Se ve de 36px, pero el ::after agranda la zona tocable a 44px.
+ion-button.accion-fila {
+  --padding-start: var(--espacio-4);
+  --padding-end: var(--espacio-4);
+  position: relative;
+  height: var(--alto-boton-compacto);
+  min-height: var(--alto-boton-compacto);
+  font-size: var(--texto-etiqueta);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: calc((var(--alto-boton-compacto) - var(--alto-toque-minimo)) / 2) 0;
+  }
+}
+
+ion-button.accion-destructiva.accion-fila {
+  --padding-start: var(--espacio-2);
+  --padding-end: var(--espacio-2);
+}
+
+// Deshabilitado: arena, sin la opacidad de .5 que pone Ionic.
+ion-button.accion-principal,
+ion-button.accion-secundaria,
+ion-button.accion-destructiva {
+  &.button-disabled {
+    --background: var(--color-deshabilitado-fondo);
+    --color: var(--color-deshabilitado-texto);
+    --border-color: var(--color-deshabilitado-fondo);
+    opacity: 1;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 2. Campos de formulario (guía §7.3)
+// -----------------------------------------------------------------------------
+// Uso: <ion-input class="campo" fill="outline" label-placement="floating" label="DNI">
+// El mensaje de error no usa el errorText de Ionic: lo muestra app-aviso-campo.
+
+ion-input.campo,
+ion-textarea.campo,
+ion-select.campo {
+  --background: var(--color-superficie);
+  --color: var(--color-texto);
+  --placeholder-color: var(--color-texto-terciario);
+  --placeholder-opacity: 1;
+  --border-color: var(--color-borde-control);
+  --border-width: 1px;
+  --border-radius: var(--radio-md);
+  --highlight-height: 2px;
+  --highlight-color-focused: var(--color-foco);
+  --highlight-color-invalid: var(--color-rechazo);
+  --highlight-color-valid: var(--color-foco); // el "válido" no se pinta de verde
+  min-height: 52px;
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-cuerpo);
+
+  // Estos estados Ionic los define con :host(...), pero la regla de arriba
+  // les gana: por eso se repiten acá.
+  &.has-focus,
+  &.select-expanded {
+    --border-color: var(--color-foco);
+    --border-width: 2px;
+  }
+
+  &.ion-touched.ion-invalid {
+    --border-color: var(--color-rechazo);
+    --border-width: 2px;
+  }
+
+  &.input-disabled,
+  &.textarea-disabled,
+  &.select-disabled {
+    --background: var(--color-superficie-hundida);
+    --border-color: var(--color-borde-suave);
+    --color: var(--color-deshabilitado-texto);
+    opacity: 1;
+  }
+}
+
+// Texto de ayuda debajo de un campo (opcional). Cuando hay error, el aviso
+// de campo lo reemplaza.
+.campo-ayuda {
+  margin: var(--espacio-1) var(--espacio-1) 0;
+  font-size: var(--texto-micro);
+  color: var(--color-texto-terciario);
+}
+
+// -----------------------------------------------------------------------------
+// 3. Barra superior (guía §7.6)
+// -----------------------------------------------------------------------------
+// El ion-header va SIEMPRE con class="ion-no-border": es un atributo del HTML
+// y no se puede forzar desde acá.
+//   <ion-header class="ion-no-border"><ion-toolbar>…</ion-toolbar></ion-header>
+
+ion-header ion-toolbar {
+  --background: var(--color-superficie);
+  --color: var(--color-texto);
+  --border-width: 0;
+  --min-height: 56px;
+}
+
+ion-toolbar ion-title {
+  font-family: var(--fuente-titulo);
+  font-size: var(--texto-titulo);
+  font-weight: var(--peso-regular);
+  text-align: start;
+  padding-inline-start: var(--espacio-2);
+}
+
+// -----------------------------------------------------------------------------
+// 4. Segment (guía §7.14)
+// -----------------------------------------------------------------------------
+// Pista hundida en píldora; el botón activo es una píldora en superficie.
+
+ion-segment {
+  --background: var(--color-superficie-hundida);
+  gap: 2px;
+  padding: var(--espacio-1);
+  border-radius: var(--radio-pildora);
+}
+
+ion-segment-button {
+  --background: transparent;
+  --background-checked: var(--color-superficie);
+  --background-hover: transparent;
+  --color: var(--color-texto-secundario);
+  --color-checked: var(--color-texto);
+  --indicator-color: transparent;
+  --indicator-box-shadow: none;
+  --border-radius: var(--radio-pildora);
+  --border-width: 0;
+  --padding-start: var(--espacio-2);
+  --padding-end: var(--espacio-2);
+  min-height: var(--alto-boton-compacto);
+  margin: 0;
+  border-radius: var(--radio-pildora);
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-etiqueta);
+  font-weight: var(--peso-medio);
+  text-transform: none;
+  letter-spacing: 0;
+  transition: background var(--mov-rapido) var(--mov-curva),
+    box-shadow var(--mov-rapido) var(--mov-curva);
+
+  &.segment-button-checked {
+    box-shadow: var(--sombra-1);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 5. Densidad (guía §3 y §7.4)
+// -----------------------------------------------------------------------------
+// Va en el ion-content de cada pantalla: amplia = cliente, compacta = personal.
+//   <ion-content class="densidad-compacta">
+// Define variables locales que usan .tarjeta y los componentes compartidos.
+
+ion-content.densidad-amplia {
+  --margen-pantalla: var(--margen-pantalla-amplia);
+  --texto-base: var(--texto-cuerpo);
+  --separacion-tarjetas: var(--espacio-4);
+  --separacion-secciones: var(--espacio-8);
+  --padding-tarjeta: var(--espacio-4);
+  --radio-tarjeta: var(--radio-lg);
+}
+
+ion-content.densidad-compacta {
+  --margen-pantalla: var(--margen-pantalla-compacta);
+  --texto-base: var(--texto-cuerpo-compacto);
+  --separacion-tarjetas: var(--espacio-2);
+  --separacion-secciones: var(--espacio-6);
+  --padding-tarjeta: var(--espacio-3);
+  --radio-tarjeta: var(--radio-md);
+}
+
+// Tarjeta base. Sin densidad declarada, sale como amplia.
+.tarjeta {
+  padding: var(--padding-tarjeta, var(--espacio-4));
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio-tarjeta, var(--radio-lg));
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+  color: var(--color-texto);
+  font-size: var(--texto-base, var(--texto-cuerpo));
+  line-height: var(--alto-linea-cuerpo);
+
+  & + & {
+    margin-top: var(--separacion-tarjetas, var(--espacio-4));
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 6. Utilidades
+// -----------------------------------------------------------------------------
+
+// Números alineados: precios, tiempos y cantidades.
+.num {
+  font-variant-numeric: tabular-nums;
+}

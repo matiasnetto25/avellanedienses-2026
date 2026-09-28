@@ -1,3 +1,5 @@
+@use "sass:meta";
+
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
@@ -24,6 +26,13 @@
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
+
+/*
+ * Clases globales de la guía de estilos: acciones, campos, barra superior,
+ * segment y densidad. Se cargan con meta.load-css (el @import de Sass está
+ * deprecado) y acá, después del CSS de Ionic, para pisarlo.
+ */
+@include meta.load-css("theme/componentes");
 
 // Sin modo oscuro: lo prohíbe la consigna (ver .scratch/nuevos-estilos).
 
