@@ -39,10 +39,39 @@
             <span class="pedido-total">${{ pedido.total | number: '1.0-0' }}</span>
           </div>
 
-          <!-- Acciones: el punto 13 agrega «Rechazar» y el 14 «Confirmar». -->
-          <div class="pedido-acciones"></div>
+          <!-- Acciones: «Rechazar» (punto 13); el 14 agrega «Confirmar». -->
+          <div class="pedido-acciones">
+            <ion-button
+              class="pedido-accion"
+              fill="outline"
+              color="danger"
+              [disabled]="procesandoId() === pedido.id"
+              (click)="pedirMotivoRechazo(pedido)"
+            >
+              Rechazar
+            </ion-button>
+          </div>
         </ion-card>
       }
     </div>
   }
 </ion-content>
+
+<!-- Motivo del rechazo (punto 13). -->
+<ion-modal
+  class="motivo-modal"
+  [isOpen]="pedidoARechazar() !== null"
+  [canDismiss]="procesandoId() === null"
+  (didDismiss)="cerrarMotivoRechazo()"
+>
+  <ng-template>
+    @if (pedidoARechazar(); as pedido) {
+      <app-motivo-rechazo
+        [numeroMesa]="pedido.numeroMesa"
+        [procesando]="procesandoId() === pedido.id"
+        (cancelar)="cerrarMotivoRechazo()"
+        (confirmar)="rechazar(pedido, $event)"
+      />
+    }
+  </ng-template>
+</ion-modal>

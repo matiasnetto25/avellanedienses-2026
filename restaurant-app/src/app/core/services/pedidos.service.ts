@@ -11,6 +11,7 @@ import {
   SectorItem,
   calcularTiempoEstimado,
   calcularTotal,
+  validarMotivoRechazo,
 } from '../models/pedido.model';
 import { TipoMenuItem } from '../models/menu-item.model';
 import { ResultadoOperacion } from '../models/resultado-operacion';
@@ -40,6 +41,10 @@ const SELECT_PEDIDO = `
 const CODIGO_RLS = '42501';
 const CODIGO_DUPLICADO = '23505';
 
+/** La política de pedido_items rechazó un ítem: cambió el precio o se dio de baja el producto. */
+const MENSAJE_PRODUCTOS_CAMBIARON =
+  'Algunos productos cambiaron de precio o ya no están disponibles. Revisá tu pedido.';
+
 /** Espera antes de avisar un cambio: el pedido y sus ítems llegan como
  *  varios eventos seguidos (uno por fila), y así se relee una sola vez. */
 const ESPERA_AGRUPAR_CAMBIOS_MS = 300;
@@ -50,6 +55,12 @@ export interface ResultadoCrearPedido extends ResultadoOperacion {
   numeroMesa?: number;
   /** Si el cliente ya tenía un pedido: la pantalla lo lleva a su estado. */
   pedidoExistenteId?: string;
+}
+
+export interface ResultadoRechazo extends ResultadoOperacion {
+  /** Para la push al cliente y su ruta (punto 13, issue 05). */
+  clienteId?: string;
+  mesaId?: string;
 }
 
 interface PedidoFila {
@@ -188,12 +199,8 @@ export class PedidosService {
       if (!estadia.ok) return { ok: false, mensaje: 'No se pudo verificar tu mesa. Revisá tu conexión.' };
       if (!estadia.dato) return { ok: false, mensaje: 'Necesitás tener una mesa asignada para hacer un pedido.' };
 
-      const productos = await this.obtenerProductos(lineas.map((linea) => linea.menuId));
-      if (!productos) return { ok: false, mensaje: 'No se pudo leer la carta. Probá de nuevo.' };
-      const disponibles = lineas.every((linea) => productos.get(linea.menuId)?.estado === 'On');
-      if (!disponibles) {
-        return { ok: false, mensaje: 'Alguno de los productos ya no está disponible. Revisá tu pedido.' };
-      }
+      const productos = await this.obtenerProductosDisponibles(lineas);
+      if (!productos.ok) return productos;
 
       const { data: pedido, error: errorPedido } = await this.supabase.client
         .from(TABLA_PEDIDOS)
@@ -214,28 +221,14 @@ export class PedidosService {
         return { ok: false, mensaje: 'No se pudo enviar el pedido. Probá de nuevo.' };
       }
 
-      const { error: errorItems } = await this.supabase.client.from(TABLA_ITEMS).insert(
-        lineas.map((linea) => {
-          const producto = productos.get(linea.menuId)!;
-          return {
-            pedido_id: pedido.id,
-            menu_id: linea.menuId,
-            cantidad: linea.cantidad,
-            precio_unitario: producto.precio,
-            sector: this.sectorDe(producto.tipo),
-          };
-        })
-      );
+      const { error: errorItems } = await this.supabase.client
+        .from(TABLA_ITEMS)
+        .insert(this.filasItems(pedido.id, lineas, productos.dato));
 
       if (errorItems) {
         console.error('Error cargando los productos del pedido:', errorItems);
         await this.borrarPedidoVacio(pedido.id);
-        if (errorItems.code === CODIGO_RLS) {
-          return {
-            ok: false,
-            mensaje: 'Algunos productos cambiaron de precio o ya no están disponibles. Revisá tu pedido.',
-          };
-        }
+        if (errorItems.code === CODIGO_RLS) return { ok: false, mensaje: MENSAJE_PRODUCTOS_CAMBIARON };
         return { ok: false, mensaje: 'No se pudo enviar el pedido. Probá de nuevo.' };
       }
 
@@ -243,6 +236,111 @@ export class PedidosService {
     } catch (error: unknown) {
       console.error('Error inesperado creando pedido:', error);
       return { ok: false, mensaje: 'No se pudo enviar el pedido. Revisá tu conexión.' };
+    }
+  }
+
+  // ===== Rechazo y reenvío (punto 13) =====
+
+  /**
+   * El mozo rechaza un pedido que espera confirmación, con un motivo
+   * obligatorio. La base (RLS) solo lo acepta de un mozo activo y sobre un
+   * pedido 'pendiente_confirmacion'.
+   *
+   * Si otro mozo ya lo rechazó o confirmó, el update no encuentra la fila
+   * (no es un error de Postgres): vuelve sin filas y se avisa.
+   */
+  async rechazar(pedidoId: string, motivo: string): Promise<ResultadoRechazo> {
+    const errorMotivo = validarMotivoRechazo(motivo);
+    if (errorMotivo) return { ok: false, mensaje: errorMotivo };
+
+    try {
+      const { data, error } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ estado: 'rechazado', motivo_rechazo: motivo.trim() })
+        .eq('id', pedidoId)
+        .eq('estado', 'pendiente_confirmacion')
+        .select('solicitud:solicitudes_mesa ( cliente_id, mesa_id )');
+
+      if (error) {
+        console.error('Error rechazando pedido:', error);
+        if (error.code === CODIGO_RLS) return { ok: false, mensaje: 'Solo un mozo puede rechazar pedidos.' };
+        return { ok: false, mensaje: 'No se pudo rechazar el pedido. Probá de nuevo.' };
+      }
+
+      const fila = (data as unknown as { solicitud: { cliente_id: string; mesa_id: string } }[])[0];
+      if (!fila) return { ok: false, mensaje: 'Este pedido ya fue confirmado o rechazado por otro mozo.' };
+
+      return { ok: true, clienteId: fila.solicitud.cliente_id, mesaId: fila.solicitud.mesa_id };
+    } catch (error: unknown) {
+      console.error('Error inesperado rechazando pedido:', error);
+      return { ok: false, mensaje: 'No se pudo rechazar el pedido. Revisá tu conexión.' };
+    }
+  }
+
+  /**
+   * El cliente reenvía su pedido rechazado con los productos corregidos.
+   * Es el MISMO pedido: se reemplazan sus ítems y vuelve a esperar al mozo.
+   *
+   * Tres pasos, siempre en este orden (sin transacción, ver la migración
+   * 20260927150000_rechazo_reenvio_pedido.sql):
+   *  1) borrar los ítems (la base solo lo deja si el pedido está rechazado),
+   *  2) insertar los nuevos con el precio y el sector de la carta,
+   *  3) liberar el pedido: 'pendiente_confirmacion' y sin motivo.
+   * Hasta el paso 3 el pedido sigue rechazado y el mozo no lo ve, así que
+   * si falla el 1 o el 2 no se sigue: el cliente conserva el carrito y
+   * reintenta (borrar cero ítems no es un error).
+   *
+   * No recibe el cliente: pedidoId sale de obtenerMiPedidoActivo(), que ya
+   * es el pedido de la estadía del cliente actual.
+   */
+  async reenviar(pedidoId: string, lineas: LineaCarrito[]): Promise<ResultadoOperacion> {
+    const errorValidacion = this.validarLineas(lineas);
+    if (errorValidacion) return { ok: false, mensaje: errorValidacion };
+
+    try {
+      const productos = await this.obtenerProductosDisponibles(lineas);
+      if (!productos.ok) return productos;
+
+      const { error: errorBorrado } = await this.supabase.client
+        .from(TABLA_ITEMS)
+        .delete()
+        .eq('pedido_id', pedidoId);
+
+      if (errorBorrado) {
+        console.error('Error borrando los productos del pedido rechazado:', errorBorrado);
+        return { ok: false, mensaje: 'No se pudo reenviar el pedido. Probá de nuevo.' };
+      }
+
+      const { error: errorItems } = await this.supabase.client
+        .from(TABLA_ITEMS)
+        .insert(this.filasItems(pedidoId, lineas, productos.dato));
+
+      if (errorItems) {
+        console.error('Error cargando los productos del pedido reenviado:', errorItems);
+        if (errorItems.code === CODIGO_RLS) return { ok: false, mensaje: MENSAJE_PRODUCTOS_CAMBIARON };
+        return { ok: false, mensaje: 'No se pudo reenviar el pedido. Probá de nuevo.' };
+      }
+
+      const { data, error: errorEstado } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ estado: 'pendiente_confirmacion', motivo_rechazo: null })
+        .eq('id', pedidoId)
+        .eq('estado', 'rechazado')
+        .select('id');
+
+      if (errorEstado) {
+        console.error('Error liberando el pedido reenviado:', errorEstado);
+        if (errorEstado.code === CODIGO_RLS) {
+          return { ok: false, mensaje: 'Tu mesa ya no está habilitada para hacer pedidos.' };
+        }
+        return { ok: false, mensaje: 'No se pudo reenviar el pedido. Probá de nuevo.' };
+      }
+      if (data.length === 0) return { ok: false, mensaje: 'Tu pedido ya no se puede modificar.' };
+
+      return { ok: true };
+    } catch (error: unknown) {
+      console.error('Error inesperado reenviando pedido:', error);
+      return { ok: false, mensaje: 'No se pudo reenviar el pedido. Revisá tu conexión.' };
     }
   }
 
@@ -268,18 +366,47 @@ export class PedidosService {
     return { ok: true, dato: { solicitudId: fila.id, numeroMesa: fila.mesa.numero_mesa } };
   }
 
-  /** Precio, tipo y estado actuales de cada producto, por id. null si falló la consulta. */
-  private async obtenerProductos(ids: string[]): Promise<Map<string, ProductoFila> | null> {
+  /**
+   * Precio, tipo y estado actuales de cada producto de las líneas, por id.
+   * Falla con un mensaje si no se pudo leer la carta o si alguno ya no
+   * está activo (la base tampoco lo aceptaría).
+   */
+  private async obtenerProductosDisponibles(
+    lineas: LineaCarrito[]
+  ): Promise<{ ok: true; dato: Map<string, ProductoFila> } | { ok: false; mensaje: string }> {
     const { data, error } = await this.supabase.client
       .from('menu')
       .select('id, precio, tipo, estado')
-      .in('id', ids);
+      .in('id', lineas.map((linea) => linea.menuId));
 
     if (error) {
       console.error('Error leyendo los productos del pedido:', error);
-      return null;
+      return { ok: false, mensaje: 'No se pudo leer la carta. Probá de nuevo.' };
     }
-    return new Map((data as ProductoFila[]).map((producto) => [producto.id, producto]));
+
+    const productos = new Map((data as ProductoFila[]).map((producto) => [producto.id, producto]));
+    const disponibles = lineas.every((linea) => productos.get(linea.menuId)?.estado === 'On');
+    if (!disponibles) {
+      return { ok: false, mensaje: 'Alguno de los productos ya no está disponible. Revisá tu pedido.' };
+    }
+    return { ok: true, dato: productos };
+  }
+
+  /**
+   * Filas de pedido_items con el precio y el sector de la carta: la base
+   * (RLS) no acepta otros. Las usan crear() y reenviar().
+   */
+  private filasItems(pedidoId: string, lineas: LineaCarrito[], productos: Map<string, ProductoFila>) {
+    return lineas.map((linea) => {
+      const producto = productos.get(linea.menuId)!;
+      return {
+        pedido_id: pedidoId,
+        menu_id: linea.menuId,
+        cantidad: linea.cantidad,
+        precio_unitario: producto.precio,
+        sector: this.sectorDe(producto.tipo),
+      };
+    });
   }
 
   private async borrarPedidoVacio(pedidoId: string): Promise<void> {
@@ -312,6 +439,20 @@ export class PedidosService {
   }
 
   /**
+   * Avisa cada cambio del pedido de una estadía, aunque todavía no exista
+   * cuando se empieza a escuchar (se filtra por solicitud_id, no por el id
+   * del pedido). Solo mira la tabla pedidos: sirve para enterarse de los
+   * cambios de estado, por ejemplo el rechazo del mozo (punto 13).
+   */
+  suscribirseAPedidoDeEstadia(solicitudId: string, alCambiar: (pedido: Pedido | null) => void): () => void {
+    return this.escucharCambios(
+      `pedido-estadia-${solicitudId}`,
+      { pedidos: `solicitud_id=eq.${solicitudId}`, items: null },
+      async (fila) => alCambiar(fila?.id ? await this.obtener(fila.id) : null)
+    );
+  }
+
+  /**
    * Avisa cuando cambia cualquier pedido (uno nuevo, un cambio de estado o
    * de ítems). Es la lista del mozo: la pantalla vuelve a pedir la lista.
    */
@@ -319,18 +460,24 @@ export class PedidosService {
     return this.escucharCambios('pedidos-todos', {}, async () => alCambiar());
   }
 
+  /**
+   * filtros.items en null: no escucha los ítems. avisar recibe la última
+   * fila de pedidos que cambió (null si el último cambio fue de un ítem).
+   */
   private escucharCambios(
     nombre: string,
-    filtros: { pedidos?: string; items?: string },
-    avisar: () => Promise<void>
+    filtros: { pedidos?: string; items?: string | null },
+    avisar: (filaPedido: { id?: string } | null) => Promise<void>
   ): () => void {
     let espera: ReturnType<typeof setTimeout> | undefined;
-    const programarAviso = () => {
+    let ultimaFila: { id?: string } | null = null;
+    const programarAviso = (fila: { id?: string } | null) => {
+      ultimaFila = fila;
       clearTimeout(espera);
-      espera = setTimeout(() => void avisar(), ESPERA_AGRUPAR_CAMBIOS_MS);
+      espera = setTimeout(() => void avisar(ultimaFila), ESPERA_AGRUPAR_CAMBIOS_MS);
     };
 
-    const canal: RealtimeChannel = this.supabase.client
+    let canal: RealtimeChannel = this.supabase.client
       .channel(`${nombre}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
@@ -340,9 +487,11 @@ export class PedidosService {
           table: TABLA_PEDIDOS,
           ...(filtros.pedidos ? { filter: filtros.pedidos } : {}),
         },
-        programarAviso
-      )
-      .on(
+        (cambio) => programarAviso(cambio.new as { id?: string })
+      );
+
+    if (filtros.items !== null) {
+      canal = canal.on(
         'postgres_changes',
         {
           event: '*',
@@ -350,9 +499,11 @@ export class PedidosService {
           table: TABLA_ITEMS,
           ...(filtros.items ? { filter: filtros.items } : {}),
         },
-        programarAviso
-      )
-      .subscribe();
+        () => programarAviso(null)
+      );
+    }
+
+    canal.subscribe();
 
     return () => {
       clearTimeout(espera);

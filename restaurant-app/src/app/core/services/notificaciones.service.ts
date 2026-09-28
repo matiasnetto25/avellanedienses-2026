@@ -10,6 +10,7 @@ import {
 } from '@capacitor/push-notifications';
 import { SupabaseService } from './supabase.service';
 import { Auth } from './auth';
+import { ClientesService } from './clientes.service';
 import { Puesto } from '../models/empleado.model';
 import { MensajeMesa } from '../models/consulta.model';
 
@@ -21,6 +22,9 @@ const MAX_CARACTERES_EXTRACTO = 80;
 export class NotificacionesService {
   private readonly supabase = inject(SupabaseService);
   private readonly auth = inject(Auth);
+  // ClientesService solo depende de SupabaseService: no hay dependencia
+  // circular (ClienteActualService sí la tendría, vía ClienteAnonimoService).
+  private readonly clientes = inject(ClientesService);
   private readonly router = inject(Router);
   private readonly toastController = inject(ToastController);
 
@@ -82,8 +86,10 @@ export class NotificacionesService {
       PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
         // Si ya está en la pantalla a la que apunta la push (por ejemplo,
         // el chat de esa mesa), el cambio llega por Realtime: no se repite.
+        // Sin los query params: «Estado de mi pedido» se abre con ?mesa=N y
+        // la ruta de la push no los lleva.
         const ruta = notification.data?.['ruta'] as string | undefined;
-        if (ruta && this.router.url === ruta) return;
+        if (ruta && this.router.url.split('?')[0] === ruta) return;
 
         this.mostrarToastPush(notification.title ?? notification.body ?? 'Tenés una notificación nueva.');
       });
@@ -113,15 +119,16 @@ export class NotificacionesService {
   }
 
   /**
-   * Reintenta guardar el token cacheado para el empleado con sesión. Se
-   * llama desde login.page.ts, justo después de un login exitoso — el
-   * caso más común (arranque en frío -> se pide permiso -> login). Si ya
-   * había sesión al arrancar, lo resuelve asignarTokenDelDispositivo().
-   * Es seguro llamarla aunque no haya token o no haya sesión: no hace nada.
+   * Vuelve a decidir de quién es el token cacheado, ahora que alguien
+   * inició sesión (empleado o cliente registrado). Se llama desde
+   * login.page.ts, justo después de un login exitoso — el caso más común
+   * (arranque en frío -> se pide permiso -> login). Si ya había sesión al
+   * arrancar, lo resolvió asignarTokenDelDispositivo() en ese momento.
+   * Es seguro llamarla aunque no haya token o no haya sesión.
    */
   guardarTokenPendienteSiHaySesion(): void {
     if (this.ultimoToken) {
-      this.guardarToken(this.ultimoToken);
+      void this.asignarTokenDelDispositivo(this.ultimoToken);
     }
   }
 
@@ -170,10 +177,13 @@ export class NotificacionesService {
 
   /**
    * Decide de quién es el dispositivo cuando el SO entrega el token (al
-   * arrancar la app). Un celular es de una sola persona a la vez:
+   * arrancar la app) y después de cada login. Un celular es de una sola
+   * persona a la vez, en el mismo orden que ClienteActualService:
    *  1) Si hay sesión de empleado, el token es del empleado.
    *  2) Si no, y hay un cliente anónimo guardado, es del cliente.
-   *  3) Si no hay nadie (por ejemplo, la sesión expiró con la app
+   *  3) Si no, y hay sesión de un cliente registrado APROBADO, es suyo
+   *     (punto 13: si no, no le llega la push de pedido rechazado).
+   *  4) Si no hay nadie (por ejemplo, la sesión expiró con la app
    *     cerrada), se borra: no debe recibir las push de nadie.
    *
    * Antes se registraban el empleado y el cliente a la vez, y el último
@@ -189,19 +199,30 @@ export class NotificacionesService {
       return;
     }
 
-    const { value: clienteId } = await Preferences.get({ key: CLAVE_CLIENTE_ANONIMO_ID });
-    if (clienteId) {
-      const { error } = await this.supabase.client.rpc('registrar_push_token_cliente', {
-        p_cliente_id: clienteId,
-        p_token: token,
-      });
-      if (error) {
-        console.error('Error registrando push token de cliente anónimo (reintento):', error);
-      }
+    const { value: clienteAnonimoId } = await Preferences.get({ key: CLAVE_CLIENTE_ANONIMO_ID });
+    if (clienteAnonimoId) {
+      await this.registrarTokenCliente(clienteAnonimoId, token);
+      return;
+    }
+
+    const clienteRegistrado = await this.clientes.obtenerClienteActual();
+    if (clienteRegistrado?.estado === 'aprobado') {
+      await this.registrarTokenCliente(clienteRegistrado.id, token);
       return;
     }
 
     await this.eliminarToken();
+  }
+
+  /** Asocia el token a un cliente (anónimo o registrado); le quita el empleado si lo tenía. */
+  private async registrarTokenCliente(clienteId: string, token: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('registrar_push_token_cliente', {
+      p_cliente_id: clienteId,
+      p_token: token,
+    });
+    if (error) {
+      console.error('Error registrando push token de cliente:', error);
+    }
   }
 
   /**
@@ -363,16 +384,49 @@ export class NotificacionesService {
 
   /** El cliente envía su pedido → todos los mozos (lo tiene que confirmar uno). */
   avisarNuevoPedido(numeroMesa: number, cantidadProductos: number, total: number, tiempoEstimadoMin: number): void {
-    const productos = `${cantidadProductos} ${cantidadProductos === 1 ? 'producto' : 'productos'}`;
     this.notificarEmpleados(
       `Nuevo pedido de la Mesa ${numeroMesa}`,
-      `${productos} · Total $${total.toLocaleString('es-AR')} · ~${tiempoEstimadoMin} min`,
+      this.resumenPedido(cantidadProductos, total, tiempoEstimadoMin),
       ['mozo'],
       '/mozo/pedidos'
     );
   }
 
-  /** Recorta el texto del chat para que entre en la notificación. */
+  /**
+   * El mozo rechaza el pedido → cliente de la estadía (punto 13). La ruta
+   * abre «Estado de mi pedido», que muestra el aviso con el motivo completo.
+   */
+  avisarPedidoRechazado(clienteId: string, mesaId: string, motivo: string): void {
+    this.notificarCliente(
+      'Tu pedido fue rechazado',
+      this.extracto(motivo),
+      clienteId,
+      `/mesa/${mesaId}/estado-pedido`
+    );
+  }
+
+  /** El cliente corrige y reenvía su pedido rechazado → todos los mozos (punto 13). */
+  avisarPedidoModificado(
+    numeroMesa: number,
+    cantidadProductos: number,
+    total: number,
+    tiempoEstimadoMin: number
+  ): void {
+    this.notificarEmpleados(
+      `Pedido modificado · Mesa ${numeroMesa}`,
+      `El cliente corrigió su pedido. ${this.resumenPedido(cantidadProductos, total, tiempoEstimadoMin)}`,
+      ['mozo'],
+      '/mozo/pedidos'
+    );
+  }
+
+  /** «3 productos · Total $26.000 · ~25 min», para las push de pedidos. */
+  private resumenPedido(cantidadProductos: number, total: number, tiempoEstimadoMin: number): string {
+    const productos = `${cantidadProductos} ${cantidadProductos === 1 ? 'producto' : 'productos'}`;
+    return `${productos} · Total $${total.toLocaleString('es-AR')} · ~${tiempoEstimadoMin} min`;
+  }
+
+  /** Recorta un texto (del chat o el motivo de un rechazo) para que entre en la notificación. */
   private extracto(texto: string): string {
     return texto.length > MAX_CARACTERES_EXTRACTO
       ? `${texto.slice(0, MAX_CARACTERES_EXTRACTO - 3)}…`

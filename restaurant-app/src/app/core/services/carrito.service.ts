@@ -3,6 +3,7 @@ import {
   CANTIDAD_MAXIMA_ITEM,
   ItemCarrito,
   LineaCarrito,
+  PedidoItem,
   calcularTiempoEstimado,
   calcularTotal,
 } from '../models/pedido.model';
@@ -72,6 +73,32 @@ export class CarritoService {
     for (const item of items) {
       this.cambiarCantidad(item.producto, item.cantidad);
     }
+  }
+
+  /**
+   * Precarga el carrito con los ítems de un pedido rechazado (punto 13).
+   * Usa el Producto de la carta actual, así la barra muestra el precio
+   * vigente, que es el que se va a guardar al reenviar.
+   *
+   * Devuelve los nombres de los productos que no se cargaron porque ya no
+   * están activos, para avisarle al cliente.
+   */
+  cargarDesdePedido(items: PedidoItem[], productosActivos: Producto[]): string[] {
+    const porId = new Map(productosActivos.map((producto) => [producto.id, producto]));
+    const cargables: ItemCarrito[] = [];
+    const descartados: string[] = [];
+
+    for (const item of items) {
+      const producto = porId.get(item.menuId);
+      if (producto) {
+        cargables.push({ producto, cantidad: item.cantidad });
+      } else {
+        descartados.push(item.nombre);
+      }
+    }
+
+    this.cargar(cargables);
+    return descartados;
   }
 
   vaciar(): void {

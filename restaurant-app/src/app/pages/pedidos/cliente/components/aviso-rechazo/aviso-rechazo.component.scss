@@ -1,0 +1,63 @@
+// Contenido del modal. La ventana (.aviso-rechazo-modal: ancho, bordes y
+// fondo) está en global.scss, porque el modal lo abre un servicio
+// (AvisoRechazoService) y no una página.
+
+.aviso {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 20px 20px;
+  box-sizing: border-box;
+  color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+}
+
+.aviso-titulo {
+  margin: 0;
+  font-family: var(--brand-font-logo);
+  font-size: 1.5rem;
+  color: var(--ion-color-danger-shade);
+}
+
+.aviso-mesa {
+  margin: 4px 0 20px;
+  font-size: 1.05rem;
+  opacity: 0.8;
+}
+
+.aviso-etiqueta {
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+// El motivo completo, sin recortar.
+.aviso-motivo {
+  margin: 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--ion-color-danger);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ion-color-danger) 8%, var(--brand-background));
+  font-size: 1.05rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.aviso-detalle {
+  margin: 16px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  opacity: 0.85;
+}
+
+.aviso-modificar {
+  height: 48px;
+  margin: 20px 0 0;
+  --border-radius: 12px;
+  --background: var(--brand-accent);
+  --background-activated: var(--brand-ruby-red);
+  --color: var(--brand-floral-white);
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 600;
+}

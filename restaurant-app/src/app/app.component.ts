@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Auth } from './core/services/auth';
 import { NotificacionesService } from './core/services/notificaciones.service';
 import { LoadingService } from './core/services/loading.service';
+import { AvisoRechazoService } from './pages/pedidos/cliente/components/aviso-rechazo/aviso-rechazo.service';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ import { LoadingService } from './core/services/loading.service';
 export class AppComponent implements OnInit {
   private readonly auth = inject(Auth);
   private readonly notificaciones = inject(NotificacionesService);
+  private readonly avisoRechazo = inject(AvisoRechazoService);
   readonly loading = inject(LoadingService);
 
   async ngOnInit(): Promise<void> {
@@ -23,5 +25,9 @@ export class AppComponent implements OnInit {
     //    las push notifications, porque guardarToken() necesita saber
     //    a qué empleado asociar el token del dispositivo.
     await this.notificaciones.inicializar();
+
+    // 3) Si es un cliente con mesa, avisa en cualquier pantalla cuando el
+    //    mozo rechaza su pedido (punto 13). Sin await: no demora el arranque.
+    void this.avisoRechazo.vigilar();
   }
 }

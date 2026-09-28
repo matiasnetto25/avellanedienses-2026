@@ -115,9 +115,9 @@ export class LoginPage implements OnInit {
 
       if (resultado.tipo === 'cliente') {
         // Cliente aprobado: no pasa por rutaHomeSegunPuesto (eso es solo
-        // para empleados) — va directo a su propia landing. No hay
-        // guardarTokenPendienteSiHaySesion() acá: los clientes todavía no
-        // participan del sistema de push.
+        // para empleados) — va directo a su propia landing. También
+        // registra el token de push: el mozo le avisa si rechaza su pedido.
+        this.notificaciones.guardarTokenPendienteSiHaySesion();
         this.router.navigate(['/cliente'], { replaceUrl: true });
         return;
       }

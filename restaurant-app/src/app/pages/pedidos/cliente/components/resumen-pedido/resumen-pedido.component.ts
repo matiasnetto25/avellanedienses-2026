@@ -19,6 +19,8 @@ export class ResumenPedidoComponent {
   @Input() numeroMesa: number | null = null;
   /** true mientras se envía: deshabilita los dos botones. */
   @Input() enviando = false;
+  /** «Reenviar pedido» al corregir un pedido rechazado (punto 13). */
+  @Input() textoEnviar = 'Enviar pedido';
 
   @Output() seguirEligiendo = new EventEmitter<void>();
   @Output() enviar = new EventEmitter<void>();
