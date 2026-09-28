@@ -1,0 +1,8 @@
+@if (mensaje(); as mensaje) {
+  <div class="aviso-campo" role="alert">
+    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+    <span>{{ mensaje }}</span>
+  </div>
+} @else if (ayuda()) {
+  <p class="campo-ayuda">{{ ayuda() }}</p>
+}

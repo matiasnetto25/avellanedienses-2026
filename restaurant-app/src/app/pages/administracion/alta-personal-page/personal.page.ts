@@ -26,12 +26,12 @@ import { NotificacionesService } from '../../../core/services/notificaciones.ser
 import { LoadingService } from '../../../core/services/loading.service';
 import { Puesto, PUESTOS_CREABLES_POR_SUPERVISOR, PUESTOS_TODOS, Sexo } from '../../../core/models/empleado.model';
 import {
-  validadorCuil,
   validadorEmailValido,
   validadorFechaNacimiento,
   validadorPasswordsCoinciden,
   validadorTextoValido,
 } from '../../../validators/empleado.validators';
+import { cuil } from '../../../core/utils/formularios';
 
 type CampoTexto = 'nombre' | 'apellido' | 'cuil' | 'email' | 'password' | 'confirmarPassword';
 
@@ -50,7 +50,7 @@ const MENSAJES_ERROR: Record<string, Record<string, string>> = {
   },
   cuil: {
     required: 'Ingresá el CUIL.',
-    formatoCuil: 'El CUIL debe tener el formato XX-XXXXXXXX-X.',
+    formatoCuil: 'Revisá el CUIL: tiene que ser como 20-12345678-3, con el dígito verificador correcto.',
     cuilDuplicado: 'El CUIL ingresado ya pertenece a un empleado.',
   },
   email: {
@@ -130,7 +130,7 @@ export class PersonalPage {
       apellido: ['', [Validators.required, validadorTextoValido(4)]],
       sexo: [null, Validators.required],
       fecha_nacimiento: ['', [Validators.required, validadorFechaNacimiento()]],
-      cuil: ['', [Validators.required, validadorCuil()]],
+      cuil: ['', [Validators.required, cuil()]],
       email: ['', [Validators.required, validadorEmailValido()]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmarPassword: ['', Validators.required],

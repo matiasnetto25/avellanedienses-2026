@@ -1,0 +1,22 @@
+:host {
+  display: block;
+}
+
+// Guía §7.3: ícono alert-circle-outline + texto --texto-etiqueta en óxido.
+.aviso-campo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--espacio-1);
+  margin: var(--espacio-1) var(--espacio-1) 0;
+  color: var(--color-rechazo);
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-etiqueta);
+  font-weight: var(--peso-medio);
+  line-height: 1.35;
+
+  ion-icon {
+    flex-shrink: 0;
+    font-size: 16px;
+    margin-top: 1px;
+  }
+}

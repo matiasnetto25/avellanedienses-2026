@@ -28,9 +28,9 @@ import { LoadingService } from '../../core/services/loading.service';
 import { TIPOS_COCINERO, TipoMenuItem } from '../../core/models/menu-item.model';
 import {
   validadorEnteroPositivo,
-  validadorNumeroPositivo,
   validadorTextoNoVacio,
 } from '../../validators/menu-item.validators';
+import { precio } from '../../core/utils/formularios';
 
 type CampoFoto = 'principal' | 'cerca' | 'contexto';
 type CampoTexto = 'tipo' | 'nombre' | 'descripcion' | 'demora' | 'precio';
@@ -40,7 +40,7 @@ const MENSAJES_ERROR: Record<string, string> = {
   soloEspacios: 'No puede estar vacío.',
   noEsEntero: 'Debe ser un número entero, sin decimales.',
   noEsPositivo: 'Debe ser mayor a 0.',
-  noEsNumero: 'Ingresá un número válido.',
+  precio: 'Ingresá un precio mayor a 0, con hasta 2 decimales.',
   duplicado: 'Ya existe un elemento con ese nombre en la carta.',
 };
 
@@ -113,7 +113,7 @@ export class AgregarMenuItemPage {
     nombre: ['', [Validators.required, validadorTextoNoVacio(2, 80)]],
     descripcion: ['', [Validators.required, validadorTextoNoVacio(5, 300)]],
     demora: ['', [Validators.required, validadorEnteroPositivo()]],
-    precio: ['', [Validators.required, validadorNumeroPositivo()]],
+    precio: ['', [Validators.required, precio()]],
   });
 
   constructor() {

@@ -7,24 +7,20 @@
         <div class="login-campo">
           <ion-item class="login-item">
             <ion-label position="stacked">Correo electrónico</ion-label>
-            <ion-input type="email" formControlName="email" autocomplete="email" (ionBlur)="onBlur('email')"></ion-input>
+            <ion-input type="email" inputmode="email" formControlName="email" autocomplete="email" aria-describedby="login-email-aviso"></ion-input>
           </ion-item>
-          @if (mensajeError('email'); as mensaje) {
-            <ion-text color="danger" class="login-error">{{ mensaje }}</ion-text>
-          }
+          <app-aviso-campo id="login-email-aviso" [control]="form.controls['email']" [mensajes]="mensajesEmail" />
         </div>
 
         <div class="login-campo">
           <ion-item class="login-item">
             <ion-label position="stacked">Contraseña</ion-label>
-            <ion-input type="password" formControlName="password" autocomplete="current-password" (ionBlur)="onBlur('password')"></ion-input>
+            <ion-input type="password" formControlName="password" autocomplete="current-password" aria-describedby="login-password-aviso"></ion-input>
           </ion-item>
-          @if (mensajeError('password'); as mensaje) {
-            <ion-text color="danger" class="login-error">{{ mensaje }}</ion-text>
-          }
+          <app-aviso-campo id="login-password-aviso" [control]="form.controls['password']" [mensajes]="mensajesPassword" />
         </div>
 
-        <ion-button expand="block" type="submit" class="login-submit" [disabled]="form.invalid || cargando">Iniciar sesión</ion-button>
+        <ion-button expand="block" type="submit" class="login-submit" [disabled]="cargando">{{ cargando ? 'Ingresando…' : 'Iniciar sesión' }}</ion-button>
       </form>
     </div>
 

@@ -29,14 +29,3 @@ export function validadorEnteroPositivo(): ValidatorFn {
     return null;
   };
 }
-
-export function validadorNumeroPositivo(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const valor = control.value;
-    if (valor === null || valor === '' || valor === undefined) return null;
-    const num = Number(valor);
-    if (!Number.isFinite(num)) return { noEsNumero: true };
-    if (num <= 0) return { noEsPositivo: true };
-    return null;
-  };
-}

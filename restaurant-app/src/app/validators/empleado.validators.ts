@@ -1,18 +1,8 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { digitoVerificadorCuil, soloLetras } from '../core/utils/formularios';
  
-const REGEX_CUIL = /^\d{2}-\d{8}-\d{1}$/;
-// Letras (con acentos/ñ) y espacios, para nombre/apellido.
-const REGEX_SOLO_TEXTO = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
 // Formato de email simple (misma exigencia que valida Supabase Auth del lado del servidor).
 const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-export function validadorCuil(): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const valor = (control.value ?? '').trim();
-    if (!valor) return null; // el "required" lo maneja otro validador
-    return REGEX_CUIL.test(valor) ? null : { formatoCuil: true };
-  };
-}
 
 /**
  * Reemplaza a Validators.email de Angular, que NO tolera espacios al
@@ -40,10 +30,7 @@ export function validadorTextoValido(minLength = 4): ValidatorFn {
     if (sinEspacios.length < minLength) {
       return { minlength: { requiredLength: minLength, actualLength: sinEspacios.length } };
     }
-    if (!REGEX_SOLO_TEXTO.test(sinEspacios)) {
-      return { soloTexto: true };
-    }
-    return null;
+    return soloLetras()(control);
   };
 }
  
@@ -83,8 +70,8 @@ export function validadorPasswordsCoinciden(campoPassword: string, campoRepetir:
 }
  
 /**
- * Calcula el dígito verificador de CUIL (algoritmo mod-11 estándar de AFIP).
- * Recibe los primeros 10 dígitos (2 de prefijo + 8 de DNI) y devuelve el CUIL completo.
+ * Arma el CUIL completo a partir del DNI, con el dígito verificador de
+ * digitoVerificadorCuil (core/utils/formularios.ts).
  * Se usa solo para SUGERIR un valor al escanear el DNI; el usuario debe poder
  * revisarlo y corregirlo, porque el prefijo (20/23/24/27/30/33/34) no siempre
  * es 100% determinable solo con el sexo.
@@ -92,37 +79,14 @@ export function validadorPasswordsCoinciden(campoPassword: string, campoRepetir:
 export function calcularCuilSugerido(dni: string, esFemenino: boolean): string | null {
   const dniLimpio = dni.replace(/\D/g, '');
   if (dniLimpio.length < 7 || dniLimpio.length > 8) return null;
- 
+
   const dniPadded = dniLimpio.padStart(8, '0');
-  const prefijo = esFemenino ? '27' : '20';
-  const base = `${prefijo}${dniPadded}`;
- 
-  const pesos = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
-  const suma = base
-    .split('')
-    .reduce((acc, digito, i) => acc + Number(digito) * pesos[i], 0);
- 
-  const resto = suma % 11;
-  let verificador = 11 - resto;
- 
-  if (verificador === 11) verificador = 0;
-  if (verificador === 10) {
-    // Caso borde: se prueba con el prefijo alternativo (23) en vez de 20/27
-    return calcularCuilConPrefijo(dniPadded, '23');
-  }
- 
-  return `${prefijo}-${dniPadded}-${verificador}`;
+  // Caso borde: si con 20/27 el verificador da 10, se prueba con el prefijo alternativo (23).
+  return calcularCuilConPrefijo(dniPadded, esFemenino ? '27' : '20') ?? calcularCuilConPrefijo(dniPadded, '23');
 }
- 
+
 function calcularCuilConPrefijo(dniPadded: string, prefijo: string): string | null {
-  const base = `${prefijo}${dniPadded}`;
-  const pesos = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
-  const suma = base
-    .split('')
-    .reduce((acc, digito, i) => acc + Number(digito) * pesos[i], 0);
-  const resto = suma % 11;
-  let verificador = 11 - resto;
-  if (verificador === 11) verificador = 0;
-  if (verificador === 10) return null; // no se pudo determinar, que lo cargue a mano
+  const verificador = digitoVerificadorCuil(`${prefijo}${dniPadded}`);
+  if (verificador === null) return null; // no se pudo determinar, que lo cargue a mano
   return `${prefijo}-${dniPadded}-${verificador}`;
 }

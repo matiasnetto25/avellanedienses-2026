@@ -1,35 +1,27 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, ElementRef, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ActionSheetButton, IonActionSheet, IonButton, IonContent, IonInput, IonItem, IonLabel, IonText } from '@ionic/angular/standalone'
+import { ActionSheetButton, IonActionSheet, IonButton, IonContent, IonInput, IonItem, IonLabel } from '@ionic/angular/standalone';
 import { MarcaHeaderComponent } from '../../../shared/components/marca-header/marca-header.component';
+import { AvisoCampoComponent } from '../../../shared/components/aviso-campo/aviso-campo.component';
 import { USUARIOS_DEMO, UsuarioDemo } from '../../../core/usuarios-demo';
 import { AvisosService } from '../../../core/services/avisos.service';
 import { Auth } from '../../../core/services/auth';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { LoadingService } from '../../../core/services/loading.service';
+import { validarFormulario } from '../../../core/utils/formularios';
 
 // Definida con el equipo
 const PASSWORD_MIN_LENGTH = 6;
 
-type CampoLogin = 'email' | 'password';
-
-// Mensajes de error
-const MENSAJES_ERROR: Record<CampoLogin, Record<string, string>> = {
-  email: {
-    required: 'Ingresá tu correo electrónico.',
-    email: 'El correo ingresado no es válido.',
-  },
-  password: {
-    required: 'Ingresá tu clave.',
-    minlength: `La clave debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres.`,
-  },
-};
+// Mensajes propios; los que no están acá salen de los default de app-aviso-campo.
+const MENSAJES_EMAIL = { required: 'Escribí tu correo electrónico.' };
+const MENSAJES_PASSWORD = { required: 'Escribí tu contraseña.' };
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, IonContent, IonItem, IonLabel, IonText, IonInput, IonButton, IonActionSheet, MarcaHeaderComponent],
+  imports: [ReactiveFormsModule, IonContent, IonItem, IonLabel, IonInput, IonButton, IonActionSheet, MarcaHeaderComponent, AvisoCampoComponent],
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
 })
@@ -40,6 +32,10 @@ export class LoginPage implements OnInit {
   private readonly auth = inject(Auth);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
+  private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  readonly mensajesEmail = MENSAJES_EMAIL;
+  readonly mensajesPassword = MENSAJES_PASSWORD;
 
   mostrarAccesoRapido = false;
   cargando = false;
@@ -71,33 +67,11 @@ export class LoginPage implements OnInit {
     this.form.patchValue({ email: usuario.email, password: usuario.password });
   }
 
-  mensajeError(campo: CampoLogin): string | null {
-    const control = this.form.get(campo);
-    if (!control || !control.touched || !control.errors) {
-      return null;
-    }
-    const tipoError = Object.keys(control.errors)[0];
-    return MENSAJES_ERROR[campo][tipoError] ?? null;
-  }
-
-  onBlur(campo: CampoLogin): void {
-    const mensaje = this.mensajeError(campo);
-    if (mensaje) {
-      this.avisos.error(mensaje);
-    }
-  }
-
   async onSubmit(): Promise<void> {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      const mensaje = this.mensajeError('email') ?? this.mensajeError('password');
-      if (mensaje) {
-        await this.avisos.error(mensaje);
-      }
+    if (this.cargando) {
       return;
     }
-
-    if (this.cargando) {
+    if (!(await validarFormulario(this.form, this.avisos, this.el.nativeElement))) {
       return;
     }
 

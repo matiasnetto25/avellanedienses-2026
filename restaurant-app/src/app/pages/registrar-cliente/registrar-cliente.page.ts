@@ -19,7 +19,7 @@ import { ClientesService } from '../../core/services/clientes.service';
 import { NotificacionesService } from '../../core/services/notificaciones.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { validadorEmailValido, validadorTextoValido } from '../../validators/empleado.validators';
-import { validadorDni } from '../../validators/cliente.validators';
+import { dni as dniValido } from '../../core/utils/formularios';
 
 type CampoTexto = 'nombre' | 'apellido' | 'dni' | 'email' | 'password';
 
@@ -102,7 +102,7 @@ export class RegistrarClientePage {
   readonly form: FormGroup = this.fb.group({
     nombre: ['', [Validators.required, validadorTextoValido(4)]],
     apellido: ['', [Validators.required, validadorTextoValido(4)]],
-    dni: ['', [Validators.required, validadorDni()]],
+    dni: ['', [Validators.required, dniValido()]],
     email: ['', [Validators.required, validadorEmailValido()]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
