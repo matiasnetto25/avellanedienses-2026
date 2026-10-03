@@ -69,9 +69,9 @@ Por cada punto funcional de la consigna o tarea específica, se creará una rama
 ![QR de Ingreso](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-entrada.jpg)
 
 ### 2. QRs de Mesas (5 Mesas Precargadas)
-| Mesa 1 (Común) | Mesa 2 (VIP) | Mesa 3 (Mov. Reducida) | Mesa 4 (Común) | Mesa 5 (VIP) |
+| Mesa 1 (Mov. Reducida) | Mesa 2 (Estándar) | Mesa 3 (Estándar) | Mesa 4 (VIP) | Mesa 5 (VIP) |
 | :---: | :---: | :---: | :---: | :---: |
-| ![Mesa 1]([https://placehold.co/120x120?text=Mesa+1](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-6a094fc0-e2ca-44a3-9b71-8484e95b0d11.png)) | ![Mesa 2]([https://placehold.co/120x120?text=Mesa+2](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-0fd66daf-f2e2-4ffc-9e9e-59831f216ed2.png)) | ![Mesa 3]([https://placehold.co/120x120?text=Mesa+3](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-f5b72354-9b2f-4dce-af1f-7ca83bae8b26.png)) | ![Mesa 4](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-6ca9bb57-80b4-40d6-8265-f58e9b21d63e.png) | ![Mesa 5]([https://placehold.co/120x120?text=Mesa+5](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-7a788f74-36f2-43fd-9cc8-86f242aeb505.png)) |
+| ![Mesa 1](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-6a094fc0-e2ca-44a3-9b71-8484e95b0d11.png) | ![Mesa 2](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-0fd66daf-f2e2-4ffc-9e9e-59831f216ed2.png) | ![Mesa 3](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-f5b72354-9b2f-4dce-af1f-7ca83bae8b26.png) | ![Mesa 4](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-6ca9bb57-80b4-40d6-8265-f58e9b21d63e.png) | ![Mesa 5](https://idojahyttgjwvgpgfywb.supabase.co/storage/v1/object/public/qr_mesa/qr-7a788f74-36f2-43fd-9cc8-86f242aeb505.png)) |
 
 ### 3. QRs de Propina (Nivel de Satisfacción)
 | Excelente (20%) | Muy Bueno (15%) | Bueno (10%) | Regular (5%) | Malo (0%) |
