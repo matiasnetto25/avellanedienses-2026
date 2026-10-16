@@ -1,9 +1,11 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button [defaultHref]="rutaInicio" text=""></ion-back-button>
-    </ion-buttons>
-    <ion-title>{{ pedidoEnEdicion() ? 'Modificar pedido' : 'Hacer pedido' }}{{ numeroMesa() ? ' · Mesa ' + numeroMesa() : '' }}</ion-title>
+    @if (!enPestana) {
+      <ion-buttons slot="start">
+        <ion-back-button [defaultHref]="rutaInicio" text=""></ion-back-button>
+      </ion-buttons>
+    }
+    <ion-title>{{ pedidoEnEdicion() ? 'Modificar pedido' : 'Menú' }}{{ numeroMesa() ? ' · Mesa ' + numeroMesa() : '' }}</ion-title>
   </ion-toolbar>
   @if (!cargando() && !errorCarga()) {
     <ion-toolbar>
@@ -36,9 +38,10 @@
     <div class="menu-lista">
       @for (producto of productosFiltrados(); track producto.id) {
         <div class="pagina-menu">
+          <!-- Con el pedido ya enviado, la tarjeta va sin botones de cantidad. -->
           <app-producto-card
             [producto]="producto"
-            [cantidad]="carrito.cantidad(producto.id)"
+            [cantidad]="pedidoEnviado() ? undefined : carrito.cantidad(producto.id)"
             (cantidadCambio)="cambiarCantidad(producto, $event)"
           ></app-producto-card>
         </div>
@@ -49,10 +52,17 @@
   }
 </ion-content>
 
-@if (!cargando() && !errorCarga()) {
+@if (!cargando() && !errorCarga() && pedidoEnviado()) {
+  <ion-footer class="pedido-footer ion-no-border" [class.pedido-footer--pestana]="enPestana">
+    <div class="pedido-barra">
+      <p class="pedido-enviado-texto">Ya enviaste tu pedido. Podés ver cómo va desde acá.</p>
+      <ion-button class="pedido-revisar" expand="block" (click)="irAlEstadoDelPedido()">Ver mi pedido</ion-button>
+    </div>
+  </ion-footer>
+} @else if (!cargando() && !errorCarga()) {
   <!-- Fija abajo aunque la carta scrollee: la consigna pide el importe
        acumulado visible en todo momento. -->
-  <ion-footer class="pedido-footer ion-no-border">
+  <ion-footer class="pedido-footer ion-no-border" [class.pedido-footer--pestana]="enPestana">
     <div class="pedido-barra">
       <!-- Consigna punto 12: el importe acumulado y el tiempo estimado, siempre visibles y en grande. -->
       <div class="tablero-pedido" role="status" aria-live="polite">

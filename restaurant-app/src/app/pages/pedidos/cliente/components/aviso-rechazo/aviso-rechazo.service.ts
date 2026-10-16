@@ -94,9 +94,7 @@ export class AvisoRechazoService {
 
       const { role } = await modal.onDidDismiss();
       if (role === ROL_MODIFICAR_PEDIDO) {
-        await this.router.navigate(['/mesa', pedido.mesaId, 'pedido'], {
-          queryParams: { mesa: pedido.numeroMesa },
-        });
+        await this.router.navigate(['/cliente/menu']);
       }
     } catch (error) {
       console.error('Error mostrando el aviso de pedido rechazado:', error);

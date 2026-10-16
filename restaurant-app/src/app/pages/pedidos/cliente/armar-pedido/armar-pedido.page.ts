@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal, untracked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonContent,
@@ -30,6 +30,7 @@ import { ClienteActualService } from '../../../../core/services/cliente-actual.s
 import { CarritoService } from '../../../../core/services/carrito.service';
 import { PedidosService } from '../../../../core/services/pedidos.service';
 import { NotificacionesService } from '../../../../core/services/notificaciones.service';
+import { EtapaClienteService } from '../../../../core/services/etapa-cliente.service';
 
 @Component({
   selector: 'app-armar-pedido',
@@ -68,16 +69,29 @@ export class ArmarPedidoPage implements OnInit {
   private readonly notificaciones = inject(NotificacionesService);
   protected readonly carrito = inject(CarritoService);
 
-  readonly idMesa = this.route.snapshot.paramMap.get('idMesa') ?? '';
-  readonly rutaMesa = `/mesa/${this.idMesa}`;
+  private readonly etapaCliente = inject(EtapaClienteService);
+
   readonly rutaInicio = '/cliente/inicio';
+  /** Es la pestaña Menú del cliente: sin flecha de volver. */
+  readonly enPestana = !!this.route.snapshot.data['enPestana'];
+
+  /** La estadía del cliente: de ahí salen la mesa y el pedido en curso. */
+  private readonly estadia = computed(() => {
+    const etapa = this.etapaCliente.etapa();
+    return etapa?.tipo === 'estadia' ? etapa : null;
+  });
+
+  /** Para el título y el resumen; null mientras se resuelve la etapa. */
+  readonly numeroMesa = computed(() => this.estadia()?.solicitud.numero_mesa ?? null);
 
   /**
-   * Número de mesa que llega por query param desde /mesa/:idMesa
-   * (/mesa/:idMesa/pedido?mesa=5). Es solo informativo, para el título y
-   * el resumen; null si se abrió desde otro lado.
+   * Pedido ya enviado (por confirmar o confirmado): con un pedido por
+   * estadía, la carta queda de solo lectura hasta que el mozo lo rechace.
    */
-  readonly numeroMesa = signal<number | null>(this.leerNumeroMesa());
+  readonly pedidoEnviado = computed(() => {
+    const pedido = this.estadia()?.pedido;
+    return !!pedido && pedido.estado !== 'rechazado' && !this.enviando();
+  });
 
   readonly cargando = signal(true);
   readonly errorCarga = signal(false);
@@ -99,6 +113,14 @@ export class ArmarPedidoPage implements OnInit {
 
   constructor() {
     addIcons({ restaurantOutline, wineOutline, iceCreamOutline, timeOutline });
+
+    // La pestaña queda viva entre visitas: si el mozo rechaza el pedido
+    // después de cargarla, se precarga el carrito para corregirlo.
+    effect(() => {
+      const rechazado = this.estadia()?.pedido?.estado === 'rechazado';
+      if (!rechazado || this.cargando() || this.errorCarga() || this.pedidoEnEdicion()) return;
+      untracked(() => void this.retomarPedidoRechazado());
+    });
   }
 
   async ngOnInit(): Promise<void> {
@@ -107,6 +129,7 @@ export class ArmarPedidoPage implements OnInit {
       const [productos, pedidoRechazado] = await Promise.all([
         this.menuItems.listarActivos(),
         this.buscarPedidoRechazado(),
+        this.etapaCliente.iniciar(),
       ]);
       if (!productos) {
         this.errorCarga.set(true);
@@ -138,6 +161,19 @@ export class ArmarPedidoPage implements OnInit {
     return resultado.ok && resultado.dato?.estado === 'rechazado' ? resultado.dato : null;
   }
 
+  private retomando = false;
+
+  private async retomarPedidoRechazado(): Promise<void> {
+    if (this.retomando) return;
+    this.retomando = true;
+    try {
+      const pedido = await this.buscarPedidoRechazado();
+      if (pedido && !this.pedidoEnEdicion()) await this.editarPedidoRechazado(pedido, this.productos());
+    } finally {
+      this.retomando = false;
+    }
+  }
+
   /** Precarga el carrito con el pedido rechazado y avisa lo que no se pudo cargar. */
   private async editarPedidoRechazado(pedido: Pedido, productos: Producto[]): Promise<void> {
     this.pedidoEnEdicion.set(pedido);
@@ -153,11 +189,6 @@ export class ArmarPedidoPage implements OnInit {
         4000
       );
     }
-  }
-
-  private leerNumeroMesa(): number | null {
-    const valor = Number(this.route.snapshot.queryParamMap.get('mesa'));
-    return Number.isInteger(valor) && valor > 0 ? valor : null;
   }
 
   onCambioCategoria(event: CustomEvent): void {
@@ -273,11 +304,15 @@ export class ArmarPedidoPage implements OnInit {
     this.resumenAbierto.set(false);
   }
 
-  /** replaceUrl: el botón atrás no vuelve a la carta del pedido ya enviado. */
-  private irAlEstadoDelPedido(): void {
-    this.router.navigate([this.rutaMesa, 'estado-pedido'], {
-      replaceUrl: true,
-      queryParamsHandling: 'preserve',
+  /** Al volver, la pestaña Menú ya muestra el pedido como enviado (solo lectura). */
+  irAlEstadoDelPedido(): void {
+    const estadia = this.estadia();
+    if (!estadia) {
+      this.router.navigate([this.rutaInicio]);
+      return;
+    }
+    this.router.navigate(['/mesa', estadia.solicitud.mesa_id, 'estado-pedido'], {
+      queryParams: { mesa: estadia.solicitud.numero_mesa },
     });
   }
 

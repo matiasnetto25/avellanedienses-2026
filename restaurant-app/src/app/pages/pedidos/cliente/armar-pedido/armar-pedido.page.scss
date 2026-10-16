@@ -49,6 +49,20 @@
   background: var(--brand-background);
 }
 
+// En la pestaña, la barra de pestañas ya cubre la franja de gestos: sin esto
+// queda un hueco entre el botón y la barra.
+.pedido-footer--pestana {
+  padding-bottom: 0;
+
+  &::after {
+    display: none;
+  }
+
+  .pedido-barra {
+    padding-bottom: 6px;
+  }
+}
+
 .pedido-barra {
   display: flex;
   flex-direction: column;
@@ -138,6 +152,14 @@
   .tablero-valor {
     animation: none;
   }
+}
+
+.pedido-enviado-texto {
+  margin: 0;
+  text-align: center;
+  font-family: var(--brand-font-subtitle);
+  font-size: 0.95rem;
+  color: var(--brand-text);
 }
 
 .pedido-revisar {

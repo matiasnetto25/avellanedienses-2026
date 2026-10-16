@@ -120,13 +120,9 @@ export class InicioClientePage implements OnInit {
     this.router.navigate(['/cliente-anonimo/escaneo-mesa']);
   }
 
-  // Hasta el menú unificado (issue 14), se pide desde armar-pedido.
+  /** La pestaña Menú es la misma carta con la que se pide. */
   irAlMenu(): void {
-    const etapa = this.etapa();
-    if (etapa?.tipo !== 'estadia') return;
-    this.router.navigate(['/mesa', etapa.solicitud.mesa_id, 'pedido'], {
-      queryParams: { mesa: etapa.solicitud.numero_mesa },
-    });
+    if (this.etapa()?.tipo === 'estadia') this.router.navigate(['/cliente/menu']);
   }
 
   verPedido(): void {

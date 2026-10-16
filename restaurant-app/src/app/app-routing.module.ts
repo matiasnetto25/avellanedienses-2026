@@ -173,10 +173,11 @@ const routes: Routes = [
       },
       {
         path: 'menu',
-        // Sin mesa asignada y escaneada, el cliente no ve el menú.
+        // Sin mesa asignada y escaneada, el cliente no ve el menú. Con la
+        // mesa vinculada es la misma carta con la que pide.
         canActivate: [menuGuard],
         data: { enPestana: true },
-        loadComponent: () => import('./pages/menu/menu.component').then(m => m.MenuComponent)
+        loadComponent: () => import('./pages/pedidos/cliente/armar-pedido/armar-pedido.page').then(m => m.ArmarPedidoPage)
       },
       {
         path: 'consultas',
@@ -233,12 +234,11 @@ const routes: Routes = [
     loadComponent: () => import('./pages/mesa/mesa.page').then(m => m.MesaPage)
   },
   {
+    // Hay un solo menú: se pide desde la pestaña Menú del cliente, que
+    // valida la estadía con menuGuard.
     path: 'mesa/:idMesa/pedido',
-    // Solo el cliente (anónimo o registrado) vinculado a ESTA mesa. El
-    // guard no mira la sesión de Auth: al anónimo lo identifica por el id
-    // del dispositivo. Si no pasa, lo manda a /mesa/:idMesa.
-    canActivate: [estadiaEnMesaGuard],
-    loadComponent: () => import('./pages/pedidos/cliente/armar-pedido/armar-pedido.page').then(m => m.ArmarPedidoPage)
+    redirectTo: '/cliente/menu',
+    pathMatch: 'full'
   },
   {
     path: 'mesa/:idMesa/estado-pedido',
