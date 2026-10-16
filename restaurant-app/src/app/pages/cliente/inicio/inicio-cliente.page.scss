@@ -15,6 +15,73 @@
   }
 }
 
+.pantalla {
+  display: flex;
+  flex-direction: column;
+  min-height: var(--altura-disponible, 100%);
+}
+
+/* En espera / mesa asignada: la tarjeta ocupa lo que queda de la pantalla, con el
+   contenido centrado, para que no sobre un vacío debajo. */
+.etapa--centrada {
+  flex: 1;
+}
+
+.tarjeta-estado.tarjeta-estado--grande {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  /* Mismo recuadro suave de los estados vacíos (metre, mozo, dueño). */
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio-lg);
+  background: color-mix(in srgb, var(--color-texto) 5%, transparent);
+  box-shadow: none;
+  text-align: center;
+
+  .arriba {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--espacio-4);
+    width: 100%;
+  }
+
+  .icono {
+    width: 128px;
+    height: 128px;
+    background: color-mix(in srgb, var(--color-texto) 10%, transparent);
+    color: var(--color-texto-terciario);
+
+    ion-icon {
+      font-size: 64px;
+    }
+  }
+
+  .texto {
+    align-items: center;
+    width: 100%;
+    gap: var(--espacio-2);
+  }
+
+  .titulo {
+    margin-top: var(--espacio-1);
+    color: var(--color-texto);
+  }
+
+  .posicion {
+    width: 100%;
+    max-width: 320px;
+    box-sizing: border-box;
+    margin-top: var(--espacio-4);
+    background: color-mix(in srgb, var(--color-texto) 8%, transparent);
+    color: var(--color-texto-secundario);
+  }
+
+  .posicion-numero {
+    color: var(--color-texto);
+  }
+}
+
 .tarjeta-estado {
   --tono: var(--color-accion-secundaria);
   --tono-suave: var(--color-superficie-hundida);
@@ -65,6 +132,25 @@
 .frase {
   margin: 0;
   color: var(--color-texto-secundario);
+}
+
+.posicion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin: var(--espacio-3) 0 0;
+  padding: var(--espacio-2) var(--espacio-3);
+  border-radius: var(--radio-md);
+  background: var(--color-espera-suave);
+  color: var(--color-espera);
+  font-weight: var(--peso-medio);
+}
+
+.posicion-numero {
+  font-family: var(--fuente-titulo);
+  font-size: var(--texto-titulo, 1.5rem);
+  font-weight: var(--peso-fuerte);
 }
 
 .aviso-rechazo {

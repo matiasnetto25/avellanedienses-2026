@@ -4,10 +4,14 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="conv-content">
+<ion-content class="conv-content" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
   @if (!cargando()) {
     @if (conversaciones().length === 0) {
-      <p class="conv-vacio">No hay mesas con clientes en este momento.</p>
+      <app-estado-vacio
+        [recuadro]="true"
+        icono="chatbubbles-outline"
+        titulo="No hay mesas con clientes"
+        frase="Cuando haya clientes en las mesas, sus consultas van a aparecer acá." />
     } @else {
       <ion-list class="conv-lista" lines="full">
         @for (c of conversaciones(); track c.solicitud_id) {

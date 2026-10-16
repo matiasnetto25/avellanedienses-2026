@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { Preferences } from '@capacitor/preferences';
 import {
   PushNotifications,
@@ -14,8 +15,11 @@ import { ClientesService } from './clientes.service';
 import { Puesto } from '../models/empleado.model';
 import { MensajeMesa } from '../models/consulta.model';
 import { SectorItem } from '../models/pedido.model';
+import { formatearMinutos } from '../utils/minutos';
 
 const CLAVE_CLIENTE_ANONIMO_ID = 'merlot_cliente_anonimo_id';
+/** Canal de Android con importancia máxima: hace que el aviso salte arriba como banner. */
+const CANAL_AVISOS = 'merlot-avisos';
 /** Largo máximo del texto del chat que se muestra en la push. */
 const MAX_CARACTERES_EXTRACTO = 80;
 
@@ -74,6 +78,7 @@ export class NotificacionesService {
       }
 
       await PushNotifications.register();
+      await this.prepararAvisosDelSistema();
 
       // Se dispara UNA sola vez, cuando el SO nos da el token del
       // dispositivo — normalmente antes de que exista sesión todavía.
@@ -87,17 +92,24 @@ export class NotificacionesService {
       });
 
       // APP ABIERTA (foreground): el sistema operativo NO muestra la
-      // notificación solo — hay que mostrarla nosotros manualmente.
-      // Se muestra como un aviso de info (toast arriba, tono En curso).
+      // notificación solo — hay que mostrarla nosotros manualmente. Se
+      // muestra solo la notificación del sistema (banner arriba, queda en la
+      // bandeja). El aviso azul dentro de la app queda como respaldo: solo
+      // aparece si no se pudo mostrar la del sistema (por ejemplo, sin permiso).
       PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
         // Si ya está en la pantalla a la que apunta la push (por ejemplo,
         // el chat de esa mesa), el cambio llega por Realtime: no se repite.
         // Sin los query params: «Estado de mi pedido» se abre con ?mesa=N y
-        // la ruta de la push no los lleva.
+        // la ruta de la push no los lleva. Las push con data.siempre='1'
+        // (altas, ediciones y bajas del panel) se muestran igual: quien las
+        // provocó suele estar parado justo en esa pantalla.
         const ruta = notification.data?.['ruta'] as string | undefined;
-        if (ruta && this.router.url.split('?')[0] === ruta) return;
+        if (ruta && notification.data?.['siempre'] !== '1' && this.router.url.split('?')[0] === ruta) return;
 
-        this.mostrarToastPush(notification.title ?? notification.body ?? 'Tenés una notificación nueva.');
+        const texto = [notification.title, notification.body].filter(Boolean).join(': ');
+        void this.mostrarNotificacionDelSistema(notification.title, notification.body, ruta).then((mostrada) => {
+          if (!mostrada) void this.mostrarToastPush(texto || 'Tenés una notificación nueva.', ruta);
+        });
       });
 
       // APP CERRADA o en segundo plano: el usuario tocó la notificación
@@ -113,8 +125,63 @@ export class NotificacionesService {
     }
   }
 
-  private async mostrarToastPush(mensaje: string): Promise<void> {
-    await this.avisos.info(mensaje, 3000);
+  /**
+   * Deja listo lo necesario para mostrar notificaciones del sistema con la
+   * app abierta: permiso, canal de máxima importancia y el toque sobre la
+   * notificación (lleva a la ruta de la push). Si falla, la push sigue
+   * funcionando igual: queda el aviso dentro de la app.
+   */
+  private async prepararAvisosDelSistema(): Promise<void> {
+    try {
+      let permiso = await LocalNotifications.checkPermissions();
+      if (permiso.display === 'prompt') {
+        permiso = await LocalNotifications.requestPermissions();
+      }
+      if (permiso.display !== 'granted') return;
+
+      await LocalNotifications.createChannel({
+        id: CANAL_AVISOS,
+        name: 'Avisos de Merlot',
+        description: 'Mesas, pedidos y consultas',
+        importance: 5,
+        visibility: 1,
+        vibration: true,
+      });
+
+      await LocalNotifications.addListener('localNotificationActionPerformed', (accion) => {
+        const ruta = accion.notification.extra?.['ruta'] as string | undefined;
+        if (ruta) void this.router.navigateByUrl(ruta);
+      });
+    } catch (error) {
+      console.warn('No se pudieron preparar las notificaciones del sistema:', error);
+    }
+  }
+
+  /** La misma push, como notificación del sistema (banner arriba y en la bandeja), con la app abierta. */
+  private async mostrarNotificacionDelSistema(titulo?: string, cuerpo?: string, ruta?: string): Promise<boolean> {
+    try {
+      const permiso = await LocalNotifications.checkPermissions();
+      if (permiso.display !== 'granted') return false;
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: Date.now() % 2147483647,
+            title: titulo || 'Merlot',
+            body: cuerpo || 'Tenés una notificación nueva.',
+            channelId: CANAL_AVISOS,
+            extra: ruta ? { ruta } : {},
+          },
+        ],
+      });
+      return true;
+    } catch (error) {
+      console.warn('No se pudo mostrar la notificación del sistema:', error);
+      return false;
+    }
+  }
+
+  private async mostrarToastPush(mensaje: string, ruta?: string): Promise<void> {
+    await this.avisos.push(mensaje, ruta);
   }
 
   /**
@@ -250,7 +317,41 @@ export class NotificacionesService {
       'Nuevo empleado creado',
       `${nombre} ${apellido} fue dado de alta como ${puesto}.`,
       ['dueño', 'supervisor'],
-      '/administracion/personal'
+      '/administracion/personal',
+      true
+    );
+  }
+
+  /** Modificación de un empleado → dueño y supervisor. */
+  avisarEmpleadoActualizado(nombre: string, apellido: string): void {
+    this.notificarEmpleados(
+      'Empleado actualizado',
+      `Se modificaron los datos de ${nombre} ${apellido}.`,
+      ['dueño', 'supervisor'],
+      '/administracion/personal',
+      true
+    );
+  }
+
+  /** Baja de un empleado → dueño y supervisor. */
+  avisarEmpleadoEliminado(nombre: string, apellido: string): void {
+    this.notificarEmpleados(
+      'Empleado eliminado',
+      `${nombre} ${apellido} fue eliminado del personal.`,
+      ['dueño', 'supervisor'],
+      '/administracion/personal',
+      true
+    );
+  }
+
+  /** Alta de mesa → dueño y supervisor. */
+  avisarMesaCreada(numeroMesa: number): void {
+    this.notificarEmpleados(
+      'Mesa creada',
+      `Se creó la Mesa ${numeroMesa}.`,
+      ['dueño', 'supervisor'],
+      '/administracion/salon',
+      true
     );
   }
 
@@ -260,7 +361,41 @@ export class NotificacionesService {
       'Mesa actualizada',
       `Se modificó la Mesa ${numeroMesa}.`,
       ['dueño', 'supervisor'],
-      '/administracion/salon'
+      '/administracion/salon',
+      true
+    );
+  }
+
+  /** Alta de un plato o bebida (cocinero/cantinero) → dueño, supervisor y el sector que lo crea. */
+  avisarProductoCreado(nombre: string, esBebida: boolean): void {
+    this.notificarEmpleados(
+      esBebida ? 'Bebida creada' : 'Plato creado',
+      `Se agregó "${nombre}" a la carta.`,
+      ['dueño', 'supervisor', esBebida ? 'cantinero' : 'cocinero'],
+      undefined,
+      true
+    );
+  }
+
+  /** Edición de un plato o bebida (cocinero/cantinero) → dueño y supervisor. */
+  avisarProductoActualizado(nombre: string, esBebida: boolean): void {
+    this.notificarEmpleados(
+      esBebida ? 'Bebida actualizada' : 'Plato actualizado',
+      `Se modificó "${nombre}" de la carta.`,
+      ['dueño', 'supervisor', esBebida ? 'cantinero' : 'cocinero'],
+      undefined,
+      true
+    );
+  }
+
+  /** Baja de un plato o bebida (cocinero/cantinero) → dueño y supervisor. */
+  avisarProductoEliminado(nombre: string, esBebida: boolean): void {
+    this.notificarEmpleados(
+      esBebida ? 'Bebida eliminada' : 'Plato eliminado',
+      `Se eliminó "${nombre}" de la carta.`,
+      ['dueño', 'supervisor', esBebida ? 'cantinero' : 'cocinero'],
+      undefined,
+      true
     );
   }
 
@@ -270,33 +405,35 @@ export class NotificacionesService {
       'Mesa eliminada',
       `Se eliminó la Mesa ${numeroMesa}.`,
       ['dueño', 'supervisor'],
-      '/administracion/salon'
+      '/administracion/salon',
+      true
     );
   }
 
-  /** Aprobación o rechazo de un cliente registrado → dueño, supervisor y metre. */
+  /** Aprobación o rechazo de un cliente registrado → dueño y supervisor. */
   avisarClienteRevisado(nombre: string, apellido: string | null, aprobado: boolean): void {
     const nombreCompleto = `${nombre} ${apellido ?? ''}`.trim();
     this.notificarEmpleados(
       aprobado ? 'Cliente aprobado' : 'Cliente rechazado',
       `${nombreCompleto} fue ${aprobado ? 'aceptado' : 'rechazado'}.`,
-      ['dueño', 'supervisor', 'metre'],
-      '/administracion/personal?vista=clientes'
+      ['dueño', 'supervisor'],
+      '/administracion/ahora',
+      true
     );
   }
 
   /**
-   * Cliente que se registra → dueño y supervisor. Si lo registró el
-   * metre, también le llega a él como confirmación. Al cliente no se le
+   * Cliente que se registra → dueño y supervisor. Al cliente no se le
    * puede avisar por push: todavía no tiene sesión en ningún dispositivo
    * (se entera por email cuando se aprueba o rechaza su cuenta).
    */
-  avisarNuevoClientePendiente(nombre: string, apellido: string, desdeMetre: boolean): void {
+  avisarNuevoClientePendiente(nombre: string, apellido: string, _desdeMetre = false): void {
     this.notificarEmpleados(
       'Nuevo cliente pendiente',
       `${nombre} ${apellido} se registró y está pendiente de aprobación.`,
-      desdeMetre ? ['dueño', 'supervisor', 'metre'] : ['dueño', 'supervisor'],
-      '/administracion/ahora'
+      ['dueño', 'supervisor'],
+      '/administracion/ahora',
+      true
     );
   }
 
@@ -310,13 +447,36 @@ export class NotificacionesService {
     );
   }
 
-  /** Cliente anónimo que pide una mesa → metre. */
-  avisarClienteEnListaEspera(numeroMesa: number): void {
+  /** El cliente escaneó el QR de ingreso y espera que le asignen mesa → metre. */
+  avisarClienteEnListaEspera(nombre: string): void {
     this.notificarEmpleados(
       'Cliente en lista de espera',
-      `Cliente no registrado solicitó la Mesa ${numeroMesa}.`,
+      `${nombre} escaneó el QR de ingreso y espera una mesa.`,
       ['metre'],
-      '/metre/lista-espera'
+      '/metre/lista-espera',
+      true
+    );
+  }
+
+  /** El cliente escaneó el QR de su mesa y quedó vinculado → metre. */
+  avisarClienteVinculado(nombre: string, numeroMesa: number): void {
+    this.notificarEmpleados(
+      'Cliente vinculado a su mesa',
+      `${nombre} escaneó el QR y ya está en la Mesa ${numeroMesa}.`,
+      ['metre'],
+      '/metre/lista-espera',
+      true
+    );
+  }
+
+  /** El cliente escaneó bien el QR de su mesa → el mismo cliente. */
+  avisarMesaVinculadaCliente(clienteId: string, numeroMesa: number): void {
+    this.notificarCliente(
+      'Mesa confirmada',
+      `Escaneaste correctamente la Mesa ${numeroMesa}. Ya podés ver el menú.`,
+      clienteId,
+      '/cliente/inicio',
+      true
     );
   }
 
@@ -341,11 +501,11 @@ export class NotificacionesService {
     );
   }
 
-  /** El metre acepta la solicitud de mesa → cliente. */
-  avisarMesaAsignada(clienteId: string): void {
+  /** El metre le asigna una mesa → cliente. */
+  avisarMesaAsignada(clienteId: string, numeroMesa: number): void {
     this.notificarCliente(
       'Mesa asignada',
-      'Tu solicitud fue aceptada. Ya tenés una mesa asignada.',
+      `Tu mesa es la Mesa ${numeroMesa}. Acercate y escaneá el QR que está sobre la mesa.`,
       clienteId,
       '/cliente/inicio'
     );
@@ -355,9 +515,9 @@ export class NotificacionesService {
   avisarSolicitudRechazada(clienteId: string): void {
     this.notificarCliente(
       'Solicitud rechazada',
-      'Tu solicitud de mesa fue rechazada.',
+      'El maître no pudo asignarte una mesa. Podés volver a anotarte.',
       clienteId,
-      '/cliente-anonimo/ver-mesas'
+      '/cliente/inicio'
     );
   }
 
@@ -440,10 +600,10 @@ export class NotificacionesService {
     );
   }
 
-  /** «3 productos · Total $26.000 · ~25 min», para las push de pedidos. */
+  /** «3 productos · Total $26.000 · ~25 minutos», para las push de pedidos. */
   private resumenPedido(cantidadProductos: number, total: number, tiempoEstimadoMin: number): string {
     const productos = `${cantidadProductos} ${cantidadProductos === 1 ? 'producto' : 'productos'}`;
-    return `${productos} · Total $${total.toLocaleString('es-AR')} · ~${tiempoEstimadoMin} min`;
+    return `${productos} · Total $${total.toLocaleString('es-AR')} · ~${formatearMinutos(tiempoEstimadoMin)}`;
   }
 
   /** Recorta un texto (del chat o el motivo de un rechazo) para que entre en la notificación. */
@@ -465,7 +625,8 @@ export class NotificacionesService {
     titulo: string,
     cuerpo: string,
     puestos: readonly Puesto[],
-    ruta?: string
+    ruta?: string,
+    mostrarSiempre = false
   ): Promise<void> {
     try {
       await this.supabase.client.functions.invoke('enviar-notificacion', {
@@ -473,7 +634,7 @@ export class NotificacionesService {
           titulo,
           mensaje: cuerpo,
           puestos,
-          data: ruta ? { ruta } : {},
+          data: { ...(ruta ? { ruta } : {}), ...(mostrarSiempre ? { siempre: '1' } : {}) },
         },
       });
     } catch (error) {
@@ -485,14 +646,20 @@ export class NotificacionesService {
    * Igual que notificarEmpleados, pero apunta a UN cliente puntual (por
    * su id en la tabla "clientes") en vez de a un conjunto de puestos.
    */
-  private async notificarCliente(titulo: string, cuerpo: string, clienteId: string, ruta?: string): Promise<void> {
+  private async notificarCliente(
+    titulo: string,
+    cuerpo: string,
+    clienteId: string,
+    ruta?: string,
+    mostrarSiempre = false
+  ): Promise<void> {
     try {
       await this.supabase.client.functions.invoke('enviar-notificacion', {
         body: {
           titulo,
           mensaje: cuerpo,
           clienteId,
-          data: ruta ? { ruta } : {},
+          data: { ...(ruta ? { ruta } : {}), ...(mostrarSiempre ? { siempre: '1' } : {}) },
         },
       });
     } catch (error) {

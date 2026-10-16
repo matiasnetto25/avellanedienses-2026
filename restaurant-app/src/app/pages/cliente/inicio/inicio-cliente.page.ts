@@ -16,6 +16,7 @@ import { EtapaClienteService } from '../../../core/services/etapa-cliente.servic
 import { LoadingService } from '../../../core/services/loading.service';
 import { PerfilActual, PerfilActualService } from '../../../core/services/perfil-actual.service';
 import { estadoSolicitudMesa } from '../../../core/utils/estado-visual';
+import { AlturaDisponibleDirective } from '../../../shared/directives/altura-disponible.directive';
 import { BarraAccionesComponent } from '../../../shared/components/barra-acciones/barra-acciones.component';
 import { ChipEstadoComponent } from '../../../shared/components/chip-estado/chip-estado.component';
 import { EncabezadoPerfilComponent } from '../../../shared/components/encabezado-perfil/encabezado-perfil.component';
@@ -33,6 +34,7 @@ type AccionPrincipal = 'escanear-entrada' | 'escanear-mesa' | 'ver-menu';
     IonFooter,
     IonButton,
     IonIcon,
+    AlturaDisponibleDirective,
     BarraAccionesComponent,
     ChipEstadoComponent,
     EncabezadoPerfilComponent,

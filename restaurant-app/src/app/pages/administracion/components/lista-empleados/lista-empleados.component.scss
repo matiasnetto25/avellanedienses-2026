@@ -1,0 +1,192 @@
+/* Misma estructura que gestion-mesas.page.scss: una tarjeta por «página». */
+:host {
+  display: block;
+}
+
+.pagina-empleados {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 16px 16px 16px;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  /* Alto EXACTO medido con JS (appAlturaDisponible): lo que sobra se recorta
+     en vez de «asomar» la próxima página. */
+  height: var(--altura-disponible, auto);
+  overflow: hidden;
+}
+
+.empleado-card {
+  margin: 0;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--brand-text) 15%, transparent);
+  background: var(--brand-background);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+ion-button {
+  --border-radius: 12px;
+  font-family: var(--brand-font-subtitle);
+  text-transform: none;
+  font-weight: 500;
+}
+
+.empleado-imagen-viewport {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 40px;
+  overflow: hidden;
+  border-radius: 16px 16px 0 0;
+  background: color-mix(in srgb, var(--brand-text) 6%, transparent);
+}
+
+.empleado-imagen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.empleado-sin-foto {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  opacity: 0.5;
+  font-size: 0.85rem;
+}
+
+.empleado-info {
+  padding: 14px 16px 16px;
+  flex-shrink: 0;
+}
+
+.empleado-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.empleado-nombre {
+  font-family: var(--brand-font-logo);
+  color: var(--brand-text);
+  font-size: 1.05rem;
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.empleado-puesto-badge {
+  --background: color-mix(in srgb, var(--brand-accent) 15%, transparent);
+  --color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+
+.empleado-dato {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  opacity: 0.85;
+  font-size: 0.88rem;
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.empleado-nota {
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  opacity: 0.65;
+  font-size: 0.8rem;
+  margin: 8px 0 0;
+}
+
+.empleado-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ----------------------------- edición ----------------------------- */
+
+.empleado-form-edicion {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.empleado-foto-edicion {
+  position: relative;
+  /* Más grande para aprovechar el alto de la tarjeta; en pantallas bajas se achica. */
+  width: clamp(120px, 33vh, 250px);
+  height: clamp(120px, 33vh, 250px);
+  flex-shrink: 0;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--brand-text) 6%, transparent);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.empleado-boton-foto {
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+
+.empleado-campo {
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.empleado-item {
+  --background: transparent;
+  --border-color: color-mix(in srgb, var(--brand-text) 25%, transparent);
+}
+
+.empleado-error {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+.empleado-acciones-edicion {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.empleados-vacio {
+  text-align: center;
+  font-family: var(--brand-font-subtitle);
+  color: var(--brand-text);
+  opacity: 0.7;
+  padding: 32px 16px;
+}
+
+/* Mientras se edita una tarjeta, las demás se ocultan: no hay nada más a donde scrollear. */
+.pagina-oculta {
+  display: none;
+}

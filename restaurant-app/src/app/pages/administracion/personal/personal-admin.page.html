@@ -5,40 +5,19 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="densidad-compacta" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
-  <div class="pantalla">
-    <ion-segment class="selector" [value]="vista()" (ionChange)="cambiarVista($event.detail.value)">
-      <ion-segment-button value="empleados">
-        <ion-label>Empleados</ion-label>
-      </ion-segment-button>
-      <ion-segment-button value="clientes">
-        <ion-label>Clientes<span class="num">{{ cantidadClientes() > 0 ? ' (' + cantidadClientes() + ')' : '' }}</span></ion-label>
-      </ion-segment-button>
-    </ion-segment>
-
-    @if (vista() === 'empleados') {
-      <app-estado-vacio
-        icono="id-card-outline"
-        titulo="Sumá a tu equipo"
-        frase="Cada empleado que des de alta va a poder ingresar con su correo y contraseña." />
-    } @else if (clientesCargados()) {
-      @if (clientes().length === 0) {
-        <app-estado-vacio
-          icono="person-add-outline"
-          titulo="No hay clientes pendientes de aprobación"
-          frase="Cuando alguien se registre, va a aparecer acá." />
-      } @else {
-        <div class="filas">
-          @for (cliente of clientes(); track cliente.id) {
-            <app-fila-cliente-pendiente [cliente]="cliente" />
-          }
-        </div>
-      }
-    }
-  </div>
+<!-- Una tarjeta por página que ocupa TODO el alto visible (el relleno de 16 px ya
+     viene dentro de cada página y el botón está en el footer, fuera del contenido),
+     por eso no se descuenta nada: cualquier margen deja asomar la tarjeta siguiente. -->
+<ion-content
+  class="densidad-compacta modo-empleados"
+  appAlturaDisponible
+  [margenAltura]="0"
+  [descontarBarraGestos]="false">
+  <app-lista-empleados (editando)="editandoEmpleado.set($event)" />
 </ion-content>
 
-@if (vista() === 'empleados') {
+<!-- Mientras se edita un empleado no se ofrece dar de alta otro: la tarjeta ocupa todo el alto. -->
+@if (!editandoEmpleado()) {
   <ion-footer class="ion-no-border">
     <app-barra-acciones>
       <ion-button class="accion-principal" expand="block" (click)="darDeAlta()">Dar de alta</ion-button>

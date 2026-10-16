@@ -11,12 +11,13 @@ import { LoadingService } from '../../../../../core/services/loading.service';
 import { NotificacionesService } from '../../../../../core/services/notificaciones.service';
 import { estadoPedido } from '../../../../../core/utils/estado-visual';
 import { relojPorMinuto, tiempoRelativo } from '../../../../../core/utils/tiempo-relativo';
+import { MinutosPipe } from '../../../../../shared/pipes/minutos.pipe';
 
 /** Fila compacta de un pedido por confirmar, con Confirmar y Rechazar. La usan Ahora y Pedidos del mozo. */
 @Component({
   selector: 'app-fila-pedido',
   standalone: true,
-  imports: [DecimalPipe, IonButton, IonModal, ChipEstadoComponent, MotivoRechazoComponent],
+  imports: [DecimalPipe, MinutosPipe, IonButton, IonModal, ChipEstadoComponent, MotivoRechazoComponent],
   templateUrl: './fila-pedido.component.html',
   styleUrls: ['./fila-pedido.component.scss'],
 })

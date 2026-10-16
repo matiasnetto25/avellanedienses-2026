@@ -1,5 +1,6 @@
-<ion-tabs (ionTabsDidChange)="activa.set($event.tab)">
-  <ion-tab-bar slot="bottom">
+<ion-tabs [class.sin-barra]="pestanas().length <= 1" (ionTabsDidChange)="activa.set($event.tab)">
+  <!-- Con una sola pestaña (cliente sin mesa vinculada) la barra no aporta: se oculta. -->
+  <ion-tab-bar slot="bottom" [style.display]="pestanas().length > 1 ? null : 'none'">
     @for (p of pestanas(); track p.ruta) {
       <ion-tab-button [tab]="p.ruta">
         <span class="pestana-icono">

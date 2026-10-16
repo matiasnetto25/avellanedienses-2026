@@ -1,22 +1,19 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
+  IonBackButton,
+  IonButton,
+  IonButtons,
   IonContent,
+  IonFooter,
   IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonItem,
-  IonLabel,
+  IonIcon,
   IonInput,
-  IonTextarea,
   IonSelect,
   IonSelectOption,
-  IonButton,
-  IonIcon,
-  IonText,
-  IonBackButton,
-  IonButtons,
+  IonTextarea,
+  IonTitle,
+  IonToolbar,
   NavController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -25,23 +22,25 @@ import { Auth } from '../../core/services/auth';
 import { AvisosService } from '../../core/services/avisos.service';
 import { CamaraService } from '../../core/services/camara.service';
 import { MenuItemsService } from '../../core/services/menu-items.service';
+import { NotificacionesService } from '../../core/services/notificaciones.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { TIPOS_COCINERO, TipoMenuItem } from '../../core/models/menu-item.model';
 import {
   validadorEnteroPositivo,
   validadorTextoNoVacio,
 } from '../../validators/menu-item.validators';
-import { precio } from '../../core/utils/formularios';
+import { precio, validarFormulario } from '../../core/utils/formularios';
+import { AlturaDisponibleDirective } from '../../shared/directives/altura-disponible.directive';
+import { AvisoCampoComponent } from '../../shared/components/aviso-campo/aviso-campo.component';
+import { BarraAccionesComponent } from '../../shared/components/barra-acciones/barra-acciones.component';
 
 type CampoFoto = 'principal' | 'cerca' | 'contexto';
-type CampoTexto = 'tipo' | 'nombre' | 'descripcion' | 'demora' | 'precio';
-
 const MENSAJES_ERROR: Record<string, string> = {
-  required: 'Este campo es obligatorio.',
+  required: 'Completá este campo.',
   soloEspacios: 'No puede estar vacío.',
-  noEsEntero: 'Debe ser un número entero, sin decimales.',
-  noEsPositivo: 'Debe ser mayor a 0.',
-  precio: 'Ingresá un precio mayor a 0, con hasta 2 decimales.',
+  noEsEntero: 'Tiene que ser un número entero, sin decimales.',
+  noEsPositivo: 'Tiene que ser mayor a 0.',
+  precio: 'Escribí un precio mayor a 0, con hasta 2 decimales.',
   duplicado: 'Ya existe un elemento con ese nombre en la carta.',
 };
 
@@ -49,23 +48,23 @@ const MENSAJES_ERROR: Record<string, string> = {
   selector: 'app-agregar-menu-item',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
+    IonBackButton,
+    IonButton,
+    IonButtons,
     IonContent,
+    IonFooter,
     IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonItem,
-    IonLabel,
+    IonIcon,
     IonInput,
-    IonTextarea,
     IonSelect,
     IonSelectOption,
-    IonButton,
-    IonIcon,
-    IonText,
-    IonBackButton,
-    IonButtons,
+    IonTextarea,
+    IonTitle,
+    IonToolbar,
+    AlturaDisponibleDirective,
+    AvisoCampoComponent,
+    BarraAccionesComponent,
   ],
   templateUrl: './agregar-menu-item.page.html',
   styleUrls: ['./agregar-menu-item.page.scss'],
@@ -78,13 +77,18 @@ export class AgregarMenuItemPage {
   private readonly menuItemsService = inject(MenuItemsService);
   private readonly loading = inject(LoadingService);
   private readonly nav = inject(NavController);
+  private readonly notificaciones = inject(NotificacionesService);
+  private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  /** Mensajes de error por clave, para app-aviso-campo. */
+  readonly mensajes = MENSAJES_ERROR;
 
   readonly tiposCocinero = TIPOS_COCINERO;
 
   readonly camposFoto: readonly { campo: CampoFoto; etiqueta: string }[] = [
-    { campo: 'principal', etiqueta: 'Foto principal' },
-    { campo: 'cerca', etiqueta: 'Foto de cerca' },
-    { campo: 'contexto', etiqueta: 'Foto de contexto' },
+    { campo: 'principal', etiqueta: 'Principal' },
+    { campo: 'cerca', etiqueta: 'De cerca' },
+    { campo: 'contexto', etiqueta: 'En contexto' },
   ];
 
   cargando = false;
@@ -128,20 +132,6 @@ export class AgregarMenuItemPage {
     }
   }
 
-  mensajeError(campo: CampoTexto): string | null {
-    const control = this.form.get(campo);
-    if (!control || !control.touched || !control.errors) return null;
-
-    const tipoError = Object.keys(control.errors)[0];
-    if (control.errors['minlength']) {
-      return `Debe tener al menos ${control.errors['minlength'].requiredLength} caracteres.`;
-    }
-    if (control.errors['maxlength']) {
-      return `No puede superar los ${control.errors['maxlength'].requiredLength} caracteres.`;
-    }
-    return MENSAJES_ERROR[tipoError] ?? null;
-  }
-
   async elegirFoto(campo: CampoFoto): Promise<void> {
     if (this.camara.abriendo()) return;
     this.campoEligiendo = campo;
@@ -150,12 +140,9 @@ export class AgregarMenuItemPage {
   }
 
   async onSubmit(): Promise<void> {
-    this.form.markAllAsTouched();
+    if (this.cargando) return;
 
-    if (this.form.invalid) {
-      await this.avisos.error('Revisá los campos marcados antes de continuar.');
-      return;
-    }
+    if (!(await validarFormulario(this.form, this.avisos, this.el.nativeElement))) return;
 
     const f = this.fotos();
     if (!f.principal || !f.cerca || !f.contexto) {
@@ -163,7 +150,6 @@ export class AgregarMenuItemPage {
       return;
     }
 
-    if (this.cargando) return;
     this.cargando = true;
     this.loading.mostrar();
 
@@ -176,7 +162,7 @@ export class AgregarMenuItemPage {
       const existe = await this.menuItemsService.existeNombreTipo(nombreTrim, tipo);
       if (existe) {
         this.form.get('nombre')?.setErrors({ duplicado: true });
-        await this.avisos.error(MENSAJES_ERROR['duplicado']);
+        await this.avisos.error('Revisá los campos marcados.');
         return;
       }
 
@@ -196,9 +182,7 @@ export class AgregarMenuItemPage {
         return;
       }
 
-      // Sin push: el alta de un plato o una bebida no avisa a nadie
-      // (decisión del equipo). La confirmación la da este toast.
-      await this.avisos.exito(`Se agregó "${nombreTrim}" al menú.`);
+      this.notificaciones.avisarProductoCreado(nombreTrim, tipo === 'bebida');
       await this.nav.navigateBack(this.rutaVolver);
     } finally {
       this.cargando = false;

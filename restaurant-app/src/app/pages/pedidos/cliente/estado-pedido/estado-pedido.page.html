@@ -79,7 +79,7 @@
           </div>
           <div class="estado-fila">
             <span>Tiempo estimado</span>
-            <span class="sin-corte">{{ p.tiempoEstimadoMin }} min</span>
+            <span class="sin-corte">{{ p.tiempoEstimadoMin | minutos }}</span>
           </div>
         </div>
       } @else {

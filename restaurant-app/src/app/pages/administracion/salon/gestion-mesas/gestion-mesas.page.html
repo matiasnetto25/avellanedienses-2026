@@ -5,10 +5,12 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="gestion-mesas-content" appAlturaDisponible>
+<!-- Igual que Personal → Empleados: cada tarjeta ocupa todo el alto visible (el relleno de
+     16 px va dentro de la página y el botón está en el footer), por eso no se descuenta nada. -->
+<ion-content class="gestion-mesas-content" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
   <div class="gestion-mesas-lista">
     @for (mesa of mesas(); track mesa.id) {
-      <div class="pagina-mesas">
+      <div class="pagina-mesas" [class.pagina-oculta]="mesaEnEdicion() !== null && mesaEnEdicion() !== mesa.id">
           <ion-card class="mesa-card">
 
             <!-- Contenedor individual de la imagen: posición 1 = foto, posición 2 = QR -->
@@ -119,8 +121,11 @@
   </div>
 </ion-content>
 
-<ion-footer class="ion-no-border">
-  <app-barra-acciones>
-    <ion-button class="accion-principal" expand="block" (click)="nuevaMesa()">Nueva mesa</ion-button>
-  </app-barra-acciones>
-</ion-footer>
+<!-- Mientras se edita una mesa no se ofrece crear otra: la tarjeta ocupa todo el alto. -->
+@if (mesaEnEdicion() === null) {
+  <ion-footer class="ion-no-border">
+    <app-barra-acciones>
+      <ion-button class="accion-principal" expand="block" (click)="nuevaMesa()">Nueva mesa</ion-button>
+    </app-barra-acciones>
+  </ion-footer>
+}

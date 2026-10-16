@@ -1,6 +1,6 @@
 :host {
   display: block;
-  padding: var(--espacio-3);
+  padding: var(--espacio-4);
   border: 1px solid var(--color-borde-suave);
   border-radius: var(--radio-md);
   background: var(--color-superficie);
@@ -19,8 +19,8 @@
 
 .foto {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   border-radius: var(--radio-pildora);
   object-fit: cover;
 }
@@ -37,15 +37,22 @@
 
 .datos {
   display: flex;
-  flex: 1;
+  /* Ocupa el resto de la línea con un ancho mínimo propio: si el estado
+     no entra al lado, pasa a la línea de abajo en vez de apretar el nombre. */
+  flex: 1 1 9rem;
   flex-direction: column;
-  min-width: 0;
+  min-width: 9rem;
 }
 
 .nombre {
   font-size: var(--texto-cuerpo);
   font-weight: var(--peso-fuerte);
-  overflow-wrap: anywhere;
+  /* Solo corta una palabra si no entra sola en la línea (nunca letra por letra). */
+  overflow-wrap: break-word;
+}
+
+app-chip-estado {
+  flex: none;
 }
 
 .dni {
@@ -58,7 +65,7 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--espacio-2);
-  margin-top: var(--espacio-2);
+  margin-top: var(--espacio-3);
 
   ion-button {
     margin: 0;

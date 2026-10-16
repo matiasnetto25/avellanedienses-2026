@@ -140,6 +140,11 @@ ion-select.campo {
   --border-color: var(--color-borde-control);
   --border-width: 1px;
   --border-radius: var(--radio-md);
+  // Ionic solo redondea de verdad la esquina izquierda de un campo con borde
+  // (fill="outline") si el relleno izquierdo es mayor que el radio; con el de
+  // fábrica las esquinas de ion-input quedan más cuadradas que las del ion-select.
+  --padding-start: var(--espacio-5);
+  --padding-end: var(--espacio-5);
   --highlight-height: 2px;
   --highlight-color-focused: var(--color-foco);
   --highlight-color-invalid: var(--color-rechazo);
@@ -287,23 +292,33 @@ ion-content.densidad-compacta {
 // -----------------------------------------------------------------------------
 
 // Toast: lo crea AvisosService con cssClass ['aviso-toast', 'aviso-toast--<tono>'].
-// No se pinta entero de color: el tono va en el borde izquierdo y en el ícono.
+// Se pinta entero con el tono oscuro (700) y texto claro: sobre el fondo crema
+// de las pantallas es la única forma de que no se pierda. Sin tono (info, push)
+// usa el color de marca. Contraste texto/fondo >= 5.8:1.
 ion-toast.aviso-toast {
-  --background: var(--color-superficie);
-  --color: var(--color-texto);
+  --background: var(--tono-toast, var(--color-texto));
+  --color: #FFFFFF;
   --border-radius: var(--radio-md);
   --border-style: solid;
-  --border-width: 0 0 0 4px; // el borde va en el wrapper: sigue el radio
-  --border-color: var(--tono-toast);
-  --box-shadow: var(--sombra-2);
+  --border-width: 1px;
+  --border-color: rgba(255, 255, 255, 0.25);
+  --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   --start: var(--espacio-4);
   --end: var(--espacio-4);
+  --button-color: #FFFFFF;
   font-family: var(--fuente-ui);
   font-size: var(--texto-cuerpo-compacto);
+  font-weight: 600;
 
   &::part(icon) {
-    color: var(--tono-toast);
+    color: #FFFFFF;
     font-size: 20px;
+  }
+
+  &::part(button) {
+    color: #FFFFFF;
+    font-weight: 700;
+    text-decoration: underline;
   }
 }
 

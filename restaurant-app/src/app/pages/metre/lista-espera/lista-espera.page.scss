@@ -7,127 +7,317 @@
   --background: var(--brand-background);
 }
 
-.espera-content::part(scroll) {
-  scroll-snap-type: y mandatory;
-}
-
-app-encabezado-perfil {
-  scroll-snap-align: start;
-}
 
 .espera-vacio {
   display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 16px;
+  /* Ocupa todo el alto libre bajo el encabezado (~210px). */
+  height: calc(var(--altura-disponible, 100vh) - 210px);
+  min-height: 280px;
+  box-sizing: border-box;
+}
+
+.aviso-vacio {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 24px;
   text-align: center;
-  padding: 48px 32px;
-  font-family: var(--brand-font-subtitle);
+  box-sizing: border-box;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--brand-text) 18%, transparent);
+  background: color-mix(in srgb, var(--brand-text) 6%, transparent);
   color: var(--brand-text);
-  opacity: 0.7;
+  font-family: var(--brand-font-subtitle);
+}
+
+.aviso-vacio-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--brand-text) 12%, transparent);
+  margin-bottom: 8px;
+
+  ion-icon {
+    font-size: 52px;
+  }
+}
+
+.aviso-vacio-titulo {
+  margin: 0;
+  font-family: var(--brand-font-logo);
+  font-size: 1.3rem;
+}
+
+.aviso-vacio-texto {
+  margin: 0;
+  max-width: 280px;
   font-size: 1rem;
+  line-height: 1.45;
+  opacity: 0.75;
 }
 
 .espera-lista {
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  padding-bottom: calc(64px + max(32px, env(safe-area-inset-bottom, 0px)));
-  box-sizing: border-box;
+  gap: var(--separacion-tarjetas, 12px);
+  padding: var(--espacio-5, 20px) var(--margen-pantalla, 16px) var(--espacio-6, 24px);
 }
 
-.pagina-espera {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-sizing: border-box;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  height: var(--altura-disponible, auto);
-  overflow: hidden;
-  padding-bottom: 16px;
+/* Misma tarjeta que «Clientes pendientes de aprobación» del dueño. */
+.fila-cliente {
+  padding: var(--espacio-3);
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+  color: var(--color-texto);
+  font-family: var(--fuente-ui);
 }
 
-.cliente-card {
-  margin: 0;
-  border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--brand-text) 15%, transparent);
-  background: var(--brand-background);
-  flex: 1;
-  min-height: 0;
+.linea-principal {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3);
 }
 
-.cliente-imagen-viewport {
-  position: relative;
-  width: 100%;
-  flex: 1;
-  min-height: 40px;
-  overflow: hidden;
-  border-radius: 16px 16px 0 0;
-  background: color-mix(in srgb, var(--brand-text) 6%, transparent);
-  display: flex;
+.foto {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radio-pildora);
+  object-fit: cover;
+}
+
+.foto--iniciales {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: var(--color-superficie-hundida);
+  font-size: var(--texto-etiqueta);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto-secundario);
 }
 
-.cliente-imagen {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-}
-
-.cliente-imagen-placeholder {
-  font-family: var(--brand-font-subtitle);
-  color: var(--brand-text);
-  opacity: 0.5;
-  font-size: 0.85rem;
-}
-
-.cliente-info {
-  padding: 14px 16px 16px;
-  flex-shrink: 0;
-}
-
-.cliente-nombre {
-  font-family: var(--brand-font-logo);
-  color: var(--brand-text);
-  font-size: 1.05rem;
-  margin: 0 0 4px;
-}
-
-.cliente-mesa {
-  font-family: var(--brand-font-subtitle);
-  color: var(--brand-text);
-  opacity: 0.75;
-  font-size: 0.85rem;
-  margin: 0 0 4px;
-}
-
-.cliente-mesa-estado {
-  font-family: var(--brand-font-subtitle);
-  color: #2e8b57;
-  font-weight: 600;
-  font-size: 0.78rem;
-  margin: 0 0 12px;
-}
-
-.cliente-mesa-estado--ocupada {
-  color: #b22222;
-}
-
-.cliente-acciones {
+.datos {
   display: flex;
-  gap: 8px;
+  flex: 1 1 9rem;
+  flex-direction: column;
+  min-width: 9rem;
+}
+
+.nombre {
+  font-size: var(--texto-cuerpo);
+  font-weight: var(--peso-fuerte);
+  overflow-wrap: break-word;
+}
+
+.detalle {
+  font-size: var(--texto-cuerpo-compacto);
+  color: var(--color-texto-secundario);
+}
+
+app-chip-estado {
+  flex: none;
+}
+
+.nota {
+  margin: var(--espacio-2) 0 0;
+  font-size: var(--texto-cuerpo-compacto);
+  color: var(--color-texto-secundario);
+}
+
+.nota--ok {
+  color: var(--color-listo, #2e8b57);
+  font-weight: var(--peso-fuerte);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-2);
 
   ion-button {
-    --border-radius: 10px;
-    font-family: var(--brand-font-subtitle);
-    text-transform: none;
+    margin: 0;
+  }
+}
+
+/* ------------------------- hoja «Asignar mesa» ------------------------- */
+ion-modal.hoja-mesas {
+  --background: var(--color-fondo, #f5ecda);
+  --border-radius: var(--radio-lg, 20px) var(--radio-lg, 20px) 0 0;
+}
+
+/* La hoja se abre al 90 %: el contenido mide lo mismo (si midiera 100 %, los
+   botones quedarían fuera de pantalla, debajo del borde). */
+.hoja {
+  display: flex;
+  flex-direction: column;
+  /* El alto lo fija el template (igual al de la hoja). */
+  height: 90%;
+  box-sizing: border-box;
+  padding: var(--espacio-5, 20px) var(--margen-pantalla, 16px) max(var(--espacio-4, 16px), env(safe-area-inset-bottom, 0px));
+  color: var(--color-texto);
+  font-family: var(--fuente-ui);
+}
+
+.hoja-encabezado {
+  flex: none;
+  margin-bottom: var(--espacio-4, 16px);
+}
+
+.hoja-titulo {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-size: var(--texto-subtitulo);
+  font-weight: var(--peso-regular);
+}
+
+.hoja-subtitulo {
+  margin: var(--espacio-1, 4px) 0 0;
+  font-size: var(--texto-cuerpo-compacto);
+  color: var(--color-texto-secundario);
+}
+
+/* Siempre se ven 2 filas (4 mesas) enteras: cada fila mide la mitad del alto
+   disponible (cqh = alto del contenedor) y el scroll salta de a una fila, o sea
+   de a 2 mesas. Con 1 o 2 mesas la hoja es más baja y la fila ocupa todo el alto. */
+.hoja-mesas-paginas {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  container-type: size;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+}
+
+.hoja-mesas-grilla {
+  --separacion: var(--espacio-3, 12px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: calc((100cqh - var(--separacion)) / 2);
+  gap: var(--separacion);
+  box-sizing: border-box;
+  padding-inline: 2px;
+}
+
+.hoja-mesas-grilla--una-fila {
+  grid-auto-rows: 100cqh;
+}
+
+.hoja-mesas-grilla .mesa-opcion {
+  scroll-snap-align: start;
+}
+
+.mesa-opcion {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  text-align: start;
+  border: 2px solid var(--color-borde-suave);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--mov-normal, 150ms), box-shadow var(--mov-normal, 150ms);
+}
+
+.mesa-opcion--elegida {
+  border-color: var(--color-accion-principal, #c62233);
+}
+
+.mesa-foto {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  background: var(--color-superficie-hundida);
+  color: var(--color-texto-terciario);
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  ion-icon {
+    font-size: 36px;
+  }
+}
+
+.mesa-numero {
+  position: absolute;
+  top: var(--espacio-2, 8px);
+  left: var(--espacio-2, 8px);
+  min-width: 28px;
+  padding: 2px 8px;
+  border-radius: var(--radio-pildora);
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: var(--texto-etiqueta);
+  font-weight: var(--peso-fuerte);
+  text-align: center;
+}
+
+.mesa-foto .mesa-tilde {
+  position: absolute;
+  top: var(--espacio-2, 8px);
+  right: var(--espacio-2, 8px);
+  font-size: 28px;
+  color: var(--color-accion-principal, #c62233);
+  background: #fff;
+  border-radius: 50%;
+}
+
+.mesa-datos {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--espacio-2, 8px) var(--espacio-3, 12px) var(--espacio-3, 12px);
+}
+
+.mesa-titulo {
+  font-family: var(--fuente-titulo);
+  font-size: var(--texto-cuerpo);
+}
+
+.mesa-detalle {
+  display: block;
+  line-height: 1.3;
+  font-size: var(--texto-cuerpo-compacto);
+  color: var(--color-texto-secundario);
+}
+
+.hoja-acciones {
+  display: flex;
+  flex: none;
+  gap: var(--espacio-3, 12px);
+  padding-top: var(--espacio-3, 12px);
+  border-top: 1px solid var(--color-borde-suave);
+
+  ion-button {
     flex: 1;
+    margin: 0;
   }
 }

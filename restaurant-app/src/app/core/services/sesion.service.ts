@@ -61,7 +61,7 @@ export class SesionService {
     const solicitud = await this.solicitudesMesa.obtenerMiSolicitud(clienteId);
 
     if (solicitud?.estado === 'vinculado') {
-      await this.bloquearCierre(solicitud.numero_mesa);
+      await this.bloquearCierre(solicitud.numero_mesa ?? undefined);
       return;
     }
 

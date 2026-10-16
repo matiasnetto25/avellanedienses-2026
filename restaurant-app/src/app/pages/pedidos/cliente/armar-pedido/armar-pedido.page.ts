@@ -30,6 +30,7 @@ import { ClienteActualService } from '../../../../core/services/cliente-actual.s
 import { CarritoService } from '../../../../core/services/carrito.service';
 import { PedidosService } from '../../../../core/services/pedidos.service';
 import { NotificacionesService } from '../../../../core/services/notificaciones.service';
+import { MinutosPipe } from '../../../../shared/pipes/minutos.pipe';
 
 @Component({
   selector: 'app-armar-pedido',
@@ -37,6 +38,7 @@ import { NotificacionesService } from '../../../../core/services/notificaciones.
   imports: [
     AlturaDisponibleDirective,
     CommonModule,
+    MinutosPipe,
     IonContent,
     IonHeader,
     IonFooter,

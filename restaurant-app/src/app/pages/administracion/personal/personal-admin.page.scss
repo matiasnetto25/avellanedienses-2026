@@ -1,23 +1,4 @@
-.pantalla {
-  display: flex;
-  flex-direction: column;
-  min-height: var(--altura-disponible, 100%);
-}
-
-.selector {
-  flex-shrink: 0;
-  margin: var(--espacio-4) var(--margen-pantalla) 0;
-  width: auto;
-}
-
-app-estado-vacio {
-  flex: 1;
-  min-height: auto;
-}
-
-.filas {
-  display: flex;
-  flex-direction: column;
-  gap: var(--separacion-tarjetas);
-  padding: var(--espacio-4) var(--margen-pantalla) var(--espacio-6);
+/* Lista de empleados: una tarjeta por pantalla, el scroll «encaja» en cada una. */
+.modo-empleados::part(scroll) {
+  scroll-snap-type: y mandatory;
 }

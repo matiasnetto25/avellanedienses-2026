@@ -12,7 +12,7 @@
       <li><span class="num">{{ item.cantidad }} ×</span> {{ item.nombre }}</li>
     }
   </ul>
-  <p class="linea-secundaria">Unos {{ pedido().tiempoEstimadoMin }} minutos de preparación</p>
+  <p class="linea-secundaria">Preparación estimada: {{ pedido().tiempoEstimadoMin | minutos }}</p>
 }
 
 <div class="acciones">

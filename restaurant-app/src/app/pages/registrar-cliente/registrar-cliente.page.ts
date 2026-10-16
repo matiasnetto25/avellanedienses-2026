@@ -1,16 +1,23 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
-  IonContent,
-  IonItem,
-  IonLabel,
-  IonInput,
+  IonBackButton,
   IonButton,
-  IonText,
+  IonButtons,
+  IonContent,
+  IonFooter,
+  IonHeader,
   IonIcon,
+  IonInput,
+  IonTitle,
+  IonToolbar,
 } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { cameraOutline, hourglassOutline, scanOutline } from 'ionicons/icons';
+import { AlturaDisponibleDirective } from '../../shared/directives/altura-disponible.directive';
+import { AvisoCampoComponent } from '../../shared/components/aviso-campo/aviso-campo.component';
+import { BarraAccionesComponent } from '../../shared/components/barra-acciones/barra-acciones.component';
 import { Auth } from '../../core/services/auth';
 import { AvisosService } from '../../core/services/avisos.service';
 import { CamaraService } from '../../core/services/camara.service';
@@ -19,9 +26,9 @@ import { ClientesService } from '../../core/services/clientes.service';
 import { NotificacionesService } from '../../core/services/notificaciones.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { validadorEmailValido, validadorTextoValido } from '../../validators/empleado.validators';
-import { dni as dniValido } from '../../core/utils/formularios';
+import { dni as dniValido, validarFormulario } from '../../core/utils/formularios';
 
-type CampoTexto = 'nombre' | 'apellido' | 'dni' | 'email' | 'password';
+type CampoDuplicable = 'dni' | 'email';
 
 const MENSAJES_ERROR: Record<string, Record<string, string>> = {
   nombre: {
@@ -56,15 +63,20 @@ const MENSAJES_ERROR: Record<string, Record<string, string>> = {
   selector: 'app-registrar-cliente',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
-    IonContent,
-    IonItem,
-    IonLabel,
-    IonInput,
+    IonBackButton,
     IonButton,
-    IonText,
+    IonButtons,
+    IonContent,
+    IonFooter,
+    IonHeader,
     IonIcon,
+    IonInput,
+    IonTitle,
+    IonToolbar,
+    AlturaDisponibleDirective,
+    AvisoCampoComponent,
+    BarraAccionesComponent,
   ],
   templateUrl: './registrar-cliente.page.html',
   styleUrls: ['./registrar-cliente.page.scss'],
@@ -79,6 +91,10 @@ export class RegistrarClientePage {
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
   private readonly router = inject(Router);
+  private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  /** Mensajes de cada campo para app-aviso-campo. */
+  readonly mensajes = MENSAJES_ERROR;
 
   cargando = false;
   escaneando = false;
@@ -91,10 +107,6 @@ export class RegistrarClientePage {
     return this.auth.sesion()?.puesto === 'metre';
   }
 
-  volver(): void {
-    this.router.navigate(['/bienvenida']);
-  }
-
   readonly form: FormGroup = this.fb.group({
     nombre: ['', [Validators.required, validadorTextoValido(4)]],
     apellido: ['', [Validators.required, validadorTextoValido(4)]],
@@ -103,42 +115,27 @@ export class RegistrarClientePage {
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  mensajeError(campo: CampoTexto): string | null {
-    const control = this.form.get(campo);
-    if (!control || !control.touched || !control.errors) return null;
-    const tipoError = Object.keys(control.errors)[0];
-    return MENSAJES_ERROR[campo]?.[tipoError] ?? null;
+  constructor() {
+    addIcons({ cameraOutline, hourglassOutline, scanOutline });
   }
 
-  async onBlurTexto(campo: CampoTexto): Promise<void> {
-    const mensaje = this.mensajeError(campo);
-    if (mensaje) {
-      await this.avisos.error(mensaje);
-      return;
-    }
+  /**
+   * Al salir del DNI o del correo: si ya pertenece a un cliente registrado,
+   * el error se ve debajo del campo (los demás errores los muestra
+   * app-aviso-campo solo, sin tocar nada acá).
+   */
+  async onBlurDuplicado(campo: CampoDuplicable): Promise<void> {
+    const control = this.form.get(campo);
+    const valor = (control?.value ?? '').trim();
+    if (!control || !valor || control.errors) return;
 
-    if (campo === 'dni') {
-      const control = this.form.get('dni');
-      const valor = control?.value?.trim();
-      if (valor && !control?.errors) {
-        const existe = await this.clientesService.existeDni(valor);
-        if (existe) {
-          control?.setErrors({ dniDuplicado: true });
-          await this.avisos.error(MENSAJES_ERROR['dni']['dniDuplicado']);
-        }
-      }
-    }
+    const existe =
+      campo === 'dni'
+        ? await this.clientesService.existeDni(valor)
+        : await this.clientesService.existeEmail(valor);
 
-    if (campo === 'email') {
-      const control = this.form.get('email');
-      const valor = control?.value?.trim();
-      if (valor && !control?.errors) {
-        const existe = await this.clientesService.existeEmail(valor);
-        if (existe) {
-          control?.setErrors({ emailDuplicado: true });
-          await this.avisos.error(MENSAJES_ERROR['email']['emailDuplicado']);
-        }
-      }
+    if (existe) {
+      control.setErrors(campo === 'dni' ? { dniDuplicado: true } : { emailDuplicado: true });
     }
   }
 
@@ -179,19 +176,15 @@ export class RegistrarClientePage {
   }
 
   async onSubmit(): Promise<void> {
-    this.form.markAllAsTouched();
+    if (this.cargando) return;
 
-    if (this.form.invalid) {
-      await this.avisos.error('Revisá los campos marcados antes de continuar.');
-      return;
-    }
+    if (!(await validarFormulario(this.form, this.avisos, this.el.nativeElement))) return;
 
     if (!this.fotoDataUrl()) {
       await this.avisos.error('Tomá una foto antes de continuar.');
       return;
     }
 
-    if (this.cargando) return;
     this.cargando = true;
     this.loading.mostrar();
 
@@ -206,12 +199,12 @@ export class RegistrarClientePage {
 
       if (dniExiste) {
         this.form.get('dni')?.setErrors({ dniDuplicado: true });
-        await this.avisos.error(MENSAJES_ERROR['dni']['dniDuplicado']);
+        await this.avisos.error('Revisá los campos marcados.');
         return;
       }
       if (emailExiste) {
         this.form.get('email')?.setErrors({ emailDuplicado: true });
-        await this.avisos.error(MENSAJES_ERROR['email']['emailDuplicado']);
+        await this.avisos.error('Revisá los campos marcados.');
         return;
       }
 

@@ -1,22 +1,26 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
+  IonBackButton,
+  IonButton,
+  IonButtons,
   IonContent,
+  IonFooter,
   IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonItem,
-  IonLabel,
   IonInput,
   IonSelect,
   IonSelectOption,
-  IonButton,
-  IonText,
-  IonBackButton,
-  IonButtons,
+  IonTitle,
+  IonToolbar,
+  IonIcon,
 } from '@ionic/angular/standalone';
-import { Router } from '@angular/router';
+import { addIcons } from 'ionicons';
+import { cameraOutline } from 'ionicons/icons';
+import { AlturaDisponibleDirective } from '../../../shared/directives/altura-disponible.directive';
+import { AvisoCampoComponent } from '../../../shared/components/aviso-campo/aviso-campo.component';
+import { BarraAccionesComponent } from '../../../shared/components/barra-acciones/barra-acciones.component';
 import { Auth } from '../../../core/services/auth';
 import { AvisosService } from '../../../core/services/avisos.service';
 import { CamaraService } from '../../../core/services/camara.service';
@@ -24,76 +28,42 @@ import { DniScannerService } from '../../../core/services/scanDNI.service';
 import { EmpleadosService } from '../../../core/services/empleados.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { LoadingService } from '../../../core/services/loading.service';
-import { Puesto, PUESTOS_CREABLES_POR_SUPERVISOR, PUESTOS_TODOS, Sexo } from '../../../core/models/empleado.model';
 import {
+  ETIQUETA_PUESTO,
+  Puesto,
+  PUESTOS_CREABLES_POR_SUPERVISOR,
+  PUESTOS_TODOS,
+} from '../../../core/models/empleado.model';
+import {
+  validadorDniDelCuil,
   validadorEmailValido,
-  validadorFechaNacimiento,
-  validadorPasswordsCoinciden,
+  validadorRepetirPassword,
   validadorTextoValido,
 } from '../../../validators/empleado.validators';
-import { cuil } from '../../../core/utils/formularios';
-
-type CampoTexto = 'nombre' | 'apellido' | 'cuil' | 'email' | 'password' | 'confirmarPassword';
-
-const MENSAJES_ERROR: Record<string, Record<string, string>> = {
-  nombre: {
-    required: 'Ingresá el nombre.',
-    soloEspacios: 'El nombre no puede estar vacío.',
-    minlength: 'El nombre debe tener al menos 4 caracteres.',
-    soloTexto: 'El nombre solo puede contener letras.',
-  },
-  apellido: {
-    required: 'Ingresá el apellido.',
-    soloEspacios: 'El apellido no puede estar vacío.',
-    minlength: 'El apellido debe tener al menos 4 caracteres.',
-    soloTexto: 'El apellido solo puede contener letras.',
-  },
-  cuil: {
-    required: 'Ingresá el CUIL.',
-    formatoCuil: 'Revisá el CUIL: tiene que ser como 20-12345678-3, con el dígito verificador correcto.',
-    cuilDuplicado: 'El CUIL ingresado ya pertenece a un empleado.',
-  },
-  email: {
-    required: 'Ingresá el email.',
-    email: 'El email ingresado no es válido.',
-    emailDuplicado: 'El email ingresado ya pertenece a un empleado.',
-  },
-  password: {
-    required: 'Ingresá una contraseña.',
-    minlength: 'La contraseña debe tener al menos 6 caracteres.',
-  },
-  confirmarPassword: {
-    required: 'Repetí la contraseña.',
-  },
-  sexo: { required: 'Seleccioná el sexo.' },
-  fecha_nacimiento: {
-    required: 'Ingresá la fecha de nacimiento.',
-    fechaInvalida: 'La fecha ingresada no es válida.',
-    fechaFutura: 'La fecha de nacimiento no puede ser futura.',
-    edadFueraDeRango: 'La edad calculada no es razonable, revisá la fecha.',
-  },
-  puesto: { required: 'Seleccioná el puesto.' },
-};
+import { cuil, dni, validarFormulario } from '../../../core/utils/formularios';
+import { MENSAJES_ERROR } from '../../../validators/empleado.mensajes';
 
 @Component({
   selector: 'app-personal',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
+    RouterLink,
+    IonBackButton,
+    IonButton,
+    IonButtons,
     IonContent,
+    IonFooter,
     IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonItem,
-    IonLabel,
+    IonIcon,
     IonInput,
     IonSelect,
     IonSelectOption,
-    IonButton,
-    IonText,
-    IonBackButton,
-    IonButtons,
+    IonTitle,
+    IonToolbar,
+    AlturaDisponibleDirective,
+    AvisoCampoComponent,
+    BarraAccionesComponent,
   ],
   templateUrl: './personal.page.html',
   styleUrls: ['./personal.page.scss'],
@@ -107,80 +77,66 @@ export class PersonalPage {
   private readonly empleadosService = inject(EmpleadosService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
-  private readonly router = inject(Router);
+  private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   cargando = false;
   escaneando = false;
 
+  /** Mensajes de cada campo para app-aviso-campo (pisan a los de default). */
+  readonly mensajes = MENSAJES_ERROR;
+  readonly etiquetaPuesto = ETIQUETA_PUESTO;
+
   readonly fotoDataUrl = signal<string | null>(null);
 
-  readonly opcionesSexo: readonly { valor: Sexo; etiqueta: string }[] = [
-    { valor: 'masculino', etiqueta: 'Masculino' },
-    { valor: 'femenino', etiqueta: 'Femenino' },
-    { valor: 'otros', etiqueta: 'Otros' },
-  ];
+  /** Datos del empleado recién creado: con esto se muestra la vista de éxito. */
+  readonly empleadoCreado = signal<{ nombre: string; apellido: string; puesto: Puesto; foto: string } | null>(null);
 
   get puestosDisponibles(): readonly Puesto[] {
     return this.auth.sesion()?.puesto === 'dueño' ? PUESTOS_TODOS : PUESTOS_CREABLES_POR_SUPERVISOR;
   }
 
-  readonly form: FormGroup = this.fb.group(
-    {
-      nombre: ['', [Validators.required, validadorTextoValido(4)]],
-      apellido: ['', [Validators.required, validadorTextoValido(4)]],
-      sexo: [null, Validators.required],
-      fecha_nacimiento: ['', [Validators.required, validadorFechaNacimiento()]],
-      cuil: ['', [Validators.required, cuil()]],
-      email: ['', [Validators.required, validadorEmailValido()]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmarPassword: ['', Validators.required],
-      puesto: [null, Validators.required],
-    },
-    { validators: validadorPasswordsCoinciden('password', 'confirmarPassword') }
-  );
+  readonly form: FormGroup = this.fb.group({
+    nombre: ['', [Validators.required, validadorTextoValido(4)]],
+    apellido: ['', [Validators.required, validadorTextoValido(4)]],
+    dni: ['', [Validators.required, dni(), validadorDniDelCuil('cuil')]],
+    cuil: ['', [Validators.required, cuil()]],
+    email: ['', [Validators.required, validadorEmailValido()]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    confirmarPassword: ['', [Validators.required, validadorRepetirPassword('password')]],
+    puesto: [null, Validators.required],
+  });
 
-  mensajeError(campo: CampoTexto | 'sexo' | 'fecha_nacimiento' | 'puesto'): string | null {
-    const control = this.form.get(campo);
-    if (!control || !control.touched || !control.errors) return null;
-    const tipoError = Object.keys(control.errors)[0];
-    return MENSAJES_ERROR[campo]?.[tipoError] ?? null;
+  constructor() {
+    addIcons({ cameraOutline });
+
+    // Estos dos campos dependen de otro: se vuelven a validar cuando el otro cambia.
+    this.form.controls['password'].valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.form.controls['confirmarPassword'].updateValueAndValidity());
+    this.form.controls['cuil'].valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.form.controls['dni'].updateValueAndValidity());
   }
 
-  mensajeErrorPasswordsNoCoinciden(): string | null {
-    const confirmar = this.form.get('confirmarPassword');
-    if (!confirmar?.touched) return null;
-    return this.form.errors?.['passwordsNoCoinciden'] ? 'Las contraseñas no coinciden.' : null;
+  /** Al salir del CUIL: si ya pertenece a un empleado, el error se ve debajo del campo. */
+  async onBlurCuil(): Promise<void> {
+    const control = this.form.controls['cuil'];
+    const valor = (control.value ?? '').trim();
+    if (!valor || control.errors) return;
+
+    if (await this.empleadosService.existeCuil(valor)) {
+      control.setErrors({ cuilDuplicado: true });
+    }
   }
 
-  async onBlurTexto(campo: CampoTexto): Promise<void> {
-    const mensaje = this.mensajeError(campo);
-    if (mensaje) {
-      await this.avisos.error(mensaje);
-      return;
-    }
+  /** Al salir del correo: si ya pertenece a un empleado, el error se ve debajo del campo. */
+  async onBlurEmail(): Promise<void> {
+    const control = this.form.controls['email'];
+    const valor = (control.value ?? '').trim();
+    if (!valor || control.errors) return;
 
-    if (campo === 'cuil') {
-      const control = this.form.get('cuil');
-      const valor = control?.value?.trim();
-      if (valor && !control?.errors) {
-        const existe = await this.empleadosService.existeCuil(valor);
-        if (existe) {
-          control?.setErrors({ cuilDuplicado: true });
-          await this.avisos.error(MENSAJES_ERROR['cuil']['cuilDuplicado']);
-        }
-      }
-    }
-
-    if (campo === 'email') {
-      const control = this.form.get('email');
-      const valor = control?.value?.trim();
-      if (valor && !control?.errors) {
-        const existe = await this.empleadosService.existeEmail(valor);
-        if (existe) {
-          control?.setErrors({ emailDuplicado: true });
-          await this.avisos.error(MENSAJES_ERROR['email']['emailDuplicado']);
-        }
-      }
+    if (await this.empleadosService.existeEmail(valor)) {
+      control.setErrors({ emailDuplicado: true });
     }
   }
 
@@ -210,8 +166,7 @@ export class PersonalPage {
       this.form.patchValue({
         nombre: d.nombre ?? this.form.value.nombre,
         apellido: d.apellido ?? this.form.value.apellido,
-        sexo: d.sexo ?? this.form.value.sexo,
-        fecha_nacimiento: d.fechaNacimiento ?? this.form.value.fecha_nacimiento,
+        dni: d.dni ?? this.form.value.dni,
         cuil: d.cuilSugerido ?? this.form.value.cuil,
       });
 
@@ -222,28 +177,23 @@ export class PersonalPage {
   }
 
   async onSubmit(): Promise<void> {
-    this.form.markAllAsTouched();
+    if (this.cargando) return;
 
-    if (this.form.invalid) {
-      await this.avisos.error('Revisá los campos marcados antes de continuar.');
-      return;
-    }
+    if (!(await validarFormulario(this.form, this.avisos, this.el.nativeElement))) return;
 
     if (!this.fotoDataUrl()) {
       await this.avisos.error('Tomá una foto del empleado antes de guardar.');
       return;
     }
 
-    if (this.cargando) return;
     this.cargando = true;
     this.loading.mostrar();
 
     try {
-      const { nombre, apellido, sexo, fecha_nacimiento, cuil, email, password, puesto } = this.form.getRawValue();
+      const { nombre, apellido, cuil, email, password, puesto } = this.form.getRawValue();
 
       if (!this.puestosDisponibles.includes(puesto)) {
         await this.avisos.error('No tenés permisos para crear un empleado con ese puesto.');
-        this.cargando = false;
         return;
       }
 
@@ -252,19 +202,16 @@ export class PersonalPage {
         this.empleadosService.existeEmail(email),
       ]);
 
-      if (cuilExiste) {
-        this.form.get('cuil')?.setErrors({ cuilDuplicado: true });
-        await this.avisos.error(MENSAJES_ERROR['cuil']['cuilDuplicado']);
-        return;
-      }
-      if (emailExiste) {
-        this.form.get('email')?.setErrors({ emailDuplicado: true });
-        await this.avisos.error(MENSAJES_ERROR['email']['emailDuplicado']);
+      if (cuilExiste || emailExiste) {
+        // El mensaje de cada campo se ve debajo de él.
+        if (cuilExiste) this.form.controls['cuil'].setErrors({ cuilDuplicado: true });
+        if (emailExiste) this.form.controls['email'].setErrors({ emailDuplicado: true });
+        await this.avisos.error('Revisá los campos marcados.');
         return;
       }
 
       const resultado = await this.empleadosService.crearEmpleado(
-        { nombre, apellido, sexo, fecha_nacimiento, cuil, email, password, puesto },
+        { nombre, apellido, cuil, email, password, puesto },
         this.fotoDataUrl()!
       );
 
@@ -277,6 +224,8 @@ export class PersonalPage {
       // Los toasts de avisos.error() siguen intactos para cuando algo falla.
       this.notificaciones.avisarNuevoEmpleado(nombre, apellido, puesto);
 
+      // La vista de éxito muestra la foto que se acaba de subir.
+      this.empleadoCreado.set({ nombre, apellido, puesto, foto: this.fotoDataUrl()! });
       this.form.reset();
       this.fotoDataUrl.set(null);
     } finally {
@@ -284,5 +233,9 @@ export class PersonalPage {
       this.loading.ocultar();
     }
   }
-}
 
+  /** Vuelve al formulario vacío para cargar a otra persona. */
+  darDeAltaOtro(): void {
+    this.empleadoCreado.set(null);
+  }
+}

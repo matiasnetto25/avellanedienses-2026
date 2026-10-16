@@ -8,57 +8,110 @@
 
   @if (listaEspera.cargada() && filas().length === 0) {
     <div class="espera-vacio">
-      <p>No hay clientes en la lista de espera.</p>
+      <div class="aviso-vacio" role="status">
+        <span class="aviso-vacio-icono"><ion-icon name="people-outline" aria-hidden="true"></ion-icon></span>
+        <p class="aviso-vacio-titulo">Sin clientes en espera</p>
+        <p class="aviso-vacio-texto">En este momento no hay clientes esperando una mesa. Cuando alguien se registre, lo vas a ver acá.</p>
+      </div>
     </div>
   } @else {
     <div class="espera-lista">
       @for (fila of filas(); track fila.id) {
-        <div class="pagina-espera">
-            <ion-card class="cliente-card">
-              <div class="cliente-imagen-viewport">
-                @if (urlFoto(fila.foto); as url) {
-                  <img [src]="url" [alt]="'Foto de ' + fila.nombre" class="cliente-imagen" loading="lazy" />
-                } @else {
-                  <span class="cliente-imagen-placeholder">Sin foto</span>
-                }
+        <article class="fila-cliente">
+          <div class="linea-principal">
+            @if (urlFoto(fila.foto); as url) {
+              <img class="foto" [src]="url" [alt]="'Foto de ' + fila.nombre" loading="lazy" />
+            } @else {
+              <span class="foto foto--iniciales" aria-hidden="true">{{ iniciales(fila) }}</span>
+            }
+            <div class="datos">
+              <span class="nombre">{{ fila.nombre }}{{ fila.apellido ? ' ' + fila.apellido : '' }}</span>
+              @if (fila.numero_mesa !== null) {
+                <span class="detalle">
+                  Mesa <span class="num">{{ fila.numero_mesa }}</span> · {{ etiquetaTipo(fila.tipo!) }} · {{ fila.cant_comensales }} comensales
+                </span>
+              }
+            </div>
+            <app-chip-estado [estado]="estadoSolicitudMesa(fila.estado)" />
+          </div>
+
+          @switch (fila.estado) {
+            @case ('en_espera') {
+              <p class="nota">Esperando que le asignes una mesa.</p>
+              <div class="acciones">
+                <ion-button class="accion-destructiva accion-fila" [disabled]="procesandoId() === fila.id" (click)="rechazar(fila)">
+                  Rechazar
+                </ion-button>
+                <ion-button class="accion-secundaria accion-fila" [disabled]="procesandoId() === fila.id" (click)="asignar(fila)">
+                  Asignar mesa
+                </ion-button>
               </div>
-
-              <ion-card-content class="cliente-info">
-                <h3 class="cliente-nombre">{{ fila.nombre }}{{ fila.apellido ? ' ' + fila.apellido : '' }}</h3>
-                <p class="cliente-mesa">
-                  Mesa {{ fila.numero_mesa }} — {{ etiquetaTipo(fila.tipo) }} — {{ fila.cant_comensales }} comensales
-                </p>
-                <p
-                  class="cliente-mesa-estado"
-                  [class.cliente-mesa-estado--ocupada]="fila.disponibilidad === 'Ocupada'"
-                >
-                  Mesa {{ fila.disponibilidad === 'Ocupada' ? 'ocupada en este momento' : 'libre' }}
-                </p>
-
-                <div class="cliente-acciones">
-                  <ion-button
-                    fill="solid"
-                    color="success"
-                    size="small"
-                    [disabled]="procesandoId() === fila.id || fila.disponibilidad === 'Ocupada'"
-                    (click)="aceptar(fila)"
-                  >
-                    Aceptar
-                  </ion-button>
-                  <ion-button
-                    fill="outline"
-                    color="danger"
-                    size="small"
-                    [disabled]="procesandoId() === fila.id"
-                    (click)="rechazar(fila)"
-                  >
-                    Rechazar
-                  </ion-button>
-                </div>
-              </ion-card-content>
-            </ion-card>
-        </div>
+            }
+            @case ('aceptado') {
+              <p class="nota">Esperando que escanee el QR de la mesa.</p>
+            }
+            @case ('vinculado') {
+              <p class="nota nota--ok">Ya escaneó el QR y está en su mesa.</p>
+            }
+          }
+        </article>
       }
     </div>
   }
 </ion-content>
+
+<!-- Hoja «Asignar mesa»: las mesas libres, con su foto. -->
+<ion-modal
+  class="hoja-mesas"
+  [isOpen]="filaAsignando() !== null"
+  [initialBreakpoint]="alturaHoja()"
+  [breakpoints]="[0, alturaHoja()]"
+  [handle]="true"
+  (didDismiss)="cerrarAsignacion()">
+  <ng-template>
+    <div class="hoja" [style.height.%]="alturaHoja() * 100">
+      <header class="hoja-encabezado">
+        <h2 class="hoja-titulo">Asignar mesa</h2>
+        <p class="hoja-subtitulo">Para <strong>{{ nombreAsignando() }}</strong> · {{ mesasLibres().length }} {{ mesasLibres().length === 1 ? 'mesa libre' : 'mesas libres' }}@if (mesasLibres().length > 4) { · deslizá para ver más }</p>
+      </header>
+
+      <div class="hoja-mesas-paginas" role="radiogroup" aria-label="Mesas libres">
+        <div class="hoja-mesas-grilla" [class.hoja-mesas-grilla--una-fila]="hojaCompacta()">
+            @for (mesa of mesasLibres(); track mesa.id) {
+            <button
+              type="button"
+              class="mesa-opcion"
+              role="radio"
+              [class.mesa-opcion--elegida]="mesaElegidaId() === mesa.id"
+              [attr.aria-checked]="mesaElegidaId() === mesa.id"
+              (click)="elegirMesa(mesa)">
+              <span class="mesa-foto">
+                @if (urlFotoMesa(mesa); as url) {
+                  <img [src]="url" [alt]="'Foto de la mesa ' + mesa.numero_mesa" loading="lazy" />
+                } @else {
+                  <ion-icon name="restaurant-outline" aria-hidden="true" />
+                }
+                <span class="mesa-numero num">{{ mesa.numero_mesa }}</span>
+                @if (mesaElegidaId() === mesa.id) {
+                  <ion-icon class="mesa-tilde" name="checkmark-circle" aria-hidden="true" />
+                }
+              </span>
+              <span class="mesa-datos">
+                <span class="mesa-titulo">Mesa {{ mesa.numero_mesa }}</span>
+                <span class="mesa-detalle">{{ etiquetaTipo(mesa.tipo) }}</span>
+                <span class="mesa-detalle">{{ mesa.cant_comensales }} {{ mesa.cant_comensales === 1 ? 'comensal' : 'comensales' }}</span>
+              </span>
+            </button>
+            }
+        </div>
+      </div>
+
+      <div class="hoja-acciones">
+        <ion-button class="accion-secundaria" [disabled]="asignando()" (click)="cerrarAsignacion()">Cancelar</ion-button>
+        <ion-button class="accion-principal" [disabled]="!mesaElegidaId() || asignando()" (click)="confirmarAsignacion()">
+          {{ asignando() ? 'Asignando…' : 'Asignar mesa' }}
+        </ion-button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>

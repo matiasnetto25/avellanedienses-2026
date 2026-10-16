@@ -5,38 +5,177 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="densidad-compacta" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+<!-- Una tarjeta por pantalla: el scroll «encaja» en cada producto (mismo patrón que Salón y Personal). -->
+<ion-content
+  class="densidad-compacta"
+  [class.modo-tarjetas]="productos().length > 0"
+  appAlturaDisponible
+  [margenAltura]="0"
+  [descontarBarraGestos]="false">
   @if (!cargando()) {
     @if (productos().length === 0) {
       <app-estado-vacio [icono]="textos.icono" [titulo]="textos.vacio">
         <ion-button class="accion-secundaria" (click)="agregar()">{{ textos.accion }}</ion-button>
       </app-estado-vacio>
     } @else {
-      <div class="lista">
-        @for (p of productos(); track p.id) {
-          <div class="tarjeta fila">
-            @if (p.imagenes[0]) {
-              <img class="fila-miniatura" [src]="p.imagenes[0]" alt="" loading="lazy" />
+      @for (p of productos(); track p.id) {
+        <div class="pagina-producto" [class.pagina-oculta]="enEdicion() !== null && enEdicion() !== p.id">
+          <article class="producto">
+            @if (enEdicion() === p.id) {
+              <!-- Edición: el formulario scrollea dentro de la tarjeta -->
+              <form class="producto-form" [formGroup]="form" (ngSubmit)="guardarEdicion(p)" novalidate>
+                <!-- Los campos scrollean; los botones quedan fijos abajo, siempre visibles. -->
+                <div class="producto-campos">
+                @if (esCocina) {
+                  <div class="campo-grupo">
+                    <ion-select
+                      class="campo"
+                      fill="outline"
+                      label-placement="floating"
+                      label="Tipo"
+                      interface="popover"
+                      formControlName="tipo">
+                      @for (t of tiposPlato; track t.valor) {
+                        <ion-select-option [value]="t.valor">{{ t.etiqueta }}</ion-select-option>
+                      }
+                    </ion-select>
+                  </div>
+                }
+
+                <div class="campo-grupo">
+                  <ion-input
+                    class="campo"
+                    fill="outline"
+                    label-placement="floating"
+                    label="Nombre"
+                    formControlName="nombre"
+                    aria-describedby="nombre-aviso"
+                    autocomplete="off"></ion-input>
+                  <app-aviso-campo id="nombre-aviso" [control]="form.controls['nombre']" [mensajes]="mensajes" />
+                </div>
+
+                <div class="campo-grupo">
+                  <ion-textarea
+                    class="campo"
+                    fill="outline"
+                    label-placement="floating"
+                    label="Descripción"
+                    formControlName="descripcion"
+                    rows="3"
+                    aria-describedby="descripcion-aviso"></ion-textarea>
+                  <app-aviso-campo id="descripcion-aviso" [control]="form.controls['descripcion']" [mensajes]="mensajes" />
+                </div>
+
+                <div class="campo-fila">
+                  <div class="campo-grupo">
+                    <ion-input
+                      class="campo"
+                      fill="outline"
+                      label-placement="floating"
+                      label="Demora (minutos)"
+                      type="number"
+                      inputmode="numeric"
+                      formControlName="demora"
+                      aria-describedby="demora-aviso"></ion-input>
+                    <app-aviso-campo id="demora-aviso" [control]="form.controls['demora']" [mensajes]="mensajes" />
+                  </div>
+                  <div class="campo-grupo">
+                    <ion-input
+                      class="campo"
+                      fill="outline"
+                      label-placement="floating"
+                      label="Precio"
+                      type="number"
+                      inputmode="decimal"
+                      formControlName="precio"
+                      aria-describedby="precio-aviso"></ion-input>
+                    <app-aviso-campo id="precio-aviso" [control]="form.controls['precio']" [mensajes]="mensajes" />
+                  </div>
+                </div>
+
+                <p class="producto-etiqueta-seccion">Fotos</p>
+                <div class="fotos-edicion">
+                  @for (f of fotos; track f.campo; let i = $index) {
+                    <button
+                      type="button"
+                      class="foto-edicion"
+                      [disabled]="camara.abriendo()"
+                      (click)="cambiarFoto(f.campo)"
+                      [attr.aria-label]="'Cambiar foto ' + f.etiqueta.toLowerCase()">
+                      @if (fotoEdicion(p, f.campo, i); as url) {
+                        <img [src]="url" alt="" />
+                      } @else {
+                        <ion-icon name="camera-outline" aria-hidden="true" />
+                      }
+                      <span class="foto-edicion-pie">
+                        {{ camara.abriendo() && campoEligiendo() === f.campo ? 'Abriendo…' : f.etiqueta }}
+                      </span>
+                    </button>
+                  }
+                </div>
+                <p class="producto-nota">Tocá una foto para reemplazarla.</p>
+                </div>
+
+                <div class="producto-acciones producto-acciones--fijas">
+                  <ion-button class="accion-secundaria" type="button" (click)="cancelarEdicion()">Cancelar</ion-button>
+                  <ion-button class="accion-principal" type="submit" [disabled]="guardando()">
+                    {{ guardando() ? 'Guardando…' : 'Guardar' }}
+                  </ion-button>
+                </div>
+              </form>
             } @else {
-              <span class="fila-miniatura"></span>
-            }
-            <div class="fila-texto">
-              <p class="fila-nombre">{{ p.nombre }}</p>
-              @if (p.tiempoElaboracion) {
-                <p class="fila-tiempo num">
-                  <ion-icon name="time-outline" aria-hidden="true" /> {{ p.tiempoElaboracion }}
+              <!-- Lectura -->
+              <div class="producto-visor">
+                @if (fotosDe(p); as lista) {
+                  @if (lista.length > 0) {
+                    <div class="producto-fotos" (scroll)="alScrollearFotos(p, $event)">
+                      @for (f of lista; track f.url) {
+                        <img class="producto-foto" [src]="f.url" [alt]="p.nombre + ' - ' + f.etiqueta" loading="lazy" />
+                      }
+                    </div>
+                    @if (lista.length > 1) {
+                      <span class="producto-contador num">{{ (fotoActiva()[p.id] ?? 0) + 1 }}/{{ lista.length }}</span>
+                    }
+                  } @else {
+                    <span class="producto-sin-foto">Sin foto</span>
+                  }
+                }
+              </div>
+
+              <div class="producto-info">
+                <div class="producto-encabezado">
+                  <h3 class="producto-nombre">{{ p.nombre }}</h3>
+                  <span class="producto-precio num">${{ p.precio | number: '1.0-0' }}</span>
+                </div>
+
+                <p class="producto-meta">
+                  <span class="producto-tipo">{{ etiquetaCategoria(p) }}</span>
+                  @if (p.tiempoElaboracion) {
+                    <span class="producto-tiempo num">
+                      <ion-icon name="time-outline" aria-hidden="true" /> {{ p.tiempoElaboracion }}
+                    </span>
+                  }
                 </p>
-              }
-            </div>
-            <span class="fila-precio num">${{ p.precio | number: '1.0-0' }}</span>
-          </div>
-        }
-      </div>
+
+                @if (p.descripcion) {
+                  <p class="producto-descripcion">{{ p.descripcion }}</p>
+                }
+
+                <div class="producto-acciones">
+                  <ion-button class="accion-secundaria" (click)="iniciarEdicion(p)">Editar</ion-button>
+                  <ion-button class="accion-destructiva" (click)="confirmarEliminar(p)">Eliminar</ion-button>
+                </div>
+              </div>
+            }
+          </article>
+        </div>
+      }
     }
   }
 </ion-content>
 
-@if (productos().length > 0) {
+<!-- Mientras se edita un producto no se ofrece crear otro: la tarjeta ocupa todo el alto. -->
+@if (productos().length > 0 && enEdicion() === null) {
   <ion-footer class="ion-no-border">
     <app-barra-acciones>
       <ion-button class="accion-principal" expand="block" (click)="agregar()">{{ textos.accion }}</ion-button>

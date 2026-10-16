@@ -1,5 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { IonButton, IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
+import { AlturaDisponibleDirective } from '../../../../shared/directives/altura-disponible.directive';
+import { EstadoVacioComponent } from '../../../../shared/components/estado-vacio/estado-vacio.component';
 import { FilaPedidoComponent } from '../components/fila-pedido/fila-pedido.component';
 import { ResumenMozoService } from '../../../../core/services/resumen-mozo.service';
 import { LoadingService } from '../../../../core/services/loading.service';
@@ -7,7 +9,16 @@ import { LoadingService } from '../../../../core/services/loading.service';
 @Component({
   selector: 'app-pedidos-pendientes',
   standalone: true,
-  imports: [IonButton, IonContent, IonHeader, IonTitle, IonToolbar, FilaPedidoComponent],
+  imports: [
+    IonButton,
+    IonContent,
+    IonHeader,
+    IonTitle,
+    IonToolbar,
+    AlturaDisponibleDirective,
+    EstadoVacioComponent,
+    FilaPedidoComponent,
+  ],
   templateUrl: './pedidos-pendientes.page.html',
   styleUrls: ['./pedidos-pendientes.page.scss'],
 })

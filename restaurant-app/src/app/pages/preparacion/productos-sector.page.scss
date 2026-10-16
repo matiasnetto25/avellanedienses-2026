@@ -1,42 +1,262 @@
-.lista {
-  padding: var(--espacio-3) var(--margen-pantalla) var(--espacio-6);
+/* Una tarjeta por pantalla (mismo patrón que Salón y Personal). */
+.modo-tarjetas::part(scroll) {
+  scroll-snap-type: y mandatory;
 }
 
-.fila {
+.pagina-producto {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: var(--espacio-4);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  /* Alto EXACTO medido con JS (appAlturaDisponible): no asoma la próxima tarjeta. */
+  height: var(--altura-disponible, auto);
+  overflow: hidden;
+}
+
+.producto {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio-lg);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+}
+
+/* ------------------------------ lectura ------------------------------ */
+
+.producto-visor {
+  position: relative;
+  flex: 1;
+  min-height: 80px;
+  background: var(--color-superficie-hundida);
+}
+
+/* Carrusel horizontal: una foto por vez. */
+.producto-fotos {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.producto-foto {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.producto-contador {
+  position: absolute;
+  right: var(--espacio-3);
+  bottom: var(--espacio-3);
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: var(--texto-etiqueta);
+}
+
+.producto-sin-foto {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
+  color: var(--color-texto-terciario);
+  font-size: var(--texto-cuerpo-compacto);
+}
+
+.producto-info {
+  flex: none;
+  padding: var(--espacio-4);
+}
+
+.producto-encabezado {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: var(--espacio-3);
 }
 
-.fila-miniatura {
-  flex: none;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radio-sm);
-  background: var(--color-superficie-hundida);
-  object-fit: cover;
-}
-
-.fila-texto {
-  flex: 1;
-  min-width: 0;
-}
-
-.fila-nombre {
+.producto-nombre {
   margin: 0;
-  font-weight: var(--peso-medio);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--fuente-titulo);
+  font-weight: var(--peso-regular);
+  font-size: var(--texto-subtitulo);
+  color: var(--color-texto);
 }
 
-.fila-tiempo {
+.producto-precio {
+  flex: none;
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto);
+}
+
+.producto-meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--espacio-1);
-  margin: var(--espacio-1) 0 0;
+  gap: var(--espacio-3);
+  margin: var(--espacio-2) 0 0;
   font-size: var(--texto-etiqueta);
   color: var(--color-texto-secundario);
 }
 
-.fila-precio {
+.producto-tipo {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--color-superficie-hundida);
+  color: var(--color-texto);
+}
+
+.producto-tiempo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-1);
+}
+
+.producto-descripcion {
+  margin: var(--espacio-2) 0 0;
+  /* Descripciones largas: no empujan los botones fuera de la tarjeta. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--texto-cuerpo-compacto);
+  line-height: 1.4;
+  color: var(--color-texto-secundario);
+}
+
+.producto-acciones {
+  display: flex;
+  gap: var(--espacio-3);
+  margin-top: var(--espacio-4);
+
+  ion-button {
+    flex: 1;
+    margin: 0;
+  }
+}
+
+/* ------------------------------ edición ------------------------------ */
+
+.producto-form {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Zona de campos: es la única que scrollea si la pantalla es baja. */
+.producto-campos {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  padding: var(--espacio-4) var(--espacio-4) var(--espacio-2);
+}
+
+/* Guardar / Cancelar: siempre a la vista, debajo de los campos. */
+.producto-acciones--fijas {
   flex: none;
-  font-weight: var(--peso-fuerte);
+  margin: 0;
+  padding: var(--espacio-3) var(--espacio-4) var(--espacio-4);
+  border-top: 1px solid var(--color-borde-suave);
+  background: var(--color-superficie);
+}
+
+.campo-grupo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.campo-fila {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espacio-3);
+}
+
+.producto-etiqueta-seccion {
+  margin: var(--espacio-2) 0 0;
+  font-family: var(--fuente-titulo);
+  font-size: var(--texto-subtitulo);
+  color: var(--color-texto);
+}
+
+.fotos-edicion {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: var(--espacio-2);
+  /* Las fotos crecen para ocupar el alto que sobra (sin hueco en blanco);
+     nunca bajan de un cuadrado, y si no entra, la zona de campos scrollea. */
+  flex: 1 0 auto;
+  min-height: clamp(96px, 28vw, 140px);
+}
+
+.foto-edicion {
+  position: relative;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 2px dashed var(--color-borde-control);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie-hundida);
+  color: var(--color-texto-terciario);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  ion-icon {
+    font-size: 28px;
+  }
+}
+
+.foto-edicion-pie {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 2px 4px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: var(--texto-etiqueta);
+  text-align: center;
+}
+
+.producto-nota {
+  margin: 0;
+  font-size: var(--texto-etiqueta);
+  color: var(--color-texto-terciario);
+}
+
+/* Mientras se edita una tarjeta, las demás se ocultan: no hay nada más a donde scrollear. */
+.pagina-oculta {
+  display: none;
 }

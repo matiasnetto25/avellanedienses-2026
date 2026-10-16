@@ -9,6 +9,8 @@ import { ClienteActualService } from '../../../core/services/cliente-actual.serv
 import { EtapaClienteService } from '../../../core/services/etapa-cliente.service';
 import { SolicitudesMesaService } from '../../../core/services/solicitudes-mesa.service';
 import { LoadingService } from '../../../core/services/loading.service';
+import { NotificacionesService } from '../../../core/services/notificaciones.service';
+import { PerfilActualService } from '../../../core/services/perfil-actual.service';
 
 @Component({
   selector: 'app-escaneo-mesa',
@@ -25,8 +27,11 @@ export class EscaneoMesaPage implements OnInit {
   private readonly etapaCliente = inject(EtapaClienteService);
   private readonly solicitudesMesa = inject(SolicitudesMesaService);
   private readonly loading = inject(LoadingService);
+  private readonly notificaciones = inject(NotificacionesService);
+  private readonly perfilActual = inject(PerfilActualService);
 
   private clienteId: string | null = null;
+  private numeroMesaAsignada: number | null = null;
   escaneando = false;
 
   constructor() {
@@ -44,12 +49,15 @@ export class EscaneoMesaPage implements OnInit {
       }
       this.clienteId = clienteId;
 
-      // Si ya está vinculado, no tiene sentido mostrarle el escaneo de
-      // nuevo: lo mandamos directo a la pantalla de su mesa.
+      // Esta pantalla es solo para quien ya tiene mesa asignada y todavía no
+      // la escaneó. Si está vinculado, en la lista de espera o sin solicitud,
+      // el inicio le muestra lo que le corresponde.
       const solicitud = await this.solicitudesMesa.obtenerMiSolicitud(clienteId);
-      if (solicitud?.estado === 'vinculado') {
+      if (solicitud?.estado !== 'aceptado') {
         this.router.navigate(['/cliente/inicio'], { replaceUrl: true });
+        return;
       }
+      this.numeroMesaAsignada = solicitud.numero_mesa;
     } finally {
       this.loading.ocultar();
     }
@@ -76,6 +84,12 @@ export class EscaneoMesaPage implements OnInit {
       if (!vinculacion.ok) {
         await this.avisos.error(vinculacion.mensaje ?? 'No se pudo vincular con la mesa.');
         return;
+      }
+
+      if (this.numeroMesaAsignada !== null) {
+        const perfil = await this.perfilActual.obtener();
+        this.notificaciones.avisarClienteVinculado(perfil?.nombre ?? 'Un cliente', this.numeroMesaAsignada);
+        this.notificaciones.avisarMesaVinculadaCliente(this.clienteId, this.numeroMesaAsignada);
       }
 
       await this.etapaCliente.refrescar();

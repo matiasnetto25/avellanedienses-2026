@@ -4,6 +4,7 @@ import { puestoGuard } from './core/guards/puesto.guard';
 import { clienteGuard } from './core/guards/cliente.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
 import { estadiaEnMesaGuard } from './core/guards/estadia-en-mesa.guard';
+import { menuGuard } from './core/guards/menu.guard';
 import { PUESTOS_ADMIN } from './core/models/empleado.model';
 import { PESTANAS_ADMIN, PESTANAS_CANTINA, PESTANAS_COCINA, PESTANAS_METRE, PESTANAS_MOZO, pestanasCliente } from './core/models/pestanas-por-perfil';
 
@@ -43,6 +44,8 @@ const routes: Routes = [
   },
   {
     path: 'menu',
+    // Solo el personal o el cliente ya vinculado a su mesa.
+    canActivate: [menuGuard],
     loadComponent: () => import('./pages/menu/menu.component').then(m => m.MenuComponent)
   },
   {
@@ -56,7 +59,7 @@ const routes: Routes = [
     loadComponent: () => import('./pages/administracion/salon/crear-mesa/crear-mesa.page').then(m => m.CrearMesaPage)
   },
   { path: 'administracion/salon/gestion', redirectTo: 'administracion/salon', pathMatch: 'full' },
-  { path: 'administracion/solicitudes', redirectTo: '/administracion/personal?vista=clientes', pathMatch: 'full' },
+  { path: 'administracion/solicitudes', redirectTo: '/administracion/ahora', pathMatch: 'full' },
   {
     path: 'administracion',
     canActivate: [puestoGuard(...PUESTOS_ADMIN)],
@@ -170,6 +173,8 @@ const routes: Routes = [
       },
       {
         path: 'menu',
+        // Sin mesa asignada y escaneada, el cliente no ve el menú.
+        canActivate: [menuGuard],
         data: { enPestana: true },
         loadComponent: () => import('./pages/menu/menu.component').then(m => m.MenuComponent)
       },
@@ -219,10 +224,6 @@ const routes: Routes = [
       },
       { path: '', redirectTo: 'ahora', pathMatch: 'full' },
     ]
-  },
-  {
-    path: 'cliente-anonimo/ver-mesas',
-    loadComponent: () => import('./pages/cliente-anonimo/ver-mesas/ver-mesas.page').then(m => m.VerMesasPage)
   },
   {
     path: 'mesa/:idMesa',

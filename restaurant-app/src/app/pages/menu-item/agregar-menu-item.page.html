@@ -7,104 +7,122 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="menu-item-content">
-  <form class="menu-item-form" [formGroup]="form" (ngSubmit)="onSubmit()">
+<ion-content class="menu-item-content" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  <form class="formulario" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
 
     @if (!esCantinero) {
-      <div class="menu-item-campo">
-        <ion-item class="menu-item-item">
-          <ion-label position="stacked">Tipo</ion-label>
-          <ion-select formControlName="tipo" placeholder="Seleccioná un tipo" interface="popover">
-            @for (t of tiposCocinero; track t.valor) {
-              <ion-select-option [value]="t.valor">{{ t.etiqueta }}</ion-select-option>
-            }
-          </ion-select>
-        </ion-item>
-        @if (mensajeError('tipo'); as mensaje) {
-          <ion-text color="danger" class="menu-item-error">{{ mensaje }}</ion-text>
-        }
+      <div class="campo-grupo">
+        <ion-select
+          class="campo"
+          fill="outline"
+          label-placement="floating"
+          label="Tipo"
+          interface="popover"
+          formControlName="tipo"
+          aria-describedby="tipo-aviso"
+        >
+          @for (t of tiposCocinero; track t.valor) {
+            <ion-select-option [value]="t.valor">{{ t.etiqueta }}</ion-select-option>
+          }
+        </ion-select>
+        <app-aviso-campo id="tipo-aviso" [control]="form.controls['tipo']" [mensajes]="mensajes" />
       </div>
     }
 
-    <div class="menu-item-campo">
-      <ion-item class="menu-item-item">
-        <ion-label position="stacked">Nombre</ion-label>
-        <ion-input formControlName="nombre"></ion-input>
-      </ion-item>
-      @if (mensajeError('nombre'); as mensaje) {
-        <ion-text color="danger" class="menu-item-error">{{ mensaje }}</ion-text>
-      }
+    <div class="campo-grupo">
+      <ion-input
+        class="campo"
+        fill="outline"
+        label-placement="floating"
+        label="Nombre"
+        formControlName="nombre"
+        aria-describedby="nombre-aviso"
+        autocomplete="off"
+      ></ion-input>
+      <app-aviso-campo id="nombre-aviso" [control]="form.controls['nombre']" [mensajes]="mensajes" />
     </div>
 
-    <div class="menu-item-campo">
-      <ion-item class="menu-item-item">
-        <ion-label position="stacked">Descripción</ion-label>
-        <ion-textarea formControlName="descripcion" [autoGrow]="true" rows="3"></ion-textarea>
-      </ion-item>
-      @if (mensajeError('descripcion'); as mensaje) {
-        <ion-text color="danger" class="menu-item-error">{{ mensaje }}</ion-text>
-      }
+    <div class="campo-grupo">
+      <ion-textarea
+        class="campo"
+        fill="outline"
+        label-placement="floating"
+        label="Descripción"
+        formControlName="descripcion"
+        [autoGrow]="true"
+        rows="3"
+        aria-describedby="descripcion-aviso"
+      ></ion-textarea>
+      <app-aviso-campo id="descripcion-aviso" [control]="form.controls['descripcion']" [mensajes]="mensajes" />
     </div>
 
-    <div class="menu-item-campo">
-      <ion-item class="menu-item-item">
-        <ion-label position="stacked">Demora (minutos)</ion-label>
-        <ion-input type="number" formControlName="demora"></ion-input>
-      </ion-item>
-      @if (mensajeError('demora'); as mensaje) {
-        <ion-text color="danger" class="menu-item-error">{{ mensaje }}</ion-text>
-      }
+    <div class="campos-contiguos">
+      <div class="campo-grupo">
+        <ion-input
+          class="campo"
+          fill="outline"
+          label-placement="floating"
+          label="Demora (minutos)"
+          type="number"
+          inputmode="numeric"
+          formControlName="demora"
+          aria-describedby="demora-aviso"
+        ></ion-input>
+        <app-aviso-campo id="demora-aviso" [control]="form.controls['demora']" [mensajes]="mensajes" />
+      </div>
+
+      <div class="campo-grupo">
+        <ion-input
+          class="campo"
+          fill="outline"
+          label-placement="floating"
+          label="Precio"
+          type="number"
+          inputmode="decimal"
+          formControlName="precio"
+          aria-describedby="precio-aviso"
+        ></ion-input>
+        <app-aviso-campo id="precio-aviso" [control]="form.controls['precio']" [mensajes]="mensajes" />
+      </div>
     </div>
 
-    <div class="menu-item-campo">
-      <ion-item class="menu-item-item">
-        <ion-label position="stacked">Precio</ion-label>
-        <ion-input type="number" formControlName="precio"></ion-input>
-      </ion-item>
-      @if (mensajeError('precio'); as mensaje) {
-        <ion-text color="danger" class="menu-item-error">{{ mensaje }}</ion-text>
-      }
-    </div>
+    <!-- 3 fotos: un recuadro por foto, se toca para elegir cámara o galería -->
+    <section class="fotos" aria-labelledby="fotos-titulo">
+      <h2 id="fotos-titulo" class="fotos-titulo">Fotos</h2>
+      <p class="ayuda">Tocá cada recuadro para tomar la foto o elegirla de la galería.</p>
 
-    <!-- 3 fotos, cada una en su propio contenedor individual -->
-    <div class="menu-item-fotos">
-      @for (item of camposFoto; track item.campo) {
-        <div class="menu-item-foto-bloque">
-          <ion-label class="menu-item-foto-label">{{ item.etiqueta }}</ion-label>
-
-          <div
-            class="menu-item-foto-contenedor"
-            [class.menu-item-foto-contenedor--vacio]="!fotos()[item.campo]"
+      <div class="fotos-lista">
+        @for (item of camposFoto; track item.campo) {
+          <button
+            type="button"
+            class="foto-tile"
+            [class.foto-tile--vacio]="!fotos()[item.campo]"
+            [disabled]="camara.abriendo()"
             (click)="elegirFoto(item.campo)"
+            [attr.aria-label]="(fotos()[item.campo] ? 'Reemplazar foto ' : 'Elegir foto ') + item.etiqueta.toLowerCase()"
           >
             @if (fotos()[item.campo]; as url) {
-              <img [src]="url" [alt]="item.etiqueta" class="menu-item-foto-img" />
+              <img [src]="url" [alt]="'Foto ' + item.etiqueta.toLowerCase()" />
+              <span class="foto-tile-pie">{{ item.etiqueta }} · tocá para reemplazar</span>
             } @else {
-              <div class="menu-item-foto-placeholder">
-                <ion-icon name="camera-outline"></ion-icon>
-                <span>{{ (camara.abriendo() && campoEligiendo === item.campo) ? 'Abriendo…' : 'Tocá para elegir' }}</span>
-              </div>
+              <span class="foto-tile-ayuda" aria-hidden="true">
+                <ion-icon name="camera-outline" />
+                <span>
+                  {{ camara.abriendo() && campoEligiendo === item.campo ? 'Abriendo…' : 'Foto ' + item.etiqueta.toLowerCase() }}
+                </span>
+              </span>
             }
-          </div>
-
-          <ion-button
-            expand="block"
-            fill="outline"
-            size="small"
-            type="button"
-            class="menu-item-foto-boton"
-            [disabled]="(camara.abriendo() && campoEligiendo === item.campo)"
-            (click)="elegirFoto(item.campo)"
-          >
-            <ion-icon slot="start" name="camera-outline"></ion-icon>
-            {{ fotos()[item.campo] ? 'Reemplazar imagen' : 'Cámara o galería' }}
-          </ion-button>
-        </div>
-      }
-    </div>
-
-    <ion-button expand="block" type="submit" class="menu-item-submit" [disabled]="cargando">
-      {{ cargando ? 'Guardando…' : 'Crear ' + (esCantinero ? 'bebida' : 'plato') }}
-    </ion-button>
+          </button>
+        }
+      </div>
+    </section>
   </form>
 </ion-content>
+
+<ion-footer class="ion-no-border">
+  <app-barra-acciones>
+    <ion-button class="accion-principal" expand="block" [disabled]="cargando" (click)="onSubmit()">
+      {{ cargando ? 'Guardando…' : 'Crear ' + (esCantinero ? 'bebida' : 'plato') }}
+    </ion-button>
+  </app-barra-acciones>
+</ion-footer>

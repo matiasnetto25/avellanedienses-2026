@@ -13,6 +13,44 @@
   text-align: center;
 }
 
+.contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-2);
+  width: 100%;
+}
+
+// Variante recuadro: tarjeta suave que ocupa todo el alto libre.
+:host(.recuadro) {
+  align-items: stretch;
+  padding: var(--espacio-4);
+
+  .contenido {
+    flex: 1;
+    justify-content: center;
+    padding: var(--espacio-5);
+    box-sizing: border-box;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-lg);
+    background: var(--color-superficie-hundida);
+  }
+
+  .circulo {
+    width: 128px;
+    height: 128px;
+    background: rgba(0, 0, 0, 0.05);
+
+    ion-icon {
+      font-size: 64px;
+    }
+  }
+
+  .titulo {
+    font-size: var(--texto-titulo);
+  }
+}
+
 .circulo {
   display: flex;
   align-items: center;
@@ -47,6 +85,6 @@
 
 // La acción secundaria proyectada, separada del texto. Con la encapsulación
 // de Angular, el contenido proyectado solo se alcanza con ::ng-deep (acotado al :host).
-:host ::ng-deep > ion-button {
+:host ::ng-deep .contenido > ion-button {
   margin-top: var(--espacio-3);
 }

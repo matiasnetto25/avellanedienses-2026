@@ -2,12 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IonButton } from '@ionic/angular/standalone';
 import { ItemCarrito } from '../../../../../core/models/pedido.model';
+import { MinutosPipe } from '../../../../../shared/pipes/minutos.pipe';
 
 
 @Component({
   selector: 'app-resumen-pedido',
   standalone: true,
-  imports: [CommonModule, IonButton],
+  imports: [CommonModule, IonButton, MinutosPipe],
   templateUrl: './resumen-pedido.component.html',
   styleUrls: ['./resumen-pedido.component.scss'],
 })

@@ -4,7 +4,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="pedidos-content densidad-compacta">
+<ion-content class="pedidos-content densidad-compacta" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
   @if (cargando()) {
     <!-- El spinner global con el logo cubre la espera. -->
   } @else if (errorCarga()) {
@@ -13,9 +13,11 @@
       <ion-button class="pedidos-aviso-boton" (click)="reintentar()">Reintentar</ion-button>
     </div>
   } @else if (pedidos().length === 0) {
-    <div class="pedidos-aviso">
-      <p class="pedidos-aviso-texto">No hay pedidos esperando confirmación.</p>
-    </div>
+    <app-estado-vacio
+      [recuadro]="true"
+      icono="receipt-outline"
+      titulo="No hay pedidos por confirmar"
+      frase="Cuando un cliente haga un pedido, va a aparecer acá." />
   } @else {
     <div class="pedidos-lista">
       @for (pedido of pedidos(); track pedido.id) {

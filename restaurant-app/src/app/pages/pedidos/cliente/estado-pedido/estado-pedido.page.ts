@@ -17,12 +17,14 @@ import { ClienteActualService } from '../../../../core/services/cliente-actual.s
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { AvisoRechazoService } from '../components/aviso-rechazo/aviso-rechazo.service';
+import { MinutosPipe } from '../../../../shared/pipes/minutos.pipe';
 
 @Component({
   selector: 'app-estado-pedido',
   standalone: true,
   imports: [
     CommonModule,
+    MinutosPipe,
     RouterLink,
     IonContent,
     IonHeader,

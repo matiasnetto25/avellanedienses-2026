@@ -1,0 +1,111 @@
+@for (empleado of empleados(); track empleado.id) {
+  <div class="pagina-empleados" [class.pagina-oculta]="enEdicion() !== null && enEdicion() !== empleado.id">
+    <ion-card class="empleado-card">
+      @if (enEdicion() === empleado.id) {
+        <!-- Modo edición: sin foto grande, el formulario scrollea dentro de la tarjeta -->
+        <form
+          class="empleado-form-edicion"
+          [formGroup]="formEdicion"
+          (ngSubmit)="guardarEdicion(empleado)"
+          novalidate>
+          <div class="empleado-foto-edicion">
+            @if (fotoNuevaDataUrl() ?? urlFoto(empleado); as foto) {
+              <img [src]="foto" [alt]="'Foto de ' + nombreCompleto(empleado)" />
+            } @else {
+              <span class="empleado-sin-foto">Sin foto</span>
+            }
+          </div>
+          <ion-button
+            class="empleado-boton-foto"
+            expand="block"
+            fill="outline"
+            type="button"
+            [disabled]="camara.abriendo()"
+            (click)="tomarNuevaFoto()">
+            {{ camara.abriendo() ? 'Abriendo cámara…' : (fotoNuevaDataUrl() ? 'Volver a tomar foto' : 'Cambiar foto') }}
+          </ion-button>
+
+          <div class="empleado-campo">
+            <ion-item class="empleado-item">
+              <ion-label position="stacked">Nombre</ion-label>
+              <ion-input formControlName="nombre"></ion-input>
+            </ion-item>
+            @if (mensajeError('nombre'); as mensaje) {
+              <ion-text color="danger" class="empleado-error">{{ mensaje }}</ion-text>
+            }
+          </div>
+
+          <div class="empleado-campo">
+            <ion-item class="empleado-item">
+              <ion-label position="stacked">Apellido</ion-label>
+              <ion-input formControlName="apellido"></ion-input>
+            </ion-item>
+            @if (mensajeError('apellido'); as mensaje) {
+              <ion-text color="danger" class="empleado-error">{{ mensaje }}</ion-text>
+            }
+          </div>
+
+          <div class="empleado-campo">
+            <ion-item class="empleado-item">
+              <ion-label position="stacked">Puesto</ion-label>
+              <ion-select formControlName="puesto" placeholder="Seleccioná un puesto" interface="popover">
+                @for (puesto of puestosAsignables(empleado); track puesto) {
+                  <ion-select-option [value]="puesto">{{ etiquetaPuesto[puesto] }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+            @if (mensajeError('puesto'); as mensaje) {
+              <ion-text color="danger" class="empleado-error">{{ mensaje }}</ion-text>
+            }
+          </div>
+
+
+          <div class="empleado-acciones-edicion">
+            <ion-button fill="clear" type="button" (click)="cancelarEdicion()">Cancelar</ion-button>
+            <ion-button type="submit" [disabled]="guardando()">
+              {{ guardando() ? 'Guardando…' : 'Guardar' }}
+            </ion-button>
+          </div>
+        </form>
+      } @else {
+        <!-- Modo lectura -->
+        <div class="empleado-imagen-viewport">
+          @if (urlFoto(empleado); as url) {
+            <img class="empleado-imagen" [src]="url" [alt]="'Foto de ' + nombreCompleto(empleado)" loading="lazy" />
+          } @else {
+            <span class="empleado-sin-foto">Sin foto</span>
+          }
+        </div>
+
+        <ion-card-content class="empleado-info">
+          <div class="empleado-info-header">
+            <h3 class="empleado-nombre">{{ nombreCompleto(empleado) }}</h3>
+            <ion-badge class="empleado-puesto-badge">{{ etiquetaPuesto[empleado.puesto] }}</ion-badge>
+          </div>
+
+          <p class="empleado-dato">{{ empleado.email }}</p>
+          <p class="empleado-dato">CUIL <span class="num">{{ empleado.cuil }}</span></p>
+
+          @if (esUnoMismo(empleado)) {
+            <p class="empleado-nota">Esta es tu cuenta.</p>
+          }
+
+          @if (puedeGestionar(empleado)) {
+            <div class="empleado-acciones">
+              <ion-button fill="outline" size="small" (click)="iniciarEdicion(empleado)">Editar</ion-button>
+              @if (!esUnoMismo(empleado)) {
+                <ion-button fill="outline" color="danger" size="small" (click)="confirmarEliminar(empleado)">
+                  Eliminar
+                </ion-button>
+              }
+            </div>
+          }
+        </ion-card-content>
+      }
+    </ion-card>
+  </div>
+}
+
+@if (cargada() && empleados().length === 0) {
+  <p class="empleados-vacio">Todavía no hay empleados cargados.</p>
+}

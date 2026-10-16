@@ -70,6 +70,47 @@ export function validadorPasswordsCoinciden(campoPassword: string, campoRepetir:
 }
  
 /**
+ * «Repetir contraseña»: validador del PROPIO control (así app-aviso-campo
+ * muestra el error debajo del campo). La pantalla vuelve a validarlo cuando
+ * cambia la contraseña.
+ */
+export function validadorRepetirPassword(campoPassword: string): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const password = control.parent?.get(campoPassword)?.value;
+    if (!control.value || !password) return null;
+    return control.value === password ? null : { passwordsNoCoinciden: true };
+  };
+}
+
+/**
+ * Validador del control DNI: tiene que ser el que figura en el CUIL
+ * (XX-<DNI>-X). La pantalla vuelve a validarlo cuando cambia el CUIL.
+ */
+export function validadorDniDelCuil(campoCuil: string): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const dni = (control.value ?? '').toString().trim();
+    const partes = (control.parent?.get(campoCuil)?.value ?? '').toString().trim().split('-');
+    if (!dni || partes.length !== 3 || !/^\d+$/.test(partes[1])) return null;
+    return Number(partes[1]) === Number(dni) ? null : { dniNoCoincideConCuil: true };
+  };
+}
+
+/**
+ * El DNI no se guarda (la tabla empleados no tiene esa columna) porque ya va
+ * dentro del CUIL: XX-<DNI>-X. Este validador de grupo evita que se cargue un
+ * DNI que no corresponde al CUIL ingresado.
+ */
+export function validadorDniCoincideConCuil(campoDni: string, campoCuil: string): ValidatorFn {
+  return (grupo: AbstractControl): ValidationErrors | null => {
+    const dni = (grupo.get(campoDni)?.value ?? '').toString().trim();
+    const cuil = (grupo.get(campoCuil)?.value ?? '').toString().trim();
+    const partes = cuil.split('-');
+    if (!dni || partes.length !== 3 || !/^\d+$/.test(partes[1])) return null;
+    return Number(partes[1]) === Number(dni) ? null : { dniNoCoincideConCuil: true };
+  };
+}
+
+/**
  * Arma el CUIL completo a partir del DNI, con el dígito verificador de
  * digitoVerificadorCuil (core/utils/formularios.ts).
  * Se usa solo para SUGERIR un valor al escanear el DNI; el usuario debe poder

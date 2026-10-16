@@ -63,7 +63,7 @@
         </span>
         <span class="pedido-total">${{ carrito.total() | number: '1.0-0' }}</span>
         <span class="pedido-tiempo">
-          Tiempo estimado: <span class="sin-corte">{{ carrito.tiempoEstimado() ? carrito.tiempoEstimado() + ' min' : '—' }}</span>
+          Tiempo estimado: <span class="sin-corte">{{ carrito.tiempoEstimado() ? (carrito.tiempoEstimado() | minutos) : '—' }}</span>
         </span>
       </div>
       <ion-button class="pedido-revisar" [disabled]="carrito.vacio()" (click)="revisarPedido()">

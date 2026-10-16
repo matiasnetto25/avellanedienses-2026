@@ -1,19 +1,46 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { IonButton, IonContent, IonItem, IonLabel, IonInput } from '@ionic/angular/standalone';
+import {
+  IonButton,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { cameraOutline } from 'ionicons/icons';
+import { AlturaDisponibleDirective } from '../../shared/directives/altura-disponible.directive';
+import { AvisoCampoComponent } from '../../shared/components/aviso-campo/aviso-campo.component';
+import { BarraAccionesComponent } from '../../shared/components/barra-acciones/barra-acciones.component';
 import { AvisosService } from '../../core/services/avisos.service';
 import { CamaraService } from '../../core/services/camara.service';
 import { ClienteAnonimoService } from '../../core/services/cliente-anonimo.service';
 import { NotificacionesService } from '../../core/services/notificaciones.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { validadorTextoValido } from '../../validators/empleado.validators';
+import { validarFormulario } from '../../core/utils/formularios';
 
 @Component({
   selector: 'app-principal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, IonContent, IonButton, IonItem, IonLabel, IonInput],
+  imports: [
+    ReactiveFormsModule,
+    IonButton,
+    IonContent,
+    IonFooter,
+    IonHeader,
+    IonIcon,
+    IonInput,
+    IonTitle,
+    IonToolbar,
+    AlturaDisponibleDirective,
+    AvisoCampoComponent,
+    BarraAccionesComponent,
+  ],
   templateUrl: './principal.page.html',
   styleUrls: ['./principal.page.scss'],
 })
@@ -25,6 +52,20 @@ export class PrincipalPage implements OnInit {
   private readonly clienteAnonimo = inject(ClienteAnonimoService);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly loading = inject(LoadingService);
+  private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  readonly mensajesNombre = {
+    required: 'Ingresá tu nombre.',
+    soloEspacios: 'El nombre no puede estar vacío.',
+    minlength: 'El nombre debe tener al menos 2 caracteres.',
+    soloTexto: 'El nombre solo puede contener letras.',
+  };
+  readonly mensajesApellido = {
+    required: 'Ingresá tu apellido.',
+    soloEspacios: 'El apellido no puede estar vacío.',
+    minlength: 'El apellido debe tener al menos 2 caracteres.',
+    soloTexto: 'El apellido solo puede contener letras.',
+  };
 
   /** true mientras se decide si hay que mostrar el form o saltar directo. */
   readonly verificando = signal(true);
@@ -35,6 +76,10 @@ export class PrincipalPage implements OnInit {
     nombre: ['', [Validators.required, validadorTextoValido(2)]],
     apellido: ['', [Validators.required, validadorTextoValido(2)]],
   });
+
+  constructor() {
+    addIcons({ cameraOutline });
+  }
 
   async ngOnInit(): Promise<void> {
     const cliente = await this.clienteAnonimo.obtenerClienteActual();
@@ -64,18 +109,15 @@ export class PrincipalPage implements OnInit {
   }
 
   async onSubmit(): Promise<void> {
-    this.form.markAllAsTouched();
+    if (this.cargando) return;
 
-    if (this.form.invalid) {
-      await this.avisos.error('Ingresá tu nombre y apellido.');
-      return;
-    }
+    if (!(await validarFormulario(this.form, this.avisos, this.el.nativeElement))) return;
+
     if (!this.fotoDataUrl()) {
       await this.avisos.error('Tomá una foto antes de continuar.');
       return;
     }
 
-    if (this.cargando) return;
     this.cargando = true;
     this.loading.mostrar();
 

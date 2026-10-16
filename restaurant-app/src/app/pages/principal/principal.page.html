@@ -1,59 +1,86 @@
-<ion-content class="principal-content" [scrollY]="true">
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Bienvenido/a a Merlot</ion-title>
+  </ion-toolbar>
+</ion-header>
 
+<ion-content class="principal-content" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
   @if (!verificando()) {
-    <div class="principal-hero">
-      <h1 class="principal-hero-titulo">Bienvenido/a a Merlot</h1>
-      <p class="principal-hero-subtitulo">
+    <form class="formulario" [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+      <p class="ayuda">
         Ingresá tu nombre y una foto para identificarte en el local. No hace falta registrarte con email ni contraseña.
       </p>
-    </div>
 
-    <form class="principal-form" [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="principal-campo">
-        <ion-item class="principal-item">
-          <ion-label position="stacked">Nombre</ion-label>
-          <ion-input formControlName="nombre"></ion-input>
-        </ion-item>
+      <div class="campo-grupo">
+        <ion-input
+          class="campo"
+          fill="outline"
+          label-placement="floating"
+          label="Nombre"
+          formControlName="nombre"
+          aria-describedby="nombre-aviso"
+          autocomplete="off"
+        ></ion-input>
+        <app-aviso-campo id="nombre-aviso" [control]="form.controls['nombre']" [mensajes]="mensajesNombre" />
       </div>
 
-      <div class="principal-campo">
-        <ion-item class="principal-item">
-          <ion-label position="stacked">Apellido</ion-label>
-          <ion-input formControlName="apellido"></ion-input>
-        </ion-item>
+      <div class="campo-grupo">
+        <ion-input
+          class="campo"
+          fill="outline"
+          label-placement="floating"
+          label="Apellido"
+          formControlName="apellido"
+          aria-describedby="apellido-aviso"
+          autocomplete="off"
+        ></ion-input>
+        <app-aviso-campo id="apellido-aviso" [control]="form.controls['apellido']" [mensajes]="mensajesApellido" />
       </div>
 
-      <div class="principal-campo-foto">
-        <ion-label>Tu foto</ion-label>
-
-        <div class="principal-foto-viewport" [class.principal-foto-viewport--vacio]="!fotoDataUrl()">
-          @if (fotoDataUrl(); as foto) {
-            <img [src]="foto" alt="Tu foto" class="principal-foto-img" />
-          } @else {
-            <div class="principal-foto-placeholder">
-              <span>{{ camara.abriendo() ? 'Abriendo cámara…' : 'Tu foto va a aparecer acá' }}</span>
-            </div>
-          }
-        </div>
+      <section class="foto" aria-labelledby="foto-titulo">
+        <h2 id="foto-titulo" class="foto-titulo">Tu foto</h2>
 
         @if (fotoDataUrl()) {
-          <ion-button expand="block" fill="outline" type="button" (click)="volverATomarFoto()">
+          <ion-button class="accion-secundaria" expand="block" type="button" (click)="volverATomarFoto()">
             Volver a tomar foto
           </ion-button>
         } @else {
-          <ion-button expand="block" fill="outline" type="button" [disabled]="camara.abriendo()" (click)="tomarFoto()">
+          <ion-button
+            class="accion-secundaria"
+            expand="block"
+            type="button"
+            [disabled]="camara.abriendo()"
+            (click)="tomarFoto()"
+          >
             {{ camara.abriendo() ? 'Abriendo cámara…' : 'Tomar foto' }}
           </ion-button>
         }
-      </div>
 
-      <ion-button expand="block" type="submit" class="principal-submit" [disabled]="cargando">
-        {{ cargando ? 'Ingresando…' : 'Ingresar' }}
-      </ion-button>
-
-      <ion-button expand="block" type="button" class="principal-submit" [disabled]="cargando" (click)="cancelarRegistro()">
-        Cancelar registro
-      </ion-button>
+        <div class="foto-marco" [class.foto-marco--vacio]="!fotoDataUrl()" [class.foto-marco--con-foto]="!!fotoDataUrl()">
+          @if (fotoDataUrl(); as foto) {
+            <img [src]="foto" alt="Tu foto" />
+          } @else {
+            <div class="foto-marco-ayuda" aria-hidden="true">
+              <ion-icon name="camera-outline" />
+              <span>Acá va a aparecer tu foto</span>
+            </div>
+          }
+        </div>
+      </section>
     </form>
   }
 </ion-content>
+
+@if (!verificando()) {
+  <ion-footer class="ion-no-border">
+    <app-barra-acciones>
+      <ion-button class="accion-principal" expand="block" [disabled]="cargando" (click)="onSubmit()">
+        {{ cargando ? 'Ingresando…' : 'Ingresar' }}
+      </ion-button>
+      <ion-button class="accion-terciaria" expand="block" fill="clear" [disabled]="cargando" (click)="cancelarRegistro()">
+        Cancelar registro
+      </ion-button>
+    </app-barra-acciones>
+  </ion-footer>
+}

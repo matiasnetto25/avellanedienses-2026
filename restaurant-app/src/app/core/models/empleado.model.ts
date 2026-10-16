@@ -48,6 +48,17 @@ export const ETIQUETA_PUESTO: Record<Puesto, string> = {
   cantinero: 'Cantinero',
 };
 
+/**
+ * Puestos que un empleado de este puesto puede modificar o eliminar:
+ * el dueño, todos; el supervisor, solo los que él mismo puede crear.
+ * La Edge Function «gestionar-empleado» valida lo mismo del lado del servidor.
+ */
+export function puestosGestionablesPor(puesto: Puesto | undefined): readonly Puesto[] {
+  if (puesto === 'dueño') return PUESTOS_TODOS;
+  if (puesto === 'supervisor') return PUESTOS_CREABLES_POR_SUPERVISOR;
+  return [];
+}
+
 export const PUESTOS_VISTA_MESA: readonly Puesto[] = ['dueño', 'supervisor', 'metre', 'mozo'];
 
 /** Fila cruda de la tabla "empleados" en Supabase */
@@ -62,8 +73,9 @@ export interface EmpleadoRow {
   nombre: string;
   apellido: string;
   cuil: string;
-  sexo: Sexo | null;
-  fecha_nacimiento: string | null;
+  /** Columnas heredadas: el alta ya no las pide (pueden venir null). */
+  sexo?: Sexo | null;
+  fecha_nacimiento?: string | null;
   email: string;
   puesto: Puesto;
 
@@ -96,7 +108,7 @@ export interface EmpleadoSesion {
 /** Payload para dar de alta un empleado nuevo (sin id ni auth_user_id) */
 export type NuevoEmpleado = Omit<
   EmpleadoRow,
-  'id' | 'auth_user_id'
+  'id' | 'auth_user_id' | 'sexo' | 'fecha_nacimiento'
 >;
 
 /** Datos que se pueden extraer del código del DNI argentino (PDF417) */

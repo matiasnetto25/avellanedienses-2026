@@ -5,7 +5,7 @@ export interface Producto {
   nombre: string;
   precio: number;
   descripcion: string;
-  /** Texto libre, ej: "10-15 min" */
+  /** Texto listo para mostrar, ej: "15 minutos" */
   tiempoElaboracion: string;
   /** Demora en minutos (0 si no está cargada): para el tiempo estimado del pedido. */
   demoraMin: number;

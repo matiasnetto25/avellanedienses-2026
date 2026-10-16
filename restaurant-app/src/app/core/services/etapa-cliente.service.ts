@@ -1,10 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Auth } from './auth';
-import { AvisosService } from './avisos.service';
 import { ClienteActualService } from './cliente-actual.service';
 import { PedidosService } from './pedidos.service';
 import { SolicitudesMesaService } from './solicitudes-mesa.service';
-import { MiSolicitud } from '../models/solicitud-mesa.model';
+import { MiSolicitud, SolicitudConMesa, tieneMesa } from '../models/solicitud-mesa.model';
 import { Pedido } from '../models/pedido.model';
 
 // 'cuenta-pedida' (punto 21) todavía no se emite:
@@ -12,8 +11,8 @@ import { Pedido } from '../models/pedido.model';
 export type EtapaCliente =
   | { tipo: 'sin-mesa' }
   | { tipo: 'en-espera'; solicitud: MiSolicitud }
-  | { tipo: 'mesa-asignada'; solicitud: MiSolicitud }
-  | { tipo: 'estadia'; solicitud: MiSolicitud; pedido: Pedido | null };
+  | { tipo: 'mesa-asignada'; solicitud: SolicitudConMesa }
+  | { tipo: 'estadia'; solicitud: SolicitudConMesa; pedido: Pedido | null };
 
 /**
  * En qué etapa está el cliente del dispositivo (lineamientos §3), en vivo.
@@ -25,7 +24,6 @@ export class EtapaClienteService {
   private readonly clienteActual = inject(ClienteActualService);
   private readonly solicitudesMesa = inject(SolicitudesMesaService);
   private readonly pedidos = inject(PedidosService);
-  private readonly avisos = inject(AvisosService);
 
   private readonly _etapa = signal<EtapaCliente | null>(null);
   /** null mientras carga la primera vez. */
@@ -34,7 +32,7 @@ export class EtapaClienteService {
   readonly posicionEnLista = signal<number | null>(null);
   readonly enEstadia = computed(() => this._etapa()?.tipo === 'estadia');
 
-  /** Lo marca el inicio: si el cliente no lo está mirando, los cambios de etapa también avisan con un toast. */
+  /** Lo marca el inicio. Ya no se usa para avisar: los cambios de etapa los avisa la push nativa. */
   mirandoInicio = false;
 
   private clienteId: string | null = null;
@@ -83,7 +81,6 @@ export class EtapaClienteService {
   }
 
   private async aplicar(solicitud: MiSolicitud | null): Promise<void> {
-    const anterior = this._etapa()?.tipo ?? null;
     this.solicitudRechazada.set(solicitud?.estado === 'rechazado');
 
     switch (solicitud?.estado) {
@@ -94,20 +91,25 @@ export class EtapaClienteService {
         break;
       case 'aceptado':
         this.dejarDeObservarPedido();
-        this._etapa.set({ tipo: 'mesa-asignada', solicitud });
+        // Aceptada siempre trae mesa (lo garantiza la base); sin ella no hay nada que escanear.
+        this._etapa.set(tieneMesa(solicitud) ? { tipo: 'mesa-asignada', solicitud } : { tipo: 'sin-mesa' });
         break;
       case 'vinculado':
-        await this.entrarEnEstadia(solicitud);
+        if (tieneMesa(solicitud)) {
+          await this.entrarEnEstadia(solicitud);
+        } else {
+          this.dejarDeObservarPedido();
+          this._etapa.set({ tipo: 'sin-mesa' });
+        }
         break;
       default:
         this.dejarDeObservarPedido();
         this._etapa.set({ tipo: 'sin-mesa' });
     }
 
-    if (anterior !== null && anterior !== this._etapa()?.tipo) this.avisarCambio();
   }
 
-  private async entrarEnEstadia(solicitud: MiSolicitud): Promise<void> {
+  private async entrarEnEstadia(solicitud: SolicitudConMesa): Promise<void> {
     if (this.pedidoObservado?.solicitudId !== solicitud.id) {
       this.dejarDeObservarPedido();
       this.pedidoObservado = {
@@ -127,15 +129,5 @@ export class EtapaClienteService {
   private dejarDeObservarPedido(): void {
     this.pedidoObservado?.dejarDeEscuchar();
     this.pedidoObservado = null;
-  }
-
-  private avisarCambio(): void {
-    if (this.mirandoInicio) return;
-    const etapa = this._etapa();
-    if (etapa?.tipo === 'mesa-asignada') {
-      void this.avisos.info(`Tu mesa está lista: Mesa ${etapa.solicitud.numero_mesa}.`);
-    } else if (etapa?.tipo === 'sin-mesa' && this.solicitudRechazada()) {
-      void this.avisos.advertencia('El maître no pudo asignarte una mesa. Podés volver a anotarte.');
-    }
   }
 }

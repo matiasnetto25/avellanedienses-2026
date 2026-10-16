@@ -1,4 +1,5 @@
-<ion-content class="densidad-amplia" [fullscreen]="true">
+<ion-content class="densidad-amplia" [fullscreen]="true" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  <div class="pantalla">
   <app-encabezado-perfil
     [saludo]="'Hola, ' + (perfil()?.nombre ?? '')"
     [titulo]="titulo()"
@@ -21,7 +22,7 @@
               <span class="icono"><ion-icon name="qr-code-outline" aria-hidden="true" /></span>
               <div class="texto">
                 <h2 class="titulo">Escaneá el QR de la entrada</h2>
-                <p class="frase">Así te anotás en la lista de espera y el maître te asigna una mesa.</p>
+                <p class="frase">Así te anotás en la lista de espera y el maître te asigna una mesa. El menú se habilita cuando llegues a tu mesa.</p>
               </div>
             </div>
           </div>
@@ -37,20 +38,20 @@
       }
 
       @case ('en-espera') {
-        <div class="etapa">
-          <div class="tarjeta tarjeta-estado" data-tono="espera">
+        <div class="etapa etapa--centrada">
+          <div class="tarjeta tarjeta-estado tarjeta-estado--grande" data-tono="espera">
             <div class="arriba">
               <span class="icono"><ion-icon name="time-outline" aria-hidden="true" /></span>
               <div class="texto">
                 <app-chip-estado [estado]="estadoSolicitudMesa('en_espera')" />
                 <h2 class="titulo">Estás en la lista de espera</h2>
-                <p class="frase">
-                  Elegiste la Mesa {{ e.solicitud.numero_mesa }}.
-                  @if (posicionEnLista(); as posicion) {
-                    <span class="num">Posición {{ posicion }}.</span>
-                  }
-                  Te avisamos cuando el maître te la asigne.
-                </p>
+                <p class="frase">En breve el maître te asignará una mesa y te daremos aviso.</p>
+                @if (posicionEnLista(); as posicion) {
+                  <p class="posicion">
+                    <span class="posicion-etiqueta">Tu posición en la lista</span>
+                    <span class="posicion-numero num">{{ posicion }}</span>
+                  </p>
+                }
               </div>
             </div>
           </div>
@@ -58,14 +59,14 @@
       }
 
       @case ('mesa-asignada') {
-        <div class="etapa">
-          <div class="tarjeta tarjeta-estado" data-tono="en-curso">
+        <div class="etapa etapa--centrada">
+          <div class="tarjeta tarjeta-estado tarjeta-estado--grande" data-tono="en-curso">
             <div class="arriba">
               <span class="icono"><ion-icon name="sync-outline" aria-hidden="true" /></span>
               <div class="texto">
                 <app-chip-estado [estado]="estadoSolicitudMesa('aceptado')" />
                 <h2 class="titulo">Tu mesa está lista: Mesa {{ e.solicitud.numero_mesa }}</h2>
-                <p class="frase">Acercate y escaneá el QR que está sobre la mesa.</p>
+                <p class="frase">Acercate a la mesa y escaneá su QR para confirmar que llegaste. Después vas a poder ver el menú.</p>
               </div>
             </div>
           </div>
@@ -99,6 +100,7 @@
       }
     }
   }
+  </div>
 </ion-content>
 
 @if (accionPrincipal(); as accion) {

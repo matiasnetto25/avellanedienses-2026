@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { Haptics, NotificationType } from '@capacitor/haptics';
 import { addIcons } from 'ionicons';
@@ -17,6 +18,7 @@ type TonoAviso = 'listo' | 'en-curso' | 'espera' | 'rechazo';
 @Injectable({ providedIn: 'root' })
 export class AvisosService {
   private readonly toastController = inject(ToastController);
+  private readonly router = inject(Router);
 
   private readonly estiloPorTipo: Record<TipoAviso, { tono: TonoAviso; icono: string }> = {
     exito: { tono: 'listo', icono: 'checkmark-circle-outline' },
@@ -49,6 +51,19 @@ export class AvisosService {
     await this.mostrar(mensaje, 'info', duracionMs);
   }
 
+  /**
+   * Aviso de una notificación push recibida con la app abierta: NO se cierra
+   * solo, permanece hasta que el usuario toque «Cerrar» (o «Ver», si la push
+   * trae una ruta, que además lo lleva a esa pantalla).
+   */
+  async push(mensaje: string, ruta?: string): Promise<void> {
+    const botones = [
+      ...(ruta ? [{ text: 'Ver', handler: () => void this.router.navigateByUrl(ruta) }] : []),
+      { text: 'Cerrar', role: 'cancel' },
+    ];
+    await this.mostrar(mensaje, 'info', 0, botones);
+  }
+
   /** Aviso único para los botones de funciones que todavía no están disponibles. */
   async proximamente(): Promise<void> {
     await this.info('Esta función se habilita en la próxima entrega.');
@@ -62,11 +77,18 @@ export class AvisosService {
     }
   }
 
-  private async mostrar(mensaje: string, tipo: TipoAviso, duracionMs: number): Promise<void> {
+  private async mostrar(
+    mensaje: string,
+    tipo: TipoAviso,
+    duracionMs: number,
+    botones?: { text: string; role?: string; handler?: () => void }[],
+  ): Promise<void> {
     const { tono, icono } = this.estiloPorTipo[tipo];
     const toast = await this.toastController.create({
       message: mensaje,
+      // 0 = sin cierre automático (solo lo usan las push, con botones).
       duration: duracionMs,
+      buttons: botones,
       // Siempre arriba: abajo taparía la acción principal fija.
       position: 'top',
       positionAnchor: this.barraSuperiorVisible(),

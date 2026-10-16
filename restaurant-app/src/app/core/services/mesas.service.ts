@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { BUCKETS, Bucket } from '../storage-buckets';
 import { QrService, contenidoQrMesa } from './qr.service';
@@ -17,6 +17,13 @@ export class MesasService {
   private readonly supabase = inject(SupabaseService);
   private readonly qrService = inject(QrService);
 
+  /**
+   * Sube cada vez que se crea una mesa. Las pantallas con la lista (gestión
+   * de mesas) lo observan y se actualizan solas, estén o no a la vista:
+   * crear-mesa es una pantalla aparte, y al volver Ionic no avisa a la lista.
+   */
+  readonly version = signal(0);
+
   async listar(): Promise<MesaRow[]> {
     const { data, error } = await this.supabase.client
       .from(TABLA_MESA)
@@ -28,6 +35,24 @@ export class MesasService {
       return [];
     }
     return (data ?? []) as MesaRow[];
+  }
+
+  /**
+   * El número de mesa libre más bajo: con las mesas 1, 2 y 5 creadas sugiere
+   * el 3. Null si no se pudo consultar (entonces no se sugiere nada).
+   */
+  async sugerirNumero(): Promise<number | null> {
+    const { data, error } = await this.supabase.client.from(TABLA_MESA).select('numero_mesa');
+
+    if (error) {
+      console.error('Error buscando el próximo número de mesa:', error);
+      return null;
+    }
+
+    const usados = new Set((data ?? []).map((fila) => Number(fila.numero_mesa)));
+    let numero = 1;
+    while (usados.has(numero)) numero++;
+    return numero;
   }
 
   async obtenerPorId(id: string): Promise<MesaRow | null> {
@@ -114,6 +139,7 @@ export class MesasService {
   }
 
   async crearMesa(datos: Omit<NuevaMesa, 'foto' | 'qr'>, fotoDataUrl: string): Promise<ResultadoOperacionMesa> {
+    let filaCreada = false;
     try {
       const identificador = crypto.randomUUID();
       const nombreFoto = `${identificador}.jpg`;
@@ -146,6 +172,7 @@ export class MesasService {
       }
 
       const mesa = data as MesaRow;
+      filaCreada = true;
 
       // El QR necesita el id real de la mesa (recién asignado por Supabase),
       // por eso se genera y sube DESPUÉS del insert, en un segundo paso.
@@ -189,6 +216,9 @@ export class MesasService {
       console.error('Error creando mesa:', error);
       const mensaje = error instanceof Error ? error.message : 'Error inesperado al crear la mesa.';
       return { ok: false, mensaje };
+    } finally {
+      // Después de terminar (con o sin QR), así la lista lee la mesa completa.
+      if (filaCreada) this.version.update((v) => v + 1);
     }
   }
 

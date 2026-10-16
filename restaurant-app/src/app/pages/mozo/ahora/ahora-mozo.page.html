@@ -10,6 +10,7 @@
     @if (!cargando()) {
       @if (todoEnOrden()) {
         <app-estado-vacio
+          [recuadro]="true"
           icono="checkmark-done-outline"
           titulo="Todo en orden por ahora"
           frase="Cuando haya algo para resolver, va a aparecer acá." />

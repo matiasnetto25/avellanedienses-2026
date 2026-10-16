@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   IonContent,
@@ -91,6 +91,19 @@ export class GestionMesasPage implements OnInit {
     cant_comensales: ['', [Validators.required, Validators.min(1), Validators.pattern(/^\d+$/)]],
     tipo: [null, Validators.required],
   });
+
+  constructor() {
+    // Una mesa nueva (se crea en otra pantalla) aparece en la lista sin tocar nada.
+    let primera = true;
+    effect(() => {
+      this.mesasService.version();
+      if (primera) {
+        primera = false;
+        return;
+      }
+      void this.mesasService.listar().then((mesas) => this.mesas.set(mesas));
+    });
+  }
 
   async ngOnInit(): Promise<void> {
     void this.perfilActual.obtener().then((perfil) => this.perfil.set(perfil));

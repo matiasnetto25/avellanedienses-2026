@@ -12,6 +12,8 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular/standalone';
+import { AlturaDisponibleDirective } from '../../../shared/directives/altura-disponible.directive';
+import { EstadoVacioComponent } from '../../../shared/components/estado-vacio/estado-vacio.component';
 import { LoadingService } from '../../../core/services/loading.service';
 import { ResumenMozoService } from '../../../core/services/resumen-mozo.service';
 import { SonidosService } from '../../../core/services/sonidos.service';
@@ -26,6 +28,8 @@ import { ConversacionActiva, MensajeMesa, esDeCliente } from '../../../core/mode
   standalone: true,
   imports: [
     DatePipe,
+    AlturaDisponibleDirective,
+    EstadoVacioComponent,
     IonBadge,
     IonContent,
     IonHeader,

@@ -1,19 +1,70 @@
 .pantalla {
   display: flex;
   flex-direction: column;
-  min-height: var(--altura-disponible, 100%);
+  min-height: calc(var(--altura-disponible, 100%) - 72px);
 }
 
-app-estado-vacio {
-  flex: 1;
-  min-height: auto;
+// Recuadro propio: ocupa lo que sobra de la pantalla, sin pasarse.
+.aviso-vacio {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  min-height: 0;
+  padding: var(--espacio-4);
+  overflow: hidden;
+  text-align: center;
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio-lg);
+  background: color-mix(in srgb, var(--color-texto) 5%, transparent);
+  color: var(--color-texto);
+}
+
+.aviso-vacio-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-texto) 10%, transparent);
+
+  ion-icon {
+    font-size: 44px;
+    opacity: 0.6;
+  }
+}
+
+.aviso-vacio-titulo {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-size: var(--texto-subtitulo);
+}
+
+.aviso-vacio-texto {
+  margin: 0;
+  max-width: 280px;
+  font-family: var(--fuente-ui);
+  font-size: var(--texto-cuerpo);
+  line-height: 1.45;
+  color: var(--color-texto-secundario);
+}
+
+.seccion-pendientes {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .bloques {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: var(--separacion-secciones);
-  padding: var(--espacio-5) var(--margen-pantalla) var(--espacio-6);
+  padding: var(--espacio-5) var(--margen-pantalla) var(--espacio-4);
 }
 
 .bloque-encabezado {
@@ -85,4 +136,45 @@ app-estado-vacio {
   flex: 1;
   font-size: var(--texto-cuerpo);
   font-weight: var(--peso-medio);
+}
+
+.fila-espera {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3);
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio-md);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-1);
+  color: var(--color-texto);
+  font-family: var(--fuente-ui);
+}
+
+.espera-iniciales {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radio-pildora);
+  background: var(--color-superficie-hundida);
+  font-size: var(--texto-etiqueta);
+  font-weight: var(--peso-fuerte);
+  color: var(--color-texto-secundario);
+}
+
+.espera-nombre {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--texto-cuerpo);
+  font-weight: var(--peso-fuerte);
+  overflow-wrap: break-word;
+}
+
+.espera-estado {
+  flex: none;
+  font-size: var(--texto-cuerpo-compacto);
+  color: var(--color-texto-secundario);
 }

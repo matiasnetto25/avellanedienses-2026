@@ -17,6 +17,7 @@ import { LoadingService } from '../../core/services/loading.service';
 import { AvisosService } from '../../core/services/avisos.service';
 import { ClienteActualService } from '../../core/services/cliente-actual.service';
 import { SolicitudesMesaService } from '../../core/services/solicitudes-mesa.service';
+import { tieneMesa } from '../../core/models/solicitud-mesa.model';
 import { MesaRow, etiquetaTipo } from '../../core/models/mesa.model';
 import { PUESTOS_VISTA_MESA } from '../../core/models/empleado.model';
 
@@ -113,7 +114,7 @@ export class MesaPage implements OnInit {
     const clienteId = await this.clienteActual.obtenerClienteIdActual();
     const solicitud = clienteId ? await this.solicitudesMesa.obtenerMiSolicitud(clienteId) : null;
 
-    if (solicitud?.estado !== 'vinculado') {
+    if (!solicitud || solicitud.estado !== 'vinculado' || !tieneMesa(solicitud)) {
       this.vista.set('sinMesa');
       return;
     }

@@ -10,6 +10,17 @@
   box-shadow: var(--sombra-2);
 }
 
+// Dentro de las pestañas, la barra de pestañas de abajo ya reserva la zona
+// segura del sistema: sumarla acá dejaba un hueco en blanco bajo el botón.
+:host-context(ion-tabs:not(.sin-barra)) {
+  padding-bottom: var(--espacio-3);
+}
+
+// El botón principal de la barra, un poco más alto que el estándar.
+:host ::ng-deep > ion-button.accion-principal {
+  height: 56px;
+}
+
 // El gap ya separa los botones: se anula el margen que Ionic les pone.
 // Los botones son contenido proyectado: se alcanzan con ::ng-deep acotado al :host.
 :host ::ng-deep > ion-button {

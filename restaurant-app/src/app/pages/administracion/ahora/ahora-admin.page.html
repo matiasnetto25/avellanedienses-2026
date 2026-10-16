@@ -8,45 +8,56 @@
       [resumen]="resumen()" />
 
     @if (!cargando()) {
-      @if (todoEnOrden()) {
-        <app-estado-vacio
-          icono="checkmark-done-outline"
-          titulo="Todo en orden por ahora"
-          frase="Cuando haya algo para resolver, va a aparecer acá." />
-      } @else {
-        <div class="bloques">
+      <div class="bloques">
+        @if (hayMesas()) {
+          <section>
+            <div class="bloque-encabezado">
+              <h2 class="bloque-titulo">Salón</h2>
+            </div>
+            <button type="button" class="tarjeta fila-salon" (click)="irAlSalon()">
+              <ion-icon name="restaurant-outline" aria-hidden="true" />
+              <span class="salon-texto num">{{ textoOcupadas() }} · {{ textoLibres() }}</span>
+              <ion-icon name="chevron-forward-outline" aria-hidden="true" />
+            </button>
+          </section>
+        }
+
+        @if (cantidadEnEspera() > 0) {
+          <section>
+            <div class="bloque-encabezado">
+              <h2 class="bloque-titulo">Clientes en espera de mesa</h2>
+            </div>
+            <div class="filas">
+              @for (fila of enEspera(); track fila.id) {
+                <div class="fila-espera">
+                  <span class="espera-iniciales" aria-hidden="true">{{ iniciales(fila.nombre, fila.apellido) }}</span>
+                  <span class="espera-nombre">{{ fila.nombre }}{{ fila.apellido ? ' ' + fila.apellido : '' }}</span>
+                  <span class="espera-estado">Esperando mesa</span>
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        <section class="seccion-pendientes">
+          <div class="bloque-encabezado">
+            <h2 class="bloque-titulo">Clientes pendientes de aprobación</h2>
+          </div>
           @if (cantidadPendientes() > 0) {
-            <section>
-              <div class="bloque-encabezado">
-                <h2 class="bloque-titulo">
-                  Clientes pendientes de aprobación <span class="bloque-contador num">{{ cantidadPendientes() }}</span>
-                </h2>
-                <a class="ver-todos" routerLink="/administracion/personal" [queryParams]="{ vista: 'clientes' }">Ver todos</a>
-              </div>
-              <div class="filas">
-                @for (cliente of clientes(); track cliente.id) {
-                  <app-fila-cliente-pendiente [cliente]="cliente" />
-                }
-              </div>
-            </section>
+            <div class="filas" appFilasEnteras>
+              @for (cliente of clientes(); track cliente.id) {
+                <app-fila-cliente-pendiente [cliente]="cliente" />
+              }
+            </div>
+          } @else {
+            <div class="aviso-vacio" role="status">
+              <span class="aviso-vacio-icono"><ion-icon name="checkmark-done-outline" aria-hidden="true" /></span>
+              <p class="aviso-vacio-titulo">Sin clientes pendientes</p>
+              <p class="aviso-vacio-texto">Cuando alguien se registre, va a aparecer acá para que lo apruebes.</p>
+            </div>
           }
-
-          <!-- Punto 22: bloque «Pagos confirmados hoy» (tono Listo). -->
-
-          @if (hayMesas()) {
-            <section>
-              <div class="bloque-encabezado">
-                <h2 class="bloque-titulo">Salón</h2>
-              </div>
-              <button type="button" class="tarjeta fila-salon" (click)="irAlSalon()">
-                <ion-icon name="restaurant-outline" aria-hidden="true" />
-                <span class="salon-texto num">{{ textoOcupadas() }} · {{ textoLibres() }}</span>
-                <ion-icon name="chevron-forward-outline" aria-hidden="true" />
-              </button>
-            </section>
-          }
-        </div>
-      }
+        </section>
+      </div>
     }
   </div>
 </ion-content>

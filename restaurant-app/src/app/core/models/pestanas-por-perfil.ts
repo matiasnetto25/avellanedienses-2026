@@ -75,13 +75,13 @@ export function pestanasCliente(): Signal<Pestana[]> {
   const etapaCliente = inject(EtapaClienteService);
   void etapaCliente.iniciar();
   return computed(() => {
-    const menu: Pestana = { ruta: 'menu', etiqueta: 'Menú', icono: 'book-outline' };
+    // El menú y el resto de las pestañas aparecen recién con la mesa vinculada.
     if (!etapaCliente.enEstadia()) {
-      return [{ ruta: 'inicio', etiqueta: 'Inicio', icono: 'home-outline' }, menu];
+      return [{ ruta: 'inicio', etiqueta: 'Inicio', icono: 'home-outline' }];
     }
     return [
       { ruta: 'inicio', etiqueta: 'Mi mesa', icono: 'restaurant-outline' },
-      menu,
+      { ruta: 'menu', etiqueta: 'Menú', icono: 'book-outline' },
       { ruta: 'consultas', etiqueta: 'Consultas', icono: 'chatbubbles-outline' },
       { ruta: 'juegos', etiqueta: 'Juegos', icono: 'game-controller-outline' },
     ];
