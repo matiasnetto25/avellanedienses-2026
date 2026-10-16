@@ -3,6 +3,7 @@ import { EtapaClienteService } from '../services/etapa-cliente.service';
 import { ClientesPendientesService } from '../services/clientes-pendientes.service';
 import { ListaEsperaService } from '../services/lista-espera.service';
 import { ResumenMozoService } from '../services/resumen-mozo.service';
+import { pedidoConfirmado } from './pedido.model';
 
 export interface Pestana {
   ruta: string;
@@ -79,11 +80,16 @@ export function pestanasCliente(): Signal<Pestana[]> {
     if (!etapaCliente.enEstadia()) {
       return [{ ruta: 'inicio', etiqueta: 'Inicio', icono: 'home-outline' }];
     }
-    return [
+    const etapa = etapaCliente.etapa();
+    const pestanas: Pestana[] = [
       { ruta: 'inicio', etiqueta: 'Mi mesa', icono: 'restaurant-outline' },
       { ruta: 'menu', etiqueta: 'Menú', icono: 'book-outline' },
       { ruta: 'consultas', etiqueta: 'Consultas', icono: 'chatbubbles-outline' },
-      { ruta: 'juegos', etiqueta: 'Juegos', icono: 'game-controller-outline' },
     ];
+    // Los juegos se habilitan recién cuando el mozo confirma el pedido (punto 14).
+    if (etapa?.tipo === 'estadia' && etapa.pedido && pedidoConfirmado(etapa.pedido.estado)) {
+      pestanas.push({ ruta: 'juegos', etiqueta: 'Juegos', icono: 'game-controller-outline' });
+    }
+    return pestanas;
   });
 }
