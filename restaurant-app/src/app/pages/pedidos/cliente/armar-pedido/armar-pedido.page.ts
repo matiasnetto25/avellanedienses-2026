@@ -17,7 +17,7 @@ import {
   IonModal,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { restaurantOutline, wineOutline, iceCreamOutline } from 'ionicons/icons';
+import { restaurantOutline, wineOutline, iceCreamOutline, timeOutline } from 'ionicons/icons';
 import { ProductoCardComponent } from '../../../components/producto-card/producto-card.component';
 import { ResumenPedidoComponent } from '../components/resumen-pedido/resumen-pedido.component';
 import { AlturaDisponibleDirective } from '../../../../shared/directives/altura-disponible.directive';
@@ -30,7 +30,6 @@ import { ClienteActualService } from '../../../../core/services/cliente-actual.s
 import { CarritoService } from '../../../../core/services/carrito.service';
 import { PedidosService } from '../../../../core/services/pedidos.service';
 import { NotificacionesService } from '../../../../core/services/notificaciones.service';
-import { MinutosPipe } from '../../../../shared/pipes/minutos.pipe';
 
 @Component({
   selector: 'app-armar-pedido',
@@ -38,7 +37,6 @@ import { MinutosPipe } from '../../../../shared/pipes/minutos.pipe';
   imports: [
     AlturaDisponibleDirective,
     CommonModule,
-    MinutosPipe,
     IonContent,
     IonHeader,
     IonFooter,
@@ -100,7 +98,7 @@ export class ArmarPedidoPage implements OnInit {
   );
 
   constructor() {
-    addIcons({ restaurantOutline, wineOutline, iceCreamOutline });
+    addIcons({ restaurantOutline, wineOutline, iceCreamOutline, timeOutline });
   }
 
   async ngOnInit(): Promise<void> {

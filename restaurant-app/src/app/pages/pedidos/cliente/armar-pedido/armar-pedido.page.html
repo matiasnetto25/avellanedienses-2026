@@ -54,20 +54,35 @@
        acumulado visible en todo momento. -->
   <ion-footer class="pedido-footer ion-no-border">
     <div class="pedido-barra">
-      <div class="pedido-cifras">
-        <span class="pedido-total-etiqueta">
-          Total
-          @if (carrito.cantidadProductos()) {
-            · <span class="sin-corte">{{ carrito.cantidadProductos() }} {{ carrito.cantidadProductos() === 1 ? 'producto' : 'productos' }}</span>
+      <!-- Consigna punto 12: el importe acumulado y el tiempo estimado, siempre visibles y en grande. -->
+      <div class="tablero-pedido" role="status" aria-live="polite">
+        <div class="tablero-dato">
+          <span class="tablero-etiqueta">Total a pagar</span>
+          <!-- El @for con un solo valor recrea el número cuando cambia, y así se repite la animación. -->
+          @for (total of [carrito.total()]; track total) {
+            <span class="tablero-valor tablero-valor--total">$&nbsp;{{ total | number: '1.0-0' }}</span>
           }
-        </span>
-        <span class="pedido-total">${{ carrito.total() | number: '1.0-0' }}</span>
-        <span class="pedido-tiempo">
-          Tiempo estimado: <span class="sin-corte">{{ carrito.tiempoEstimado() ? (carrito.tiempoEstimado() | minutos) : '—' }}</span>
-        </span>
+        </div>
+
+        <div class="tablero-dato">
+          <span class="tablero-etiqueta">
+            <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+            Tiempo de espera
+          </span>
+          @for (tiempo of [carrito.tiempoEstimado()]; track tiempo) {
+            <span class="tablero-valor">
+              @if (tiempo > 0) {
+                {{ tiempo }}&nbsp;<span class="tablero-unidad">{{ tiempo === 1 ? 'minuto' : 'minutos' }}</span>
+              } @else {
+                —
+              }
+            </span>
+          }
+        </div>
       </div>
-      <ion-button class="pedido-revisar" [disabled]="carrito.vacio()" (click)="revisarPedido()">
-        Revisar pedido
+
+      <ion-button class="pedido-revisar" expand="block" [disabled]="carrito.vacio()" (click)="revisarPedido()">
+        {{ carrito.vacio() ? 'Elegí productos para armar tu pedido' : 'Revisar pedido (' + carrito.cantidadProductos() + ')' }}
       </ion-button>
     </div>
   </ion-footer>
