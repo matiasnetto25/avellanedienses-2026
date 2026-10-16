@@ -89,9 +89,9 @@ export class AvisosService {
       // 0 = sin cierre automático (solo lo usan las push, con botones).
       duration: duracionMs,
       buttons: botones,
-      // Siempre arriba: abajo taparía la acción principal fija.
+      // Siempre arriba de todo (sin ancla a ningún header): abajo taparía la
+      // acción principal fija y anclado a un header podía quedar en el medio.
       position: 'top',
-      positionAnchor: this.barraSuperiorVisible(),
       icon: icono,
       cssClass: ['aviso-toast', `aviso-toast--${tono}`],
     });
@@ -100,17 +100,5 @@ export class AvisosService {
     this.toastActual = toast;
     await anterior?.dismiss().catch(() => undefined);
     await toast.present();
-  }
-
-  /**
-   * El ion-header de la pantalla que se está viendo, para que el toast salga
-   * debajo y no tape el título. Si la pantalla no tiene barra superior, el
-   * toast va arriba de todo (Ionic ya deja libre la barra de estado).
-   */
-  private barraSuperiorVisible(): HTMLElement | undefined {
-    const headers = Array.from(document.querySelectorAll<HTMLElement>('ion-header'));
-    return headers
-      .filter((header) => !header.closest('.ion-page-hidden') && header.getBoundingClientRect().height > 0)
-      .pop();
   }
 }

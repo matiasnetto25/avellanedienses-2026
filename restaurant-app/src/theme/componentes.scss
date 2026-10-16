@@ -296,6 +296,13 @@ ion-content.densidad-compacta {
 // de las pantallas es la única forma de que no se pierda. Sin tono (info, push)
 // usa el color de marca. Contraste texto/fondo >= 5.8:1.
 ion-toast.aviso-toast {
+  // Siempre arriba de todo, flotando sobre la pantalla y los modales: nunca
+  // entre componentes. position top + sin ancla + fixed + z-index máximo.
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2147483647;
   --background: var(--tono-toast, var(--color-texto));
   --color: #FFFFFF;
   --border-radius: var(--radio-md);

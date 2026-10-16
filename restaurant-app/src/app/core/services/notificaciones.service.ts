@@ -20,6 +20,8 @@ import { formatearMinutos } from '../utils/minutos';
 const CLAVE_CLIENTE_ANONIMO_ID = 'merlot_cliente_anonimo_id';
 /** Canal de Android con importancia máxima: hace que el aviso salte arriba como banner. */
 const CANAL_AVISOS = 'merlot-avisos';
+/** Último token que este dispositivo registró en la base: si FCM lo rota, se borra el viejo. */
+const CLAVE_ULTIMO_TOKEN = 'merlot_push_token_registrado';
 /** Largo máximo del texto del chat que se muestra en la push. */
 const MAX_CARACTERES_EXTRACTO = 80;
 
@@ -77,6 +79,7 @@ export class NotificacionesService {
         return;
       }
 
+      await this.crearCanalDePush();
       await PushNotifications.register();
       await this.prepararAvisosDelSistema();
 
@@ -122,6 +125,27 @@ export class NotificacionesService {
       });
     } catch (error) {
       console.error('Error inicializando push notifications:', error);
+    }
+  }
+
+  /**
+   * Crea el canal de máxima importancia que usa FCM con la app cerrada (el
+   * AndroidManifest lo declara como canal por defecto). Sin él, Android
+   * muestra la push en un canal común, sin banner. No depende del permiso
+   * de notificaciones locales.
+   */
+  private async crearCanalDePush(): Promise<void> {
+    try {
+      await PushNotifications.createChannel({
+        id: CANAL_AVISOS,
+        name: 'Avisos de Merlot',
+        description: 'Mesas, pedidos y consultas',
+        importance: 5,
+        visibility: 1,
+        vibration: true,
+      });
+    } catch (error) {
+      console.warn('No se pudo crear el canal de push:', error);
     }
   }
 
@@ -260,6 +284,8 @@ export class NotificacionesService {
    * la dependencia circular).
    */
   private async asignarTokenDelDispositivo(token: string): Promise<void> {
+    await this.descartarTokenAnterior(token);
+
     if (this.auth.sesion()) {
       await this.guardarToken(token);
       return;
@@ -278,6 +304,27 @@ export class NotificacionesService {
     }
 
     await this.eliminarToken();
+  }
+
+  /**
+   * Si FCM rotó el token del dispositivo, borra el anterior de push_tokens.
+   * La Edge Function busca el token de un cliente con maybeSingle(): con dos
+   * filas para el mismo cliente falla y el cliente se queda sin push.
+   */
+  private async descartarTokenAnterior(tokenNuevo: string): Promise<void> {
+    try {
+      const { value: anterior } = await Preferences.get({ key: CLAVE_ULTIMO_TOKEN });
+      if (anterior && anterior !== tokenNuevo) {
+        const { error } = await this.supabase.client.rpc('eliminar_push_token', { p_token: anterior });
+        if (error) {
+          console.error('Error borrando el push token anterior:', error);
+          return;
+        }
+      }
+      await Preferences.set({ key: CLAVE_ULTIMO_TOKEN, value: tokenNuevo });
+    } catch (error) {
+      console.warn('No se pudo descartar el push token anterior:', error);
+    }
   }
 
   /** Asocia el token a un cliente (anónimo o registrado); le quita el empleado si lo tenía. */
@@ -628,18 +675,7 @@ export class NotificacionesService {
     ruta?: string,
     mostrarSiempre = false
   ): Promise<void> {
-    try {
-      await this.supabase.client.functions.invoke('enviar-notificacion', {
-        body: {
-          titulo,
-          mensaje: cuerpo,
-          puestos,
-          data: { ...(ruta ? { ruta } : {}), ...(mostrarSiempre ? { siempre: '1' } : {}) },
-        },
-      });
-    } catch (error) {
-      console.error('Error enviando notificación push (no bloqueante):', error);
-    }
+    await this.enviar(titulo, { titulo, mensaje: cuerpo, puestos }, ruta, mostrarSiempre);
   }
 
   /**
@@ -653,17 +689,40 @@ export class NotificacionesService {
     ruta?: string,
     mostrarSiempre = false
   ): Promise<void> {
+    await this.enviar(titulo, { titulo, mensaje: cuerpo, clienteId }, ruta, mostrarSiempre);
+  }
+
+  /**
+   * Invoca la Edge Function y deja registrado el resultado. La función
+   * responde 200 aun cuando falla (con ok:false) y FCM puede rechazar
+   * tokens, así que se mira el cuerpo: sin esto una push perdida no deja
+   * rastro. No bloquea el flujo de la pantalla.
+   */
+  private async enviar(
+    titulo: string,
+    destino: Record<string, unknown>,
+    ruta?: string,
+    mostrarSiempre = false
+  ): Promise<void> {
     try {
-      await this.supabase.client.functions.invoke('enviar-notificacion', {
+      const { data, error } = await this.supabase.client.functions.invoke('enviar-notificacion', {
         body: {
-          titulo,
-          mensaje: cuerpo,
-          clienteId,
+          ...destino,
           data: { ...(ruta ? { ruta } : {}), ...(mostrarSiempre ? { siempre: '1' } : {}) },
         },
       });
+
+      if (error) {
+        console.error(`Push "${titulo}" NO enviada (error al invocar la función):`, error);
+      } else if (!data?.ok) {
+        console.error(`Push "${titulo}" NO enviada (la función respondió ok:false):`, data?.error?.message);
+      } else if (data.enviados === 0) {
+        console.warn(`Push "${titulo}": ningún dispositivo la recibió.`, data.mensaje ?? data.errores);
+      } else if (data.errores?.length) {
+        console.warn(`Push "${titulo}": ${data.enviados} enviada(s), FCM rechazó otras:`, data.errores);
+      }
     } catch (error) {
-      console.error('Error enviando notificación push a cliente (no bloqueante):', error);
+      console.error(`Error enviando la push "${titulo}" (no bloqueante):`, error);
     }
   }
 }
