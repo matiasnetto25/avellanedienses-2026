@@ -4,7 +4,7 @@ import { ClienteActualService } from './cliente-actual.service';
 import { PedidosService } from './pedidos.service';
 import { SolicitudesMesaService } from './solicitudes-mesa.service';
 import { MiSolicitud, SolicitudConMesa, tieneMesa } from '../models/solicitud-mesa.model';
-import { Pedido } from '../models/pedido.model';
+import { Pedido, pedidoConfirmado } from '../models/pedido.model';
 
 // 'cuenta-pedida' (punto 21) todavía no se emite:
 // | { tipo: 'cuenta-pedida'; solicitud: MiSolicitud; pedido: Pedido }
@@ -31,6 +31,11 @@ export class EtapaClienteService {
   readonly solicitudRechazada = signal(false);
   readonly posicionEnLista = signal<number | null>(null);
   readonly enEstadia = computed(() => this._etapa()?.tipo === 'estadia');
+  /** Los juegos se habilitan cuando el mozo confirma el pedido (punto 14). */
+  readonly juegosHabilitados = computed(() => {
+    const etapa = this._etapa();
+    return etapa?.tipo === 'estadia' && !!etapa.pedido && pedidoConfirmado(etapa.pedido.estado);
+  });
 
   /** Lo marca el inicio. Ya no se usa para avisar: los cambios de etapa los avisa la push nativa. */
   mirandoInicio = false;

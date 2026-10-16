@@ -1,0 +1,149 @@
+<section class="sommelier">
+  <button type="button" class="volver" (click)="volver()">
+    <ion-icon name="chevron-back-outline" aria-hidden="true" /> Juegos
+  </button>
+
+  <div class="marco">
+    <h1 class="marco-titulo">El Sommelier Perfecto</h1>
+
+    <div class="marco-cuerpo">
+      @switch (fase()) {
+        @case ('cargando') {
+          <p class="texto">Preparando la mesa…</p>
+        }
+
+        @case ('intro') {
+          <p class="texto">
+            Serví tres copas de vino. En cada una, mantené apretado el botón hasta llegar al nivel marcado y soltalo.
+            Si quedás a ±{{ tolerancia }} puntos del objetivo, la copa es perfecta.
+          </p>
+          <ul class="premios" aria-label="Descuentos posibles">
+            @for (p of premios; track p.copas) {
+              <li class="premio-chip" [attr.data-nivel]="p.copas">
+                <span class="premio-chip-copas">{{ p.copas }} {{ p.copas === 1 ? 'copa' : 'copas' }}</span>
+                <span class="premio-chip-descuento">{{ p.descuento }}%</span>
+              </li>
+            }
+          </ul>
+          @if (avisoIntro(); as aviso) {
+            <p class="aviso">{{ aviso }}</p>
+          }
+          <button type="button" class="boton-principal" (click)="comenzar()">Comenzar</button>
+        }
+
+        @case ('final') {
+          <ul class="copas-resumen">
+            @for (n of copas; track n) {
+              <li class="copa-fila" [attr.data-resultado]="resultadoDe(n)">
+                <ion-icon [name]="resultadoDe(n) === 'perfecto' ? 'checkmark-circle' : 'close-circle'" aria-hidden="true" />
+                <span class="copa-fila-texto">
+                  <strong>Copa {{ n }}</strong>
+                  @if (partida()?.copas?.[n - 1]; as c) {
+                    · objetivo {{ c.objetivo }}% · serviste {{ c.nivel }}%
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+
+          @if (practica()) {
+            <div class="premio-final">
+              <span class="premio-final-texto premio-final-texto--solo">Partida de práctica</span>
+              <span class="premio-final-sub">Sin descuento</span>
+            </div>
+            <p class="texto">
+              Acertaste {{ partida()?.aciertos }} de 3 copas. {{ razonPractica() }}
+            </p>
+          } @else if (descuentoFinal() > 0) {
+            <div class="premio-final" data-gano="true">
+              <span class="premio-final-numero">{{ descuentoFinal() }}%</span>
+              <span class="premio-final-texto">de descuento ganado</span>
+            </div>
+            <p class="texto">
+              ¡Felicitaciones, sommelier! Acertaste {{ partida()?.aciertos }} de 3 copas. El descuento quedó registrado
+              en tu visita y no se acumula con el de otros juegos. Podés seguir jugando, pero sin sumar descuento.
+            </p>
+          } @else {
+            <div class="premio-final">
+              <span class="premio-final-texto premio-final-texto--solo">Esta vez no hubo descuento</span>
+            </div>
+            <p class="texto">Ninguna copa quedó dentro del margen. Podés seguir jugando de práctica, pero ya no suma descuento.</p>
+          }
+          <button type="button" class="boton-principal" (click)="volverAJugar()">Volver a jugar</button>
+        }
+
+        @default {
+          <!-- listo · sirviendo · enviando · copa -->
+          <div class="progreso" aria-label="Progreso">
+            <span class="progreso-texto">Copa {{ copaActual() }} de 3@if (practica()) { <small class="etiqueta-practica">Práctica</small> }</span>
+            <span class="puntos">
+              @for (n of copas; track n) {
+                <span class="punto" [attr.data-estado]="estadoPunto(n)" [attr.data-resultado]="resultadoDe(n)"></span>
+              }
+            </span>
+          </div>
+
+          <div class="escena">
+            <svg class="copa" viewBox="0 0 200 160" role="img"
+                 [attr.aria-label]="'Copa con el vino al ' + nivelTexto() + ' por ciento. Objetivo ' + objetivo() + ' por ciento.'">
+              <defs>
+                <clipPath id="copa-interior">
+                  <path d="M52 10 H148 C148 62 140 112 100 124 C60 112 52 62 52 10 Z" />
+                </clipPath>
+                <linearGradient id="vino" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" style="stop-color: var(--color-accion)" />
+                  <stop offset="1" style="stop-color: var(--color-encabezado)" />
+                </linearGradient>
+              </defs>
+
+              <g clip-path="url(#copa-interior)">
+                <rect x="52" y="10" width="96" height="114" class="copa-fondo" />
+                <!-- margen de ±5 puntos -->
+                <rect x="52" [attr.y]="bandaY()" width="96" [attr.height]="bandaAlto()" class="copa-banda" />
+                <rect x="52" [attr.y]="vinoY()" width="96" [attr.height]="vinoAlto()" fill="url(#vino)" />
+              </g>
+
+              <path d="M52 10 H148 C148 62 140 112 100 124 C60 112 52 62 52 10 Z" class="copa-borde" />
+              <line x1="100" y1="124" x2="100" y2="148" class="copa-borde" />
+              <ellipse cx="100" cy="150" rx="32" ry="5" class="copa-base" />
+
+              <!-- marca del nivel objetivo -->
+              <line x1="40" [attr.y1]="objetivoY()" x2="160" [attr.y2]="objetivoY()" class="copa-meta" />
+              <text x="164" [attr.y]="objetivoY() + 4" class="copa-meta-texto">{{ objetivo() }}%</text>
+            </svg>
+
+            <div class="nivel" aria-live="off">
+              <span class="nivel-numero">{{ nivelTexto() }}%</span>
+              <span class="nivel-etiqueta">nivel actual</span>
+            </div>
+          </div>
+
+          @if (fase() === 'copa' && ultimaCopa(); as c) {
+            <div class="mensaje" [attr.data-tono]="mensajeCopa()?.tono" aria-live="polite">
+              <strong class="mensaje-titulo">{{ mensajeCopa()?.titulo }}</strong>
+              <span class="mensaje-detalle">Llegaste al {{ c.nivel }}% y el objetivo era {{ c.objetivo }}%.</span>
+            </div>
+            <button type="button" class="boton-principal" (click)="siguiente()">
+              {{ esUltima() ? 'Ver resultado' : 'Siguiente copa' }}
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="servir"
+              [class.servir--activo]="fase() === 'sirviendo'"
+              [disabled]="fase() !== 'listo' && fase() !== 'sirviendo'"
+              (pointerdown)="empezarVertido($event)"
+              (pointerup)="terminarVertido()"
+              (pointercancel)="terminarVertido()"
+              (lostpointercapture)="terminarVertido()"
+              (keydown.space)="teclaAbajo($event)"
+              (keyup.space)="teclaArriba($event)"
+              (contextmenu)="$event.preventDefault()">
+              {{ fase() === 'sirviendo' ? 'Soltá para parar' : fase() === 'enviando' ? 'Midiendo…' : 'Mantené para servir' }}
+            </button>
+          }
+        }
+      }
+    </div>
+  </div>
+</section>

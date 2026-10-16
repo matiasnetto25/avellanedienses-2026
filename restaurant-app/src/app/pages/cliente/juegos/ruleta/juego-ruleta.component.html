@@ -1,0 +1,74 @@
+<section class="ruleta">
+  <button type="button" class="volver" (click)="volver()">
+    <ion-icon name="chevron-back-outline" aria-hidden="true" /> Juegos
+  </button>
+
+  <div class="marco">
+    <h1 class="marco-titulo">Ruleta de la Suerte</h1>
+
+    <div class="marco-cuerpo">
+      @if (fase() === 'cargando') {
+        <p class="texto">Preparando la ruleta…</p>
+      } @else {
+        @if (fase() !== 'resultado') {
+          <p class="texto">Girá la ruleta y probá suerte: puede tocarte 10 %, 15 % o 20 % de descuento.</p>
+          @if (avisoIntro(); as aviso) {
+            <p class="aviso">{{ aviso }}</p>
+          }
+        }
+
+        @if (practica()) {
+          <span class="etiqueta-practica">Giro de práctica</span>
+        }
+
+        <div class="rueda">
+          <div class="puntero" aria-hidden="true"></div>
+          <svg
+            class="disco"
+            viewBox="0 0 200 200"
+            role="img"
+            aria-label="Ruleta de 8 segmentos: 10%, 15%, 20% y cinco sin premio"
+            [style.transform]="'rotate(' + rotacion() + 'deg)'"
+            [style.transition]="animar() ? 'transform ' + duracion + 'ms cubic-bezier(0.12, 0.7, 0.1, 1)' : 'none'">
+            @for (s of segmentos; track s.indice) {
+              <path [attr.d]="s.trazo" [class]="'seg ' + s.clase" />
+              <text x="100" y="40" class="seg-texto" [class.seg-texto--chico]="s.premio === 0"
+                    [attr.transform]="'rotate(' + s.angulo + ' 100 100)'">{{ s.etiqueta }}</text>
+            }
+            <circle cx="100" cy="100" r="96" class="aro" />
+            <circle cx="100" cy="100" r="14" class="eje" />
+          </svg>
+        </div>
+
+        @if (fase() === 'resultado' && resultado(); as r) {
+          @if (practica()) {
+            <div class="resultado">
+              <strong class="resultado-titulo">Giro de práctica</strong>
+              <span class="resultado-detalle">
+                {{ resultadoPractica > 0 ? 'Habrías ganado ' + resultadoPractica + '%. ' : '' }}{{ razonPractica() }}
+              </span>
+            </div>
+          } @else if (r.premio > 0) {
+            <div class="resultado resultado--gano" aria-live="polite">
+              <span class="resultado-numero">{{ r.premio }}%</span>
+              <strong class="resultado-titulo">¡Felicitaciones! Ganaste un descuento</strong>
+              <span class="resultado-detalle">
+                Quedó registrado en tu visita y no se acumula con el de otros juegos.
+              </span>
+            </div>
+          } @else {
+            <div class="resultado" aria-live="polite">
+              <strong class="resultado-titulo">Esta vez no hubo premio</strong>
+              <span class="resultado-detalle">¡Gracias por jugar! Podés seguir probando suerte, pero ya no suma descuento.</span>
+            </div>
+          }
+          <button type="button" class="boton-principal" (click)="volverAGirar()">Volver a girar</button>
+        } @else {
+          <button type="button" class="boton-principal" [disabled]="giroDeshabilitado()" (click)="girar()">
+            {{ fase() === 'girando' ? 'Girando…' : 'Girar ruleta' }}
+          </button>
+        }
+      }
+    </div>
+  </div>
+</section>
