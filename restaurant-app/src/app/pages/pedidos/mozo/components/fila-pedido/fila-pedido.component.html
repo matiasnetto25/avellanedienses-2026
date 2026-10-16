@@ -24,18 +24,3 @@
   </ion-button>
 </div>
 
-<ion-modal
-  class="motivo-modal"
-  [isOpen]="pidiendoMotivo()"
-  [canDismiss]="!procesando()"
-  (didDismiss)="cerrarMotivo()"
->
-  <ng-template>
-    <app-motivo-rechazo
-      [numeroMesa]="pedido().numeroMesa"
-      [procesando]="procesando()"
-      (cancelar)="cerrarMotivo()"
-      (confirmar)="rechazar($event)"
-    />
-  </ng-template>
-</ion-modal>

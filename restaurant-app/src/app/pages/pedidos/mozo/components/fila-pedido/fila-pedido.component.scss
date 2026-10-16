@@ -52,14 +52,6 @@
   }
 }
 
-.motivo-modal {
-  --width: min(92vw, 460px);
-  --height: auto;
-  --border-radius: var(--radio-xl);
-  --background: var(--color-superficie);
-  --box-shadow: var(--sombra-2);
-}
-
 @keyframes fila-entra {
   from {
     opacity: 0;

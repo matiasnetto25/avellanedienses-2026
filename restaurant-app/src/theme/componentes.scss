@@ -412,6 +412,15 @@ ion-modal.merlot-modal {
   --backdrop-opacity: 0.3;
 }
 
+// Modal para pedir el motivo de rechazo de un pedido (lo abre app-fila-pedido).
+ion-modal.motivo-modal {
+  --width: min(92vw, 460px);
+  --height: auto;
+  --border-radius: var(--radio-xl);
+  --background: var(--color-superficie);
+  --box-shadow: var(--sombra-2);
+}
+
 // Hoja de perfil (guía §7.9): hoja inferior que mide solo lo que ocupa su
 // contenido. La abre app-avatar-perfil con cssClass: 'hoja-perfil'.
 ion-modal.hoja-perfil {

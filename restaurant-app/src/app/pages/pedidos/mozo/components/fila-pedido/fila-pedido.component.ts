@@ -1,6 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, input, signal } from '@angular/core';
-import { IonButton, IonModal } from '@ionic/angular/standalone';
+import { ModalController } from '@ionic/angular';
+import { IonButton } from '@ionic/angular/standalone';
 import { MotivoRechazoComponent } from '../motivo-rechazo/motivo-rechazo.component';
 import { ChipEstadoComponent } from '../../../../../shared/components/chip-estado/chip-estado.component';
 import { Pedido } from '../../../../../core/models/pedido.model';
@@ -17,7 +18,7 @@ import { MinutosPipe } from '../../../../../shared/pipes/minutos.pipe';
 @Component({
   selector: 'app-fila-pedido',
   standalone: true,
-  imports: [DecimalPipe, MinutosPipe, IonButton, IonModal, ChipEstadoComponent, MotivoRechazoComponent],
+  imports: [DecimalPipe, MinutosPipe, IonButton, ChipEstadoComponent],
   templateUrl: './fila-pedido.component.html',
   styleUrls: ['./fila-pedido.component.scss'],
 })
@@ -27,13 +28,13 @@ export class FilaPedidoComponent {
   private readonly avisos = inject(AvisosService);
   private readonly loading = inject(LoadingService);
   private readonly notificaciones = inject(NotificacionesService);
+  private readonly modalController = inject(ModalController);
 
   readonly pedido = input.required<Pedido>();
   /** Muestra los productos y el tiempo de preparación (pestaña Pedidos). */
   readonly conDetalle = input(false);
 
   readonly procesando = signal(false);
-  readonly pidiendoMotivo = signal(false);
 
   private readonly ahora = relojPorMinuto();
   readonly estado = computed(() => estadoPedido(this.pedido().estado));
@@ -69,23 +70,25 @@ export class FilaPedidoComponent {
     }
   }
 
-  pedirMotivo(): void {
-    if (!this.procesando()) this.pidiendoMotivo.set(true);
+  /** El modal se abre con ModalController: no depende de esta fila, que Realtime puede sacar de la lista. */
+  async pedirMotivo(): Promise<void> {
+    if (this.procesando()) return;
+    const modal = await this.modalController.create({
+      component: MotivoRechazoComponent,
+      componentProps: { numeroMesa: this.pedido().numeroMesa },
+      cssClass: 'motivo-modal',
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss<string>();
+    if (role === 'confirm' && data) await this.rechazar(data);
   }
 
-  cerrarMotivo(): void {
-    if (!this.procesando()) this.pidiendoMotivo.set(false);
-  }
-
-  async rechazar(motivo: string): Promise<void> {
+  private async rechazar(motivo: string): Promise<void> {
     const pedido = this.pedido();
     this.procesando.set(true);
     this.loading.mostrar();
     try {
       const resultado = await this.pedidosService.rechazar(pedido.id, motivo);
-      // Primero baja «procesando»: mientras está activo, [canDismiss] no deja cerrar el modal.
-      this.procesando.set(false);
-      this.pidiendoMotivo.set(false);
       if (!resultado.ok) {
         await this.avisos.error(resultado.mensaje ?? 'No se pudo rechazar el pedido. Probá de nuevo.');
         await this.resumen.recargarPedidos();

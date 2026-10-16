@@ -1,5 +1,6 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, Output, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, ViewChild, inject } from '@angular/core';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
+import { ModalController } from '@ionic/angular';
 import { IonButton } from '@ionic/angular/standalone';
 import { MOTIVO_RECHAZO_MAX, validarMotivoRechazo } from '../../../../../core/models/pedido.model';
 import { AvisosService } from '../../../../../core/services/avisos.service';
@@ -12,9 +13,11 @@ function motivoRechazoValidator(control: AbstractControl<string>): ValidationErr
 
 /**
  * Contenido del modal con el que el mozo rechaza un pedido: la mesa, el
- * motivo y los botones. Valida el motivo y emite el texto; el rechazo lo
- * hace la página. La ventana que lo contiene (.motivo-modal: ancho,
- * bordes, fondo) la define la página que abre el <ion-modal>.
+ * motivo y los botones. Se abre con ModalController (así no depende de la
+ * fila que lo abrió, que Realtime puede sacar de la lista mientras el modal
+ * está abierto). Valida el motivo y cierra con rol 'confirm' y el texto como
+ * data; el rechazo lo hace quien lo abrió. La ventana (.motivo-modal) se
+ * define en theme/componentes.scss.
  */
 @Component({
   selector: 'app-motivo-rechazo',
@@ -25,14 +28,9 @@ function motivoRechazoValidator(control: AbstractControl<string>): ValidationErr
 })
 export class MotivoRechazoComponent implements AfterViewInit {
   private readonly avisos = inject(AvisosService);
+  private readonly modalController = inject(ModalController);
 
   @Input({ required: true }) numeroMesa!: number;
-  /** true mientras se rechaza: deshabilita el campo y los botones. */
-  @Input() procesando = false;
-
-  @Output() cancelar = new EventEmitter<void>();
-  /** El motivo ya validado. */
-  @Output() confirmar = new EventEmitter<string>();
 
   @ViewChild('campo') private campo?: ElementRef<HTMLTextAreaElement>;
 
@@ -49,13 +47,16 @@ export class MotivoRechazoComponent implements AfterViewInit {
     return this.motivo.touched ? (this.motivo.errors?.['motivo'] ?? null) : null;
   }
 
+  cancelar(): void {
+    void this.modalController.dismiss(null, 'cancel');
+  }
+
   async enviar(): Promise<void> {
-    if (this.procesando) return;
     if (this.motivo.invalid) {
       this.motivo.markAsTouched();
       await this.avisos.error(this.motivo.errors?.['motivo']);
       return;
     }
-    this.confirmar.emit(this.motivo.value);
+    await this.modalController.dismiss(this.motivo.value, 'confirm');
   }
 }

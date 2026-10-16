@@ -10,7 +10,6 @@
     [class.motivo-campo--error]="error"
     rows="4"
     [attr.maxlength]="maximo"
-    [readonly]="procesando"
     placeholder="Contale al cliente qué tiene que cambiar. Por ejemplo: no queda flan, elegí otro postre."
     [formControl]="motivo"
   ></textarea>
@@ -20,10 +19,10 @@
   </div>
 
   <div class="motivo-acciones">
-    <ion-button class="motivo-cancelar" fill="clear" [disabled]="procesando" (click)="cancelar.emit()">
+    <ion-button class="motivo-cancelar" fill="clear" (click)="cancelar()">
       Cancelar
     </ion-button>
-    <ion-button class="motivo-rechazar" [disabled]="procesando" (click)="enviar()">
+    <ion-button class="motivo-rechazar" (click)="enviar()">
       Rechazar pedido
     </ion-button>
   </div>
