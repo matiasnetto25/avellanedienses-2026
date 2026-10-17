@@ -654,11 +654,6 @@
   box-shadow: 0 10px 24px color-mix(in srgb, var(--color-encabezado) 35%, transparent);
 }
 
-.menu > .volver {
-  margin-top: 24px;
-  margin-bottom: var(--espacio-2);
-}
-
 /* --- marco del juego: se distingue del resto de la pantalla --- */
 .juego {
   align-items: stretch;
@@ -694,5 +689,6 @@
 }
 
 .juego > .volver {
+  margin-bottom: var(--espacio-2);
   margin-top: 40px;
 }

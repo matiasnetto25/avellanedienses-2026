@@ -31,6 +31,13 @@
   cursor: pointer;
 }
 
+
+.ruleta > .volver {
+  margin-bottom: var(--espacio-2);
+  margin-top: 40px;
+}
+
+
 .marco {
   display: flex;
   flex: 1 1 auto;
