@@ -100,14 +100,7 @@ export class NotificacionesService {
       // bandeja). El aviso azul dentro de la app queda como respaldo: solo
       // aparece si no se pudo mostrar la del sistema (por ejemplo, sin permiso).
       PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-        // Si ya está en la pantalla a la que apunta la push (por ejemplo,
-        // el chat de esa mesa), el cambio llega por Realtime: no se repite.
-        // Sin los query params: «Estado de mi pedido» se abre con ?mesa=N y
-        // la ruta de la push no los lleva. Las push con data.siempre='1'
-        // (altas, ediciones y bajas del panel) se muestran igual: quien las
-        // provocó suele estar parado justo en esa pantalla.
         const ruta = notification.data?.['ruta'] as string | undefined;
-        if (ruta && notification.data?.['siempre'] !== '1' && this.router.url.split('?')[0] === ruta) return;
 
         const texto = [notification.title, notification.body].filter(Boolean).join(': ');
         void this.mostrarNotificacionDelSistema(notification.title, notification.body, ruta).then((mostrada) => {
@@ -364,8 +357,7 @@ export class NotificacionesService {
       'Nuevo empleado creado',
       `${nombre} ${apellido} fue dado de alta como ${puesto}.`,
       ['dueño', 'supervisor'],
-      '/administracion/personal',
-      true
+      '/administracion/personal'
     );
   }
 
@@ -375,8 +367,7 @@ export class NotificacionesService {
       'Empleado actualizado',
       `Se modificaron los datos de ${nombre} ${apellido}.`,
       ['dueño', 'supervisor'],
-      '/administracion/personal',
-      true
+      '/administracion/personal'
     );
   }
 
@@ -386,8 +377,7 @@ export class NotificacionesService {
       'Empleado eliminado',
       `${nombre} ${apellido} fue eliminado del personal.`,
       ['dueño', 'supervisor'],
-      '/administracion/personal',
-      true
+      '/administracion/personal'
     );
   }
 
@@ -397,8 +387,7 @@ export class NotificacionesService {
       'Mesa creada',
       `Se creó la Mesa ${numeroMesa}.`,
       ['dueño', 'supervisor'],
-      '/administracion/salon',
-      true
+      '/administracion/salon'
     );
   }
 
@@ -408,8 +397,7 @@ export class NotificacionesService {
       'Mesa actualizada',
       `Se modificó la Mesa ${numeroMesa}.`,
       ['dueño', 'supervisor'],
-      '/administracion/salon',
-      true
+      '/administracion/salon'
     );
   }
 
@@ -419,8 +407,7 @@ export class NotificacionesService {
       esBebida ? 'Bebida creada' : 'Plato creado',
       `Se agregó "${nombre}" a la carta.`,
       ['dueño', 'supervisor', esBebida ? 'cantinero' : 'cocinero'],
-      undefined,
-      true
+      undefined
     );
   }
 
@@ -430,8 +417,7 @@ export class NotificacionesService {
       esBebida ? 'Bebida actualizada' : 'Plato actualizado',
       `Se modificó "${nombre}" de la carta.`,
       ['dueño', 'supervisor', esBebida ? 'cantinero' : 'cocinero'],
-      undefined,
-      true
+      undefined
     );
   }
 
@@ -441,8 +427,7 @@ export class NotificacionesService {
       esBebida ? 'Bebida eliminada' : 'Plato eliminado',
       `Se eliminó "${nombre}" de la carta.`,
       ['dueño', 'supervisor', esBebida ? 'cantinero' : 'cocinero'],
-      undefined,
-      true
+      undefined
     );
   }
 
@@ -452,8 +437,7 @@ export class NotificacionesService {
       'Mesa eliminada',
       `Se eliminó la Mesa ${numeroMesa}.`,
       ['dueño', 'supervisor'],
-      '/administracion/salon',
-      true
+      '/administracion/salon'
     );
   }
 
@@ -464,8 +448,7 @@ export class NotificacionesService {
       aprobado ? 'Cliente aprobado' : 'Cliente rechazado',
       `${nombreCompleto} fue ${aprobado ? 'aceptado' : 'rechazado'}.`,
       ['dueño', 'supervisor'],
-      '/administracion/ahora',
-      true
+      '/administracion/ahora'
     );
   }
 
@@ -479,8 +462,7 @@ export class NotificacionesService {
       'Nuevo cliente pendiente',
       `${nombre} ${apellido} se registró y está pendiente de aprobación.`,
       ['dueño', 'supervisor'],
-      '/administracion/ahora',
-      true
+      '/administracion/ahora'
     );
   }
 
@@ -500,8 +482,7 @@ export class NotificacionesService {
       'Cliente en lista de espera',
       `${nombre} escaneó el QR de ingreso y espera una mesa.`,
       ['metre'],
-      '/metre/lista-espera',
-      true
+      '/metre/lista-espera'
     );
   }
 
@@ -511,8 +492,7 @@ export class NotificacionesService {
       'Cliente vinculado a su mesa',
       `${nombre} escaneó el QR y ya está en la Mesa ${numeroMesa}.`,
       ['metre'],
-      '/metre/lista-espera',
-      true
+      '/metre/lista-espera'
     );
   }
 
@@ -522,8 +502,7 @@ export class NotificacionesService {
       'Mesa confirmada',
       `Escaneaste correctamente la Mesa ${numeroMesa}. Ya podés ver el menú.`,
       clienteId,
-      '/cliente/inicio',
-      true
+      '/cliente/inicio'
     );
   }
 
@@ -672,10 +651,9 @@ export class NotificacionesService {
     titulo: string,
     cuerpo: string,
     puestos: readonly Puesto[],
-    ruta?: string,
-    mostrarSiempre = false
+    ruta?: string
   ): Promise<void> {
-    await this.enviar(titulo, { titulo, mensaje: cuerpo, puestos }, ruta, mostrarSiempre);
+    await this.enviar(titulo, { titulo, mensaje: cuerpo, puestos }, ruta);
   }
 
   /**
@@ -686,10 +664,9 @@ export class NotificacionesService {
     titulo: string,
     cuerpo: string,
     clienteId: string,
-    ruta?: string,
-    mostrarSiempre = false
+    ruta?: string
   ): Promise<void> {
-    await this.enviar(titulo, { titulo, mensaje: cuerpo, clienteId }, ruta, mostrarSiempre);
+    await this.enviar(titulo, { titulo, mensaje: cuerpo, clienteId }, ruta);
   }
 
   /**
@@ -701,14 +678,13 @@ export class NotificacionesService {
   private async enviar(
     titulo: string,
     destino: Record<string, unknown>,
-    ruta?: string,
-    mostrarSiempre = false
+    ruta?: string
   ): Promise<void> {
     try {
       const { data, error } = await this.supabase.client.functions.invoke('enviar-notificacion', {
         body: {
           ...destino,
-          data: { ...(ruta ? { ruta } : {}), ...(mostrarSiempre ? { siempre: '1' } : {}) },
+          data: { ...(ruta ? { ruta } : {}) },
         },
       });
 
