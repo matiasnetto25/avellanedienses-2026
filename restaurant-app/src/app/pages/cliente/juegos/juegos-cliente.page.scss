@@ -655,7 +655,8 @@
 }
 
 .menu > .volver {
-  margin-bottom: calc(var(--espacio-2) * -1);
+  margin-bottom: var(--espacio-2);
+  margin-top: var(--espacio-3);
 }
 
 /* --- marco del juego: se distingue del resto de la pantalla --- */
