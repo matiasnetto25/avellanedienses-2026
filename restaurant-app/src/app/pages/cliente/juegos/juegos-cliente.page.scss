@@ -655,8 +655,8 @@
 }
 
 .menu > .volver {
+  margin-top: 24px;
   margin-bottom: var(--espacio-2);
-  margin-top: var(--espacio-3);
 }
 
 /* --- marco del juego: se distingue del resto de la pantalla --- */
@@ -691,4 +691,8 @@
   align-items: center;
   gap: var(--espacio-4);
   padding: var(--espacio-4);
+}
+
+.juego > .volver {
+  margin-top: 40px;
 }
