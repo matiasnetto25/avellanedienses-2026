@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { puestoGuard } from './core/guards/puesto.guard';
 import { clienteGuard } from './core/guards/cliente.guard';
+import { juegosGuard } from './core/guards/juegos.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
 import { estadiaEnMesaGuard } from './core/guards/estadia-en-mesa.guard';
 import { menuGuard } from './core/guards/menu.guard';
@@ -185,6 +186,8 @@ const routes: Routes = [
       },
       {
         path: 'juegos',
+        // Solo con el pedido ya confirmado por el mozo.
+        canActivate: [juegosGuard],
         loadComponent: () => import('./pages/cliente/juegos/juegos-cliente.page').then(m => m.JuegosClientePage)
       },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },

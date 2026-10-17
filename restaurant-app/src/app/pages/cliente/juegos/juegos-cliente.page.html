@@ -1,0 +1,183 @@
+<ion-content class="densidad-amplia" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  @if (!cargando()) {
+    @if (!puedeJugar()) {
+      <app-estado-vacio
+        icono="game-controller-outline"
+        titulo="Juegos para clientes"
+        frase="Los juegos están disponibles para los clientes del local." />
+    } @else if (juegoActivo() === null) {
+      <!-- ------------------------------ MENÚ ------------------------------ -->
+      <section class="menu">
+        <button type="button" class="volver" (click)="salir()">
+          <ion-icon name="chevron-back-outline" aria-hidden="true" /> Inicio
+        </button>
+        <header class="menu-cabecera">
+          <h1 class="juego-titulo">Juegos</h1>
+        </header>
+        <ul class="menu-lista">
+          @for (j of juegos; track j.id) {
+            <li class="menu-item">
+              <button type="button" class="juego-tarjeta" [class.juego-tarjeta--activa]="j.disponible" [disabled]="!j.disponible" (click)="abrir(j.id)">
+                <span class="juego-tarjeta-icono"><ion-icon [name]="j.icono" aria-hidden="true" /></span>
+                <span class="juego-tarjeta-texto">
+                  <span class="juego-tarjeta-nombre">{{ j.nombre }}</span>
+                </span>
+                @if (!j.disponible) {
+                  <span class="juego-tarjeta-estado juego-tarjeta-estado--pronto">Próximamente</span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    } @else if (juegoActivo() === 'sommelier') {
+      <app-juego-sommelier (salir)="volver()" />
+    } @else if (juegoActivo() === 'ruleta') {
+      <app-juego-ruleta (salir)="volver()" />
+    } @else if (ultimo(); as r) {
+      <!-- ---------------------------- RESULTADO ---------------------------- -->
+      <section class="juego juego--resultado" aria-live="polite">
+        <button type="button" class="volver" (click)="volver()">
+          <ion-icon name="chevron-back-outline" aria-hidden="true" /> Juegos
+        </button>
+        <div class="marco">
+          <h1 class="marco-titulo">Adiviná la carta</h1>
+          <div class="marco-cuerpo">
+
+        <div class="carta carta--frente carta--revelada" [class.carta--roja]="esRojo(r.carta.palo)"
+             [attr.aria-label]="'La carta era ' + etiquetaValor(r.carta.valor) + ' de ' + etiquetaPalo(r.carta.palo).toLowerCase()">
+          <span class="carta-esquina">{{ r.carta.valor }}<br />{{ simboloPalo(r.carta.palo) }}</span>
+          <span class="carta-centro">{{ simboloPalo(r.carta.palo) }}</span>
+          <span class="carta-esquina carta-esquina--abajo">{{ r.carta.valor }}<br />{{ simboloPalo(r.carta.palo) }}</span>
+        </div>
+
+        @if (r.practica) {
+          <div class="premio">
+            <span class="premio-texto premio-texto--solo">Partida de práctica</span>
+            <span class="premio-texto">Sin descuento</span>
+          </div>
+          <p class="juego-frase">
+            Acertaste {{ r.cantidad }} de 3 condiciones. {{ razonPractica() }}
+          </p>
+        } @else if (r.descuento > 0) {
+          <div class="premio" data-gano="true">
+            <span class="premio-numero num">{{ r.descuento }}%</span>
+            <span class="premio-texto">de descuento ganado</span>
+          </div>
+          <p class="juego-frase">
+            Acertaste {{ r.cantidad }} de 3 condiciones. El descuento ya quedó registrado en tu visita.
+          </p>
+        } @else {
+          <div class="premio">
+            <span class="premio-texto premio-texto--solo">Esta vez no hubo descuento</span>
+          </div>
+          <p class="juego-frase">No acertaste ninguna condición. Podés seguir jugando por diversión, pero ya no suma descuento.</p>
+        }
+
+        <ul class="aciertos">
+          @for (fila of filasResultado(r); track fila.clave) {
+            <li class="acierto" [class.acierto--ok]="fila.acerto">
+              <ion-icon [name]="fila.acerto ? 'checkmark-circle' : 'close-circle'" aria-hidden="true" />
+              <span class="acierto-texto"><strong>{{ fila.clave }}:</strong> {{ fila.texto }}</span>
+            </li>
+          }
+        </ul>
+
+          </div>
+        </div>
+      </section>
+    } @else {
+      <!-- ------------------------------ JUEGO ------------------------------ -->
+      <section class="juego">
+        <button type="button" class="volver" (click)="volver()">
+          <ion-icon name="chevron-back-outline" aria-hidden="true" /> Juegos
+        </button>
+        <div class="marco">
+          <h1 class="marco-titulo">Adiviná la carta</h1>
+          <div class="marco-cuerpo">
+        <p class="juego-frase">
+          Hay una carta oculta. Elegí palo, tipo y valor: cuantas más condiciones aciertes, mayor es tu descuento.
+        </p>
+
+        @if (avisoDescuento(); as aviso) {
+          <p class="juego-aviso">{{ aviso }}</p>
+        }
+
+        <ul class="premios" aria-label="Descuentos posibles">
+          @for (premio of premios; track premio.aciertos) {
+            <li class="premio-chip" [attr.data-nivel]="premio.aciertos">
+              <span class="premio-chip-aciertos">{{ premio.aciertos }} {{ premio.aciertos === 1 ? 'acierto' : 'aciertos' }}</span>
+              <span class="premio-chip-descuento num">{{ premio.descuento }}%</span>
+            </li>
+          }
+        </ul>
+
+        <div class="carta carta--dorso" role="img" aria-label="Carta oculta">
+          <span class="carta-dorso-marca">?</span>
+        </div>
+
+        <fieldset class="paso">
+          <legend class="paso-titulo"><span class="paso-num">1</span>Palo</legend>
+          <div class="palos" role="radiogroup" aria-label="Palo">
+            @for (opcion of palos; track opcion.palo) {
+              <button
+                type="button"
+                class="opcion opcion--palo"
+                role="radio"
+                [class.opcion--elegida]="palo() === opcion.palo"
+                [class.opcion--roja]="opcion.rojo"
+                [attr.aria-checked]="palo() === opcion.palo"
+                (click)="elegirPalo(opcion.palo)">
+                <span class="palo-simbolo" aria-hidden="true">{{ opcion.simbolo }}</span>
+                <span class="palo-etiqueta">{{ opcion.etiqueta }}</span>
+              </button>
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="paso">
+          <legend class="paso-titulo"><span class="paso-num">2</span>Tipo</legend>
+          <div class="tipos" role="radiogroup" aria-label="Tipo">
+            <button type="button" class="opcion" role="radio"
+                    [class.opcion--elegida]="tipo() === 'numero'" [attr.aria-checked]="tipo() === 'numero'"
+                    (click)="elegirTipo('numero')">Número</button>
+            <button type="button" class="opcion" role="radio"
+                    [class.opcion--elegida]="tipo() === 'letra'" [attr.aria-checked]="tipo() === 'letra'"
+                    (click)="elegirTipo('letra')">Letra</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="paso">
+          <legend class="paso-titulo"><span class="paso-num">3</span>Valor</legend>
+          @if (tipo() === null) {
+            <p class="paso-ayuda">Primero elegí si es número o letra.</p>
+          } @else {
+            <div class="valores" role="radiogroup" aria-label="Valor">
+              @for (v of valoresDisponibles(); track v) {
+                <button type="button" class="opcion opcion--valor num" role="radio"
+                        [class.opcion--elegida]="valor() === v" [attr.aria-checked]="valor() === v"
+                        (click)="elegirValor(v)">{{ etiquetaValor(v) }}</button>
+              }
+            </div>
+          }
+        </fieldset>
+          </div>
+        </div>
+      </section>
+    }
+  }
+</ion-content>
+
+@if (!cargando() && puedeJugar() && juegoActivo() === 'carta') {
+  <ion-footer class="ion-no-border">
+    <app-barra-acciones>
+      @if (ultimo()) {
+        <ion-button class="accion-principal" expand="block" (click)="nuevaPartida()">Jugar de nuevo</ion-button>
+      } @else {
+        <ion-button class="accion-principal" expand="block" [disabled]="!completo() || jugando()" (click)="confirmar()">
+          {{ jugando() ? 'Confirmando…' : 'Confirmar respuesta' }}
+        </ion-button>
+      }
+    </app-barra-acciones>
+  </ion-footer>
+}
