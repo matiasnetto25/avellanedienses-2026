@@ -1,3 +1,4 @@
+
 <ion-header class="ion-no-border">
   <ion-toolbar>
     <ion-buttons slot="start">
@@ -14,27 +15,37 @@
     <div class="estado-aviso">
       <h2 class="estado-aviso-titulo">No se pudo cargar tu pedido</h2>
       <p class="estado-aviso-detalle">Revisá tu conexión y probá de nuevo.</p>
-      <ion-button expand="block" class="estado-boton" (click)="reintentar()">Reintentar</ion-button>
+      <ion-button expand="block" class="estado-boton" (click)="reintentar()">
+        Reintentar
+      </ion-button>
     </div>
   } @else if (pedido(); as p) {
     <div class="estado-pantalla">
-      <p class="estado-encabezado">Mesa {{ p.numeroMesa }} · pedido de las {{ p.creadoEn | date: 'HH:mm' }}</p>
+      <p class="estado-encabezado">
+        Mesa {{ p.numeroMesa }} · pedido de las {{ p.creadoEn | date: 'HH:mm' }}
+      </p>
 
-      <!-- Un bloque por estado: los puntos 16 en adelante agregan el suyo. -->
+      <!-- Estado actual del pedido. -->
       @switch (p.estado) {
         @case ('pendiente_confirmacion') {
           <div class="estado-etiqueta estado-etiqueta--pendiente">
-            <span class="estado-etiqueta-texto">{{ estadoPedido(p.estado).texto }}</span>
+            <span class="estado-etiqueta-texto">
+              {{ estadoPedido(p.estado).texto }}
+            </span>
             <span class="estado-etiqueta-detalle">
               Un mozo va a revisar tu pedido. Cuando lo confirme, pasa a la cocina y a la barra.
             </span>
           </div>
         }
         @case ('rechazado') {
-          <!-- Recordatorio: el aviso completo es el modal de AvisoRechazoComponent. -->
+          <!-- El aviso completo también se muestra en el modal de rechazo. -->
           <div class="estado-etiqueta estado-etiqueta--rechazado">
-            <span class="estado-etiqueta-texto">{{ estadoPedido(p.estado).texto }}</span>
-            <span class="estado-etiqueta-detalle">Motivo: {{ p.motivoRechazo }}</span>
+            <span class="estado-etiqueta-texto">
+              {{ estadoPedido(p.estado).texto }}
+            </span>
+            <span class="estado-etiqueta-detalle">
+              Motivo: {{ p.motivoRechazo }}
+            </span>
             <ion-button
               expand="block"
               class="estado-boton estado-boton--modificar"
@@ -47,49 +58,83 @@
         }
         @case ('confirmado') {
           <div class="estado-etiqueta estado-etiqueta--confirmado">
-            <span class="estado-etiqueta-texto">{{ estadoPedido(p.estado).texto }}</span>
-            <span class="estado-etiqueta-detalle">Tu pedido ya está en la cocina y la barra.</span>
+            <span class="estado-etiqueta-texto">
+              {{ estadoPedido(p.estado).texto }}
+            </span>
+            <span class="estado-etiqueta-detalle">
+              Tu pedido ya está en la cocina y la barra.
+            </span>
           </div>
         }
         @default {
           <div class="estado-etiqueta">
-            <span class="estado-etiqueta-texto">{{ estadoPedido(p.estado).texto }}</span>
+            <span class="estado-etiqueta-texto">
+              {{ estadoPedido(p.estado).texto }}
+            </span>
           </div>
         }
       }
 
-      <!-- Sin ítems solo si un reenvío anterior se cortó a mitad de camino (punto 13). -->
+      <!-- Detalle de los productos del pedido. -->
       @if (p.items.length > 0) {
         <ul class="estado-lineas">
           @for (item of p.items; track item.menuId) {
             <li class="estado-linea">
               <div class="estado-linea-detalle">
-                <span class="estado-linea-nombre">{{ item.cantidad }} × {{ item.nombre }}</span>
-                <span class="estado-linea-unitario">${{ item.precioUnitario | number: '1.0-0' }} c/u</span>
+                <span class="estado-linea-nombre">
+                  {{ item.cantidad }} × {{ item.nombre }}
+                </span>
+                <span class="estado-linea-unitario">
+                  ${{ item.precioUnitario | number: '1.0-0' }} c/u
+                </span>
               </div>
-              <span class="estado-linea-subtotal">${{ item.subtotal | number: '1.0-0' }}</span>
+              <span class="estado-linea-subtotal">
+                ${{ item.subtotal | number: '1.0-0' }}
+              </span>
             </li>
           }
         </ul>
 
+        <!-- Subtotal, descuento obtenido en el juego y total final. -->
         <div class="estado-totales">
           <div class="estado-fila">
-            <span>Total</span>
-            <span class="estado-total">${{ p.total | number: '1.0-0' }}</span>
+            <span>Subtotal</span>
+            <span>${{ p.subtotal | number: '1.0-0' }}</span>
           </div>
+
+          @if (p.porcentajeDescuento > 0) {
+            <div class="estado-fila estado-fila--descuento">
+              <span>Descuento por juego ({{ p.porcentajeDescuento }}%)</span>
+              <span>−${{ p.montoDescuento | number: '1.0-0' }}</span>
+            </div>
+          }
+
+          <div class="estado-fila">
+            <span>Total</span>
+            <span class="estado-total">
+              ${{ p.total | number: '1.0-0' }}
+            </span>
+          </div>
+
           <div class="estado-fila">
             <span>Tiempo estimado</span>
-            <span class="sin-corte">{{ p.tiempoEstimadoMin | minutos }}</span>
+            <span class="sin-corte">
+              {{ p.tiempoEstimadoMin | minutos }}
+            </span>
           </div>
         </div>
       } @else {
-        <p class="estado-sin-items">Tu pedido quedó sin productos. Tocá «Modificar pedido» para volver a elegirlos.</p>
+        <p class="estado-sin-items">
+          Tu pedido quedó sin productos. Tocá «Modificar pedido» para volver a elegirlos.
+        </p>
       }
     </div>
   } @else {
     <div class="estado-aviso">
       <h2 class="estado-aviso-titulo">Todavía no hiciste un pedido</h2>
-      <p class="estado-aviso-detalle">Elegí los productos de la carta y enviá tu pedido al mozo.</p>
+      <p class="estado-aviso-detalle">
+        Elegí los productos de la carta y enviá tu pedido al mozo.
+      </p>
       <ion-button
         expand="block"
         class="estado-boton"

@@ -18,7 +18,6 @@ import {
 import { TipoMenuItem } from '../models/menu-item.model';
 import { ResultadoOperacion } from '../models/resultado-operacion';
 import { ResultadoBusqueda } from '../models/resultado-busqueda';
-
 const TABLA_PEDIDOS = 'pedidos';
 const TABLA_ITEMS = 'pedido_items';
 
@@ -69,30 +68,31 @@ const MENSAJE_PEDIDO_YA_RESUELTO = 'Este pedido ya fue confirmado o rechazado po
 /** Espera antes de avisar un cambio: el pedido y sus ítems llegan como
  *  varios eventos seguidos (uno por fila), y así se relee una sola vez. */
 const ESPERA_AGRUPAR_CAMBIOS_MS = 300;
-
 export interface ResultadoCrearPedido extends ResultadoOperacion {
   pedidoId?: string;
+
   /** Para la push a los mozos (issue 05). */
   numeroMesa?: number;
+
   /** Si el cliente ya tenía un pedido: la pantalla lo lleva a su estado. */
   pedidoExistenteId?: string;
 }
-
 export interface ResultadoRechazo extends ResultadoOperacion {
+
   /** Para la push al cliente y su ruta (punto 13, issue 05). */
   clienteId?: string;
   mesaId?: string;
 }
-
 export interface ResultadoConfirmacion extends ResultadoOperacion {
+
   /** Para las push al cliente, a cocina y a bar (punto 14, issue 03). */
   clienteId?: string;
   mesaId?: string;
   numeroMesa?: number;
+
   /** Sectores con ítems en el pedido, sin repetir: a quiénes avisar. */
   sectores?: SectorItem[];
 }
-
 interface PedidoFila {
   id: string;
   created_at: string;
@@ -113,7 +113,6 @@ interface PedidoFila {
     menu: { nombre: string; demora: number | null };
   }[];
 }
-
 interface ConfirmacionFila {
   solicitud: {
     cliente_id: string;
@@ -122,7 +121,6 @@ interface ConfirmacionFila {
   };
   items: { sector: SectorItem }[];
 }
-
 interface ComandaFila {
   id: string;
   cantidad: number;
@@ -135,7 +133,6 @@ interface ComandaFila {
     solicitud: { mesa: { numero_mesa: number } };
   };
 }
-
 interface ProductoFila {
   id: string;
   precio: number;
@@ -174,26 +171,32 @@ export class PedidosService {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-
     if (error) {
       console.error('Error obteniendo mi pedido:', error);
       return { ok: false };
     }
-    return { ok: true, dato: data ? this.aPedido(data as unknown as PedidoFila) : null };
+    if (!data) {
+      return { ok: true, dato: null };
+    }
+    const pedido = this.aPedido(data as unknown as PedidoFila);
+    const pedidoConDescuento = await this.aplicarDescuento(pedido);
+    return {
+      ok: true,
+      dato: pedidoConDescuento,
+    };
   }
-
   async obtener(pedidoId: string): Promise<Pedido | null> {
     const { data, error } = await this.supabase.client
       .from(TABLA_PEDIDOS)
       .select(SELECT_PEDIDO)
       .eq('id', pedidoId)
       .maybeSingle();
-
     if (error || !data) {
       if (error) console.error('Error obteniendo pedido:', error);
       return null;
     }
-    return this.aPedido(data as unknown as PedidoFila);
+    const pedido = this.aPedido(data as unknown as PedidoFila);
+    return this.aplicarDescuento(pedido);
   }
 
   /**
@@ -209,7 +212,6 @@ export class PedidosService {
       .select(SELECT_PEDIDO)
       .eq('estado', 'pendiente_confirmacion')
       .order('created_at', { ascending: true });
-
     if (error) {
       console.error('Error listando pedidos pendientes:', error);
       return null;
@@ -224,15 +226,12 @@ export class PedidosService {
   /** Devuelve el mensaje de error de validación, o null si el carrito es válido. */
   validarLineas(lineas: LineaCarrito[]): string | null {
     if (lineas.length === 0) return 'Agregá al menos un producto antes de enviar el pedido.';
-
     const fueraDeRango = lineas.some(
       (linea) => !Number.isInteger(linea.cantidad) || linea.cantidad < 1 || linea.cantidad > CANTIDAD_MAXIMA_ITEM
     );
     if (fueraDeRango) return `La cantidad de cada producto tiene que ser de 1 a ${CANTIDAD_MAXIMA_ITEM}.`;
-
     const ids = new Set(lineas.map((linea) => linea.menuId));
     if (ids.size !== lineas.length) return 'Hay productos repetidos en el pedido.';
-
     return null;
   }
 
@@ -245,21 +244,17 @@ export class PedidosService {
   async crear(clienteId: string, lineas: LineaCarrito[]): Promise<ResultadoCrearPedido> {
     const errorValidacion = this.validarLineas(lineas);
     if (errorValidacion) return { ok: false, mensaje: errorValidacion };
-
     try {
       const estadia = await this.obtenerEstadiaVinculada(clienteId);
       if (!estadia.ok) return { ok: false, mensaje: 'No se pudo verificar tu mesa. Revisá tu conexión.' };
       if (!estadia.dato) return { ok: false, mensaje: 'Necesitás tener una mesa asignada para hacer un pedido.' };
-
       const productos = await this.obtenerProductosDisponibles(lineas);
       if (!productos.ok) return productos;
-
       const { data: pedido, error: errorPedido } = await this.supabase.client
         .from(TABLA_PEDIDOS)
         .insert({ solicitud_id: estadia.dato.solicitudId })
         .select('id')
         .single();
-
       if (errorPedido) {
         console.error('Error creando pedido:', errorPedido);
         if (errorPedido.code === CODIGO_DUPLICADO) {
@@ -272,18 +267,15 @@ export class PedidosService {
         }
         return { ok: false, mensaje: 'No se pudo enviar el pedido. Probá de nuevo.' };
       }
-
       const { error: errorItems } = await this.supabase.client
         .from(TABLA_ITEMS)
         .insert(this.filasItems(pedido.id, lineas, productos.dato));
-
       if (errorItems) {
         console.error('Error cargando los productos del pedido:', errorItems);
         await this.borrarPedidoVacio(pedido.id);
         if (errorItems.code === CODIGO_RLS) return { ok: false, mensaje: MENSAJE_PRODUCTOS_CAMBIARON };
         return { ok: false, mensaje: 'No se pudo enviar el pedido. Probá de nuevo.' };
       }
-
       return { ok: true, pedidoId: pedido.id, numeroMesa: estadia.dato.numeroMesa };
     } catch (error: unknown) {
       console.error('Error inesperado creando pedido:', error);
@@ -304,7 +296,6 @@ export class PedidosService {
   async rechazar(pedidoId: string, motivo: string): Promise<ResultadoRechazo> {
     const errorMotivo = validarMotivoRechazo(motivo);
     if (errorMotivo) return { ok: false, mensaje: errorMotivo };
-
     try {
       const { data, error } = await this.supabase.client
         .from(TABLA_PEDIDOS)
@@ -312,16 +303,13 @@ export class PedidosService {
         .eq('id', pedidoId)
         .eq('estado', 'pendiente_confirmacion')
         .select('solicitud:solicitudes_mesa ( cliente_id, mesa_id )');
-
       if (error) {
         console.error('Error rechazando pedido:', error);
         if (error.code === CODIGO_RLS) return { ok: false, mensaje: 'Solo un mozo puede rechazar pedidos.' };
         return { ok: false, mensaje: 'No se pudo rechazar el pedido. Probá de nuevo.' };
       }
-
       const fila = (data as unknown as { solicitud: { cliente_id: string; mesa_id: string } }[])[0];
       if (!fila) return { ok: false, mensaje: MENSAJE_PEDIDO_YA_RESUELTO };
-
       return { ok: true, clienteId: fila.solicitud.cliente_id, mesaId: fila.solicitud.mesa_id };
     } catch (error: unknown) {
       console.error('Error inesperado rechazando pedido:', error);
@@ -348,38 +336,31 @@ export class PedidosService {
   async reenviar(pedidoId: string, lineas: LineaCarrito[]): Promise<ResultadoOperacion> {
     const errorValidacion = this.validarLineas(lineas);
     if (errorValidacion) return { ok: false, mensaje: errorValidacion };
-
     try {
       const productos = await this.obtenerProductosDisponibles(lineas);
       if (!productos.ok) return productos;
-
       const { error: errorBorrado } = await this.supabase.client
         .from(TABLA_ITEMS)
         .delete()
         .eq('pedido_id', pedidoId);
-
       if (errorBorrado) {
         console.error('Error borrando los productos del pedido rechazado:', errorBorrado);
         return { ok: false, mensaje: 'No se pudo reenviar el pedido. Probá de nuevo.' };
       }
-
       const { error: errorItems } = await this.supabase.client
         .from(TABLA_ITEMS)
         .insert(this.filasItems(pedidoId, lineas, productos.dato));
-
       if (errorItems) {
         console.error('Error cargando los productos del pedido reenviado:', errorItems);
         if (errorItems.code === CODIGO_RLS) return { ok: false, mensaje: MENSAJE_PRODUCTOS_CAMBIARON };
         return { ok: false, mensaje: 'No se pudo reenviar el pedido. Probá de nuevo.' };
       }
-
       const { data, error: errorEstado } = await this.supabase.client
         .from(TABLA_PEDIDOS)
         .update({ estado: 'pendiente_confirmacion', motivo_rechazo: null })
         .eq('id', pedidoId)
         .eq('estado', 'rechazado')
         .select('id');
-
       if (errorEstado) {
         console.error('Error liberando el pedido reenviado:', errorEstado);
         if (errorEstado.code === CODIGO_RLS) {
@@ -388,7 +369,6 @@ export class PedidosService {
         return { ok: false, mensaje: 'No se pudo reenviar el pedido. Probá de nuevo.' };
       }
       if (data.length === 0) return { ok: false, mensaje: 'Tu pedido ya no se puede modificar.' };
-
       return { ok: true };
     } catch (error: unknown) {
       console.error('Error inesperado reenviando pedido:', error);
@@ -415,17 +395,14 @@ export class PedidosService {
         .eq('id', pedidoId)
         .eq('estado', 'pendiente_confirmacion')
         .select('solicitud:solicitudes_mesa ( cliente_id, mesa_id, mesa ( numero_mesa ) ), items:pedido_items ( sector )');
-
       if (error) {
         console.error('Error confirmando pedido:', error);
         // Falló el with check: el pedido no tiene productos.
         if (error.code === CODIGO_RLS) return { ok: false, mensaje: 'No se puede confirmar un pedido sin productos.' };
         return { ok: false, mensaje: 'No se pudo confirmar el pedido. Probá de nuevo.' };
       }
-
       const fila = (data as unknown as ConfirmacionFila[])[0];
       if (!fila) return { ok: false, mensaje: MENSAJE_PEDIDO_YA_RESUELTO };
-
       return {
         ok: true,
         clienteId: fila.solicitud.cliente_id,
@@ -456,7 +433,6 @@ export class PedidosService {
         .select(SELECT_COMANDA)
         .eq('sector', sector)
         .in('pedido.estado', ESTADOS_EN_COMANDAS);
-
       if (error) {
         console.error('Error listando comandas:', error);
         return null;
@@ -469,7 +445,6 @@ export class PedidosService {
       return null;
     }
   }
-
   private async obtenerEstadiaVinculada(
     clienteId: string
   ): Promise<ResultadoBusqueda<{ solicitudId: string; numeroMesa: number }>> {
@@ -481,13 +456,11 @@ export class PedidosService {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-
     if (error) {
       console.error('Error buscando la estadía del cliente:', error);
       return { ok: false };
     }
     if (!data) return { ok: true, dato: null };
-
     const fila = data as unknown as { id: string; mesa: { numero_mesa: number } };
     return { ok: true, dato: { solicitudId: fila.id, numeroMesa: fila.mesa.numero_mesa } };
   }
@@ -504,12 +477,10 @@ export class PedidosService {
       .from('menu')
       .select('id, precio, tipo, estado')
       .in('id', lineas.map((linea) => linea.menuId));
-
     if (error) {
       console.error('Error leyendo los productos del pedido:', error);
       return { ok: false, mensaje: 'No se pudo leer la carta. Probá de nuevo.' };
     }
-
     const productos = new Map((data as ProductoFila[]).map((producto) => [producto.id, producto]));
     const disponibles = lineas.every((linea) => productos.get(linea.menuId)?.estado === 'On');
     if (!disponibles) {
@@ -534,7 +505,6 @@ export class PedidosService {
       };
     });
   }
-
   private async borrarPedidoVacio(pedidoId: string): Promise<void> {
     const { error } = await this.supabase.client.from(TABLA_PEDIDOS).delete().eq('id', pedidoId);
     if (error) console.error('No se pudo borrar el pedido vacío:', error);
@@ -621,7 +591,6 @@ export class PedidosService {
       clearTimeout(espera);
       espera = setTimeout(() => void avisar(ultimaFila), ESPERA_AGRUPAR_CAMBIOS_MS);
     };
-
     let canal: RealtimeChannel = this.supabase.client
       .channel(`${nombre}-${crypto.randomUUID()}`)
       .on(
@@ -634,7 +603,6 @@ export class PedidosService {
         },
         (cambio) => programarAviso(cambio.new as { id?: string })
       );
-
     if (filtros.items !== null) {
       canal = canal.on(
         'postgres_changes',
@@ -647,17 +615,62 @@ export class PedidosService {
         () => programarAviso(null)
       );
     }
-
     canal.subscribe();
-
     return () => {
       clearTimeout(espera);
       this.supabase.client.removeChannel(canal);
     };
   }
 
-  // ===== Mapeo de la respuesta anidada al modelo de la pantalla =====
 
+
+private async obtenerPorcentajeDescuento(
+  clienteId: string
+): Promise<number> {
+  const { data, error } = await this.supabase.client.rpc(
+    'obtener_mi_descuento_juegos',
+    { p_cliente_id: clienteId }
+  );
+
+  if (error) {
+    console.error('[Descuento] Error al obtener el descuento:', error);
+    return 0;
+  }
+
+  const porcentaje = Number(data ?? 0);
+
+  if (![0, 10, 15, 20].includes(porcentaje)) {
+    console.warn('[Descuento] Porcentaje no válido:', porcentaje);
+    return 0;
+  }
+
+  console.log('[Descuento] Porcentaje obtenido por RPC:', porcentaje);
+
+  return porcentaje;
+}
+
+
+
+/** Aplica al total el descuento obtenido en el juego de la estadía. */
+private async aplicarDescuento(pedido: Pedido): Promise<Pedido> {
+  const porcentajeDescuento = await this.obtenerPorcentajeDescuento(
+    pedido.clienteId
+  );
+
+  const montoDescuento = Math.round(
+    pedido.subtotal * porcentajeDescuento / 100
+  );
+
+  return {
+    ...pedido,
+    porcentajeDescuento,
+    montoDescuento,
+    total: pedido.subtotal - montoDescuento,
+  };
+}
+
+
+  // ===== Mapeo de la respuesta anidada al modelo de la pantalla =====
   private aPedido(fila: PedidoFila): Pedido {
     const items: PedidoItem[] = fila.items.map((item) => ({
       menuId: item.menu_id,
@@ -670,6 +683,7 @@ export class PedidosService {
       subtotal: Number(item.precio_unitario) * item.cantidad,
     }));
 
+    const subtotal = calcularTotal(items);
     return {
       id: fila.id,
       solicitudId: fila.solicitud_id,
@@ -679,13 +693,17 @@ export class PedidosService {
       creadoEn: fila.created_at,
       estado: fila.estado,
       motivoRechazo: fila.motivo_rechazo,
-      total: calcularTotal(items),
+      // Valores iniciales hasta consultar el descuento de la visita.
+      subtotal,
+      porcentajeDescuento: 0,
+      montoDescuento: 0,
+      total: subtotal,
       tiempoEstimadoMin: calcularTiempoEstimado(items.map((item) => item.demoraMin)),
       items,
     };
   }
 
-  private aItemComanda(fila: ComandaFila): ItemComanda {
+private aItemComanda(fila: ComandaFila): ItemComanda {
     return {
       id: fila.id,
       pedidoId: fila.pedido.id,

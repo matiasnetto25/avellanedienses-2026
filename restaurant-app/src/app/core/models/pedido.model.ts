@@ -67,9 +67,19 @@ export interface Pedido {
   estado: EstadoPedido;
   motivoRechazo: string | null;
   /** Calculados a partir de los ítems: la base no los guarda. */
+
+  /** Subtotal de los productos antes de aplicar descuentos. */
+  subtotal: number;
+  /** Porcentaje ganado en el juego para esta visita. */
+  porcentajeDescuento: number;
+  /** Importe descontado sobre el subtotal. */
+  montoDescuento: number;
+  /** Total final: subtotal menos descuento. */
   total: number;
+  /** Tiempo estimado del pedido. */
   tiempoEstimadoMin: number;
   items: PedidoItem[];
+
 }
 
 /**
