@@ -1,0 +1,143 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/cliente/inicio" text="" />
+    </ion-buttons>
+    <ion-title>Encuesta de satisfacción</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="densidad-amplia" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  <form class="encuesta" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+    <p class="introduccion">Contanos cómo fue tu visita. Tu opinión nos ayuda a mejorar.</p>
+
+    <!-- 1 · Estrellas -->
+    <section class="tarjeta pregunta" aria-labelledby="calificacion-titulo">
+      <h2 id="calificacion-titulo" class="pregunta-titulo">Calificación general</h2>
+      <div class="estrellas" role="radiogroup" aria-labelledby="calificacion-titulo" aria-describedby="calificacion-aviso">
+        @for (n of estrellas; track n) {
+          <button
+            type="button"
+            class="estrella"
+            role="radio"
+            [class.estrella--elegida]="(form.controls.calificacionGeneral.value ?? 0) >= n"
+            [attr.aria-checked]="form.controls.calificacionGeneral.value === n"
+            [attr.aria-label]="n + ' de 5 estrellas'"
+            (click)="calificar(n)"
+          >
+            <ion-icon [name]="(form.controls.calificacionGeneral.value ?? 0) >= n ? 'star' : 'star-outline'" aria-hidden="true" />
+          </button>
+        }
+      </div>
+      <app-aviso-campo
+        id="calificacion-aviso"
+        [control]="form.controls.calificacionGeneral"
+        [mensajes]="mensajes.calificacionGeneral" />
+    </section>
+
+    <!-- 2 · Radio -->
+    <section class="tarjeta pregunta" aria-labelledby="atencion-titulo">
+      <h2 id="atencion-titulo" class="pregunta-titulo">¿Cómo te atendió el mozo?</h2>
+      <ion-radio-group class="opciones" formControlName="atencionMozo" aria-describedby="atencion-aviso">
+        @for (opcion of opcionesAtencion; track opcion) {
+          <ion-radio class="opcion" [value]="opcion" labelPlacement="end" justify="start">
+            {{ etiquetasAtencion[opcion] }}
+          </ion-radio>
+        }
+      </ion-radio-group>
+      <app-aviso-campo id="atencion-aviso" [control]="form.controls.atencionMozo" [mensajes]="mensajes.atencionMozo" />
+    </section>
+
+    <!-- 3 · Rango -->
+    <section class="tarjeta pregunta" aria-labelledby="limpieza-titulo">
+      <div class="pregunta-cabecera">
+        <h2 id="limpieza-titulo" class="pregunta-titulo">Limpieza del salón</h2>
+        <span class="valor" [class.valor--vacio]="form.controls.limpieza.value === null">
+          @if (form.controls.limpieza.value === null) {
+            Sin responder
+          } @else {
+            <span class="num">{{ form.controls.limpieza.value }}</span> de {{ limpiezaMax }}
+          }
+        </span>
+      </div>
+      <ion-range
+        class="rango"
+        [class.rango--vacio]="form.controls.limpieza.value === null"
+        [min]="limpiezaMin"
+        [max]="limpiezaMax"
+        [step]="1"
+        [ticks]="false"
+        [snaps]="true"
+        [pin]="true"
+        [value]="form.controls.limpieza.value ?? limpiezaMax / 2"
+        aria-labelledby="limpieza-titulo"
+        aria-describedby="limpieza-aviso"
+        (ionChange)="calificarLimpieza($event.detail.value)"
+        (ionKnobMoveEnd)="calificarLimpieza($event.detail.value)"
+      >
+        <span slot="start" class="rango-extremo">Muy sucio</span>
+        <span slot="end" class="rango-extremo">Impecable</span>
+      </ion-range>
+      <app-aviso-campo id="limpieza-aviso" [control]="form.controls.limpieza" [mensajes]="mensajes.limpieza" />
+    </section>
+
+    <!-- 4 · Checkboxes -->
+    <section class="tarjeta pregunta" aria-labelledby="aspectos-titulo">
+      <h2 id="aspectos-titulo" class="pregunta-titulo">¿Qué destacás de tu visita?</h2>
+      <p class="pregunta-ayuda">Podés marcar más de una opción.</p>
+      <div class="opciones" role="group" aria-labelledby="aspectos-titulo" aria-describedby="aspectos-aviso">
+        @for (aspecto of opcionesAspecto; track aspecto) {
+          <ion-checkbox
+            class="opcion"
+            labelPlacement="end"
+            justify="start"
+            [checked]="form.controls.aspectosDestacados.value.includes(aspecto)"
+            (ionChange)="alternarAspecto(aspecto, $event.detail.checked)"
+          >
+            {{ etiquetasAspecto[aspecto] }}
+          </ion-checkbox>
+        }
+      </div>
+      <app-aviso-campo
+        id="aspectos-aviso"
+        [control]="form.controls.aspectosDestacados"
+        [mensajes]="mensajes.aspectosDestacados" />
+    </section>
+
+    <!-- 5 · Toggle -->
+    <section class="tarjeta pregunta">
+      <ion-toggle class="interruptor" formControlName="recomendaria" labelPlacement="start" justify="space-between">
+        <span class="pregunta-titulo">¿Nos recomendarías?</span>
+      </ion-toggle>
+      <p class="respuesta-toggle" aria-live="polite">
+        Tu respuesta: <strong>{{ form.controls.recomendaria.value ? 'Sí' : 'No' }}</strong>
+      </p>
+    </section>
+
+    <!-- 6 · Área de texto -->
+    <section class="tarjeta pregunta" aria-labelledby="comentario-titulo">
+      <h2 id="comentario-titulo" class="pregunta-titulo">Comentario</h2>
+      <ion-textarea
+        class="campo"
+        fill="outline"
+        label="Escribí tu comentario (opcional)"
+        labelPlacement="floating"
+        formControlName="comentario"
+        [counter]="true"
+        [maxlength]="comentarioMax"
+        [autoGrow]="true"
+        [rows]="3"
+        aria-describedby="comentario-aviso"
+      />
+      <app-aviso-campo id="comentario-aviso" [control]="form.controls.comentario" />
+    </section>
+  </form>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <app-barra-acciones>
+    <ion-button class="accion-principal" expand="block" [disabled]="enviando()" (click)="enviar()">
+      {{ enviando() ? 'Enviando…' : 'Enviar encuesta' }}
+    </ion-button>
+  </app-barra-acciones>
+</ion-footer>

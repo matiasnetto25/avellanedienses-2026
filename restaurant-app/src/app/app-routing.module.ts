@@ -3,6 +3,7 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { puestoGuard } from './core/guards/puesto.guard';
 import { clienteGuard } from './core/guards/cliente.guard';
 import { juegosGuard } from './core/guards/juegos.guard';
+import { encuestaGuard } from './core/guards/encuesta.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
 import { estadiaEnMesaGuard } from './core/guards/estadia-en-mesa.guard';
 import { menuGuard } from './core/guards/menu.guard';
@@ -189,6 +190,13 @@ const routes: Routes = [
         // Solo con el pedido ya confirmado por el mozo.
         canActivate: [juegosGuard],
         loadComponent: () => import('./pages/cliente/juegos/juegos-cliente.page').then(m => m.JuegosClientePage)
+      },
+      {
+        path: 'encuesta',
+        // Una por estadía (punto 20): con el pedido confirmado y sin completar.
+        // Sin pestaña propia: se entra desde «Mi mesa».
+        canActivate: [encuestaGuard],
+        loadComponent: () => import('./pages/encuestas/formulario/encuesta.page').then(m => m.EncuestaPage)
       },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
     ]

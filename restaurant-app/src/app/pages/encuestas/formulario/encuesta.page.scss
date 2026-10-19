@@ -1,0 +1,169 @@
+/* Una tarjeta por pregunta. Colores, radios y tipografías salen de los tokens (theme/variables.scss). */
+
+.encuesta {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  /* Sin gap: entre tarjetas separa la regla global .tarjeta + .tarjeta. */
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--espacio-4) var(--margen-pantalla) var(--espacio-6);
+  /* Ocupa todo el alto visible: sin franjas vacías abajo en pantallas altas. */
+  min-height: var(--altura-disponible, auto);
+}
+
+.introduccion {
+  margin: 0 0 var(--separacion-tarjetas);
+  color: var(--color-texto-secundario);
+  font-size: var(--texto-cuerpo);
+  line-height: var(--alto-linea-cuerpo);
+}
+
+.pregunta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+}
+
+.pregunta-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}
+
+.pregunta-titulo {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-size: var(--texto-subtitulo);
+  font-weight: var(--peso-regular);
+  color: var(--color-texto);
+  white-space: normal;
+}
+
+.pregunta-ayuda {
+  margin: calc(-1 * var(--espacio-2)) 0 0;
+  font-size: var(--texto-etiqueta);
+  color: var(--color-texto-terciario);
+}
+
+/* ----- 1 · Estrellas ----- */
+
+.estrellas {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-1);
+}
+
+.estrella {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: var(--alto-toque-minimo);
+  min-height: var(--alto-toque-minimo);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radio-md);
+  background: transparent;
+  color: var(--color-borde-control);
+  font-size: 36px;
+  cursor: pointer;
+  transition: color var(--mov-rapido) var(--mov-curva), transform var(--mov-rapido) var(--mov-curva);
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-foco);
+    outline-offset: 2px;
+  }
+
+  &--elegida {
+    color: var(--color-espera);
+  }
+}
+
+/* ----- 2 y 4 · Radio y checkboxes ----- */
+
+.opciones {
+  display: flex;
+  flex-direction: column;
+}
+
+.opcion {
+  --size: 22px;
+  min-height: var(--alto-toque-minimo);
+  width: 100%;
+  font-size: var(--texto-cuerpo);
+  color: var(--color-texto);
+}
+
+ion-radio.opcion {
+  --color-checked: var(--color-accion);
+}
+
+ion-checkbox.opcion {
+  --checkbox-background-checked: var(--color-accion);
+  --border-color-checked: var(--color-accion);
+  --checkmark-color: var(--color-texto-sobre-acento);
+}
+
+/* ----- 3 · Rango -----
+   Sin ticks: Ionic los dibuja sobre la barra y a la derecha del valor queda un
+   punteado rojo y gris. El valor elegido ya se lee arriba («5 de 10»). */
+
+.valor {
+  font-size: var(--texto-cuerpo);
+  font-weight: var(--peso-medio);
+  color: var(--color-texto);
+
+  &--vacio {
+    font-weight: var(--peso-regular);
+    color: var(--color-texto-terciario);
+  }
+}
+
+.rango {
+  --bar-background: var(--color-superficie-hundida);
+  --bar-background-active: var(--color-accion);
+  --bar-height: 6px;
+  --bar-border-radius: var(--radio-pildora);
+  --knob-background: var(--color-accion);
+  --knob-size: 26px;
+  --pin-background: var(--color-accion);
+  --pin-color: var(--color-texto-sobre-acento);
+  padding: 0;
+
+  /* Sin responder: la barra no se pinta, para que no parezca una respuesta elegida. */
+  &--vacio {
+    --bar-background-active: var(--color-superficie-hundida);
+    --knob-background: var(--color-borde-control);
+  }
+}
+
+.rango-extremo {
+  font-size: var(--texto-micro);
+  color: var(--color-texto-secundario);
+  white-space: nowrap;
+}
+
+/* ----- 5 · Toggle ----- */
+
+.interruptor {
+  --track-background: var(--color-borde-control);
+  --track-background-checked: var(--color-accion);
+  --handle-background: var(--color-superficie);
+  --handle-background-checked: var(--color-superficie);
+  width: 100%;
+  min-height: var(--alto-toque-minimo);
+}
+
+.respuesta-toggle {
+  margin: 0;
+  font-size: var(--texto-etiqueta);
+  color: var(--color-texto-secundario);
+}
