@@ -175,8 +175,8 @@ export class EncuestaPage {
         return;
       }
       await this.avisos.exito('¡Gracias por tu opinión!');
-      // Sin volver atrás al formulario. Con la pantalla de resultados (issue 05), va ahí.
-      await this.router.navigate(['/cliente/inicio'], { replaceUrl: true });
+      // replaceUrl: el botón de volver no regresa al formulario ya enviado.
+      await this.router.navigate(['/cliente/resultados-encuestas'], { replaceUrl: true });
     } finally {
       this.enviando.set(false);
     }

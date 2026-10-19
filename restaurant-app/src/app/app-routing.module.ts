@@ -198,6 +198,12 @@ const routes: Routes = [
         canActivate: [encuestaGuard],
         loadComponent: () => import('./pages/encuestas/formulario/encuesta.page').then(m => m.EncuestaPage)
       },
+      {
+        path: 'resultados-encuestas',
+        // Sin guard propio: la ve cualquier cliente, también sin mesa o en
+        // la lista de espera (QR de ingreso, puntos 9 y 22).
+        loadComponent: () => import('./pages/encuestas/resultados/resultados-encuestas.page').then(m => m.ResultadosEncuestasPage)
+      },
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
     ]
   },

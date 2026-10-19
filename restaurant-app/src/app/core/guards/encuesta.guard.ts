@@ -10,8 +10,8 @@ import { EncuestasService } from '../services/encuestas.service';
  * mano: la base tiene RLS desactivado, así que la regla de habilitación
  * solo se aplica acá y en el inicio del cliente.
  *
- * Si no pasa, vuelve al inicio del cliente. Cuando exista la pantalla de
- * resultados (issue 05), la encuesta ya completada redirige ahí.
+ * Con la encuesta ya completada va a los resultados. Sin habilitar, o si
+ * falla la consulta, vuelve al inicio del cliente.
  */
 export const encuestaGuard: CanActivateFn = async () => {
   const etapaCliente = inject(EtapaClienteService);
@@ -24,6 +24,7 @@ export const encuestaGuard: CanActivateFn = async () => {
     if (etapaCliente.encuestaHabilitada() && etapa?.tipo === 'estadia') {
       const resultado = await encuestas.estadiaTieneEncuesta(etapa.solicitud.id);
       if (resultado.ok && !resultado.dato) return true;
+      if (resultado.ok && resultado.dato) return router.createUrlTree(['/cliente/resultados-encuestas']);
     }
   } catch (error) {
     console.error('Error verificando el acceso a la encuesta:', error);

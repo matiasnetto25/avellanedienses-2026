@@ -170,18 +170,6 @@
   }
 }
 
-.encuestas app-estado-vacio {
-  min-height: auto;
-  padding: var(--espacio-4) 0 var(--espacio-2);
-}
-
-.titulo-seccion {
-  margin: 0;
-  font-family: var(--fuente-titulo);
-  font-weight: var(--peso-regular);
-  font-size: var(--texto-subtitulo);
-}
-
 .tarjeta-acceso {
   display: flex;
   align-items: center;

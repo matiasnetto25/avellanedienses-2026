@@ -1,0 +1,16 @@
+/* Ocupa exactamente el alto visible, sin scroll: el padding entra en ese alto.
+   Alto fijo (no mínimo): Chart.js mide su contenedor y, si puede crecer, se
+   estira sin límite y empuja la navegación del carrusel fuera de la pantalla. */
+.pantalla {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: var(--altura-disponible, 100%);
+  padding: var(--espacio-4) var(--margen-pantalla);
+}
+
+/* app-estado-vacio ya mide todo el alto por su cuenta; acá se estira dentro de .pantalla. */
+app-estado-vacio {
+  flex: 1;
+  min-height: 0;
+}
