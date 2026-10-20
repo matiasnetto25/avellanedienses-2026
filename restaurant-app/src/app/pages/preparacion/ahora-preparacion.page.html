@@ -20,9 +20,11 @@
               <h2 class="bloque-titulo">
                 {{ bloque.titulo }} <span class="bloque-contador num">{{ bloque.cantidad }}</span>
               </h2>
+              <div class="grupos">
               @for (grupo of bloque.grupos; track grupo.pedidoId) {
                 <div class="tarjeta">
-                  <h3 class="grupo-titulo">Mesa {{ grupo.numeroMesa }} · <span class="num">{{ grupo.fecha | date: 'HH:mm' }}</span></h3>
+                  <h3 class="grupo-titulo">Mesa {{ grupo.numeroMesa }}</h3>
+                  <p class="grupo-fecha num">{{ grupo.fecha | date: 'dd/MM/yyyy · HH:mm' }}</p>
                   @for (item of grupo.items; track item.id) {
                     <div class="fila">
                       @if (item.foto) {
@@ -36,8 +38,18 @@
                       <app-chip-estado [estado]="estadoItem(item.estado)" />
                     </div>
                   }
+                  @if (bloque.estado === 'pendiente') {
+                    <ion-button
+                      class="boton-empezar"
+                      expand="block"
+                      [disabled]="enviando() !== null"
+                      (click)="empezar(grupo)">
+                      Empezar a preparar
+                    </ion-button>
+                  }
                 </div>
               }
+              </div>
             </section>
           }
         </div>

@@ -1,12 +1,13 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { IonContent } from '@ionic/angular/standalone';
+import { IonButton, IonContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { wineOutline } from 'ionicons/icons';
 import { EstadoItem, ItemComanda, SectorItem } from '../../core/models/pedido.model';
 import { PedidosService } from '../../core/services/pedidos.service';
 import { AvisosService } from '../../core/services/avisos.service';
+import { NotificacionesService } from '../../core/services/notificaciones.service';
 import { LoadingService } from '../../core/services/loading.service';
 import { PerfilActual, PerfilActualService } from '../../core/services/perfil-actual.service';
 import { estadoItem } from '../../core/utils/estado-visual';
@@ -23,6 +24,7 @@ interface GrupoMesa {
 }
 
 interface Bloque {
+  estado: EstadoItem;
   titulo: string;
   grupos: GrupoMesa[];
   cantidad: number;
@@ -55,6 +57,7 @@ function agruparPorMesa(items: ItemComanda[]): GrupoMesa[] {
     DatePipe,
     EncabezadoPerfilComponent,
     EstadoVacioComponent,
+    IonButton,
     IonContent,
   ],
   templateUrl: './ahora-preparacion.page.html',
@@ -65,6 +68,7 @@ export class AhoraPreparacionPage implements OnInit, OnDestroy {
   private readonly avisos = inject(AvisosService);
   private readonly loading = inject(LoadingService);
   private readonly perfilActual = inject(PerfilActualService);
+  private readonly notificaciones = inject(NotificacionesService);
 
   readonly sector: SectorItem = inject(ActivatedRoute).snapshot.data['sector'];
   readonly textos = TEXTOS_POR_SECTOR[this.sector];
@@ -73,6 +77,8 @@ export class AhoraPreparacionPage implements OnInit, OnDestroy {
   readonly perfil = signal<PerfilActual | null>(null);
   readonly cargando = signal(true);
   readonly comandas = signal<ItemComanda[]>([]);
+  /** Pedido que se está pasando a «en preparación»: deshabilita su botón. */
+  readonly enviando = signal<string | null>(null);
 
   readonly bloques = computed<Bloque[]>(() =>
     [
@@ -107,9 +113,33 @@ export class AhoraPreparacionPage implements OnInit, OnDestroy {
     this.dejarDeEscuchar?.();
   }
 
+  /** El cocinero (o cantinero) toma todos los productos pendientes de una mesa. */
+  async empezar(grupo: GrupoMesa): Promise<void> {
+    if (this.enviando()) return;
+    const ids = grupo.items.filter((i) => i.estado === 'pendiente').map((i) => i.id);
+
+    this.enviando.set(grupo.pedidoId);
+    this.loading.mostrar();
+    try {
+      const resultado = await this.pedidosService.empezarPreparacion(ids);
+      if (!resultado.ok) {
+        await this.avisos.error(resultado.mensaje ?? 'No se pudo empezar la preparación.');
+      } else {
+        if (resultado.clienteId && resultado.mesaId) {
+          this.notificaciones.avisarPreparacionIniciada(resultado.clienteId, resultado.mesaId, this.sector);
+        }
+        await this.avisos.exito(`Mesa ${grupo.numeroMesa}: en preparación.`);
+      }
+      await this.cargar();
+    } finally {
+      this.enviando.set(null);
+      this.loading.ocultar();
+    }
+  }
+
   private bloque(titulo: string, estado: EstadoItem): Bloque {
     const items = this.comandas().filter((i) => i.estado === estado);
-    return { titulo, grupos: agruparPorMesa(items), cantidad: items.length };
+    return { estado, titulo, grupos: agruparPorMesa(items), cantidad: items.length };
   }
 
   private async cargar(): Promise<void> {

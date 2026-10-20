@@ -83,6 +83,12 @@ export interface ResultadoRechazo extends ResultadoOperacion {
   clienteId?: string;
   mesaId?: string;
 }
+export interface ResultadoPreparacion extends ResultadoOperacion {
+  /** Para la push al cliente (punto 16, issue 02). */
+  clienteId?: string;
+  mesaId?: string;
+}
+
 export interface ResultadoConfirmacion extends ResultadoOperacion {
 
   /** Para las push al cliente, a cocina y a bar (punto 14, issue 03). */
@@ -445,6 +451,54 @@ export class PedidosService {
       return null;
     }
   }
+  /**
+   * Cocina (o bar) toma los ítems de un pedido: pasan de 'pendiente' a
+   * 'en_preparacion' (punto 16). La base (RLS) solo lo acepta de un
+   * empleado activo del sector y sobre ítems de un pedido confirmado.
+   *
+   * Si un compañero ya los tomó, el update no encuentra filas pendientes
+   * (no es un error de Postgres): vuelve vacío y se avisa.
+   */
+  async empezarPreparacion(itemIds: string[]): Promise<ResultadoPreparacion> {
+    if (itemIds.length === 0) return { ok: false, mensaje: 'No hay productos para preparar.' };
+
+    try {
+      const { data, error } = await this.supabase.client
+        .from(TABLA_ITEMS)
+        .update({ estado: 'en_preparacion' })
+        .in('id', itemIds)
+        .eq('estado', 'pendiente')
+        .select('id, pedido:pedidos ( solicitud:solicitudes_mesa ( cliente_id, mesa_id ) )');
+
+      if (error) {
+        console.error('Error empezando la preparación:', error);
+        if (error.code === CODIGO_RLS) return { ok: false, mensaje: 'No podés preparar productos de otro sector.' };
+        return { ok: false, mensaje: 'No se pudo empezar la preparación. Probá de nuevo.' };
+      }
+
+      const fila = (data as unknown as { pedido: { solicitud: { cliente_id: string; mesa_id: string } } }[])[0];
+      if (!fila) {
+        // Cero filas: o ya estaban tomados, o la base no dejó actualizar (RLS).
+        const { data: actuales } = await this.supabase.client
+          .from(TABLA_ITEMS)
+          .select('estado')
+          .in('id', itemIds);
+        const yaTomados = !!actuales?.length && actuales.every((i) => i.estado !== 'pendiente');
+        return {
+          ok: false,
+          mensaje: yaTomados
+            ? 'Estos productos ya los tomó otro compañero.'
+            : 'No tenés permiso para preparar estos productos. Revisá que tu usuario sea un cocinero activo.',
+        };
+      }
+
+      return { ok: true, clienteId: fila.pedido.solicitud.cliente_id, mesaId: fila.pedido.solicitud.mesa_id };
+    } catch (error: unknown) {
+      console.error('Error inesperado empezando la preparación:', error);
+      return { ok: false, mensaje: 'No se pudo empezar la preparación. Revisá tu conexión.' };
+    }
+  }
+
   private async obtenerEstadiaVinculada(
     clienteId: string
   ): Promise<ResultadoBusqueda<{ solicitudId: string; numeroMesa: number }>> {

@@ -87,6 +87,9 @@
                 <span class="estado-linea-unitario">
                   ${{ item.precioUnitario | number: '1.0-0' }} c/u
                 </span>
+                @if (p.estado === 'confirmado') {
+                  <app-chip-estado [estado]="estadoItem(item.estado)" />
+                }
               </div>
               <span class="estado-linea-subtotal">
                 ${{ item.subtotal | number: '1.0-0' }}

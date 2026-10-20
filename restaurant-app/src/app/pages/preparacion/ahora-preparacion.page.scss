@@ -37,6 +37,24 @@ app-estado-vacio {
   color: var(--color-espera);
 }
 
+.grupos {
+  display: flex;
+  flex-direction: column;
+  // Espacio entre pedidos: el cocinero toca uno sin rozar el de al lado.
+  gap: var(--espacio-4);
+}
+
+.grupo-fecha {
+  margin: 0 0 var(--espacio-2);
+  font-size: var(--texto-cuerpo-compacto);
+  color: var(--color-texto-secundario);
+}
+
+.boton-empezar {
+  margin: var(--espacio-3) 0 0;
+  min-height: 52px;
+}
+
 .grupo-titulo {
   margin: 0 0 var(--espacio-1);
   font-family: var(--fuente-titulo);

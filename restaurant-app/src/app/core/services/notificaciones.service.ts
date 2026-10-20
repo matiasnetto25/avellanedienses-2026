@@ -611,6 +611,16 @@ export class NotificacionesService {
     );
   }
 
+  /** Cocina o bar empieza a preparar → cliente de la estadía (punto 16). */
+  avisarPreparacionIniciada(clienteId: string, mesaId: string, sector: SectorItem): void {
+    this.notificarCliente(
+      'Estamos preparando tu pedido',
+      sector === 'cocina' ? 'La cocina empezó con tus platos.' : 'La barra empezó con tus bebidas.',
+      clienteId,
+      `/mesa/${mesaId}/estado-pedido`
+    );
+  }
+
   /** El cliente corrige y reenvía su pedido rechazado → todos los mozos (punto 13). */
   avisarPedidoModificado(
     numeroMesa: number,

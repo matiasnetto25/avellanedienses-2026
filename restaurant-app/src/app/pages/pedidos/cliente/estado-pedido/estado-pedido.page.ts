@@ -11,18 +11,20 @@ import {
   IonButton,
 } from '@ionic/angular/standalone';
 import { Pedido } from '../../../../core/models/pedido.model';
-import { estadoPedido } from '../../../../core/utils/estado-visual';
+import { estadoItem, estadoPedido } from '../../../../core/utils/estado-visual';
 import { PedidosService } from '../../../../core/services/pedidos.service';
 import { ClienteActualService } from '../../../../core/services/cliente-actual.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { AvisoRechazoService } from '../components/aviso-rechazo/aviso-rechazo.service';
 import { MinutosPipe } from '../../../../shared/pipes/minutos.pipe';
+import { ChipEstadoComponent } from '../../../../shared/components/chip-estado/chip-estado.component';
 
 @Component({
   selector: 'app-estado-pedido',
   standalone: true,
   imports: [
+    ChipEstadoComponent,
     CommonModule,
     MinutosPipe,
     RouterLink,
@@ -46,6 +48,7 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
   private readonly avisoRechazo = inject(AvisoRechazoService);
 
   readonly estadoPedido = estadoPedido;
+  readonly estadoItem = estadoItem;
 
   readonly idMesa = this.route.snapshot.paramMap.get('idMesa') ?? '';
   readonly rutaMesa = `/mesa/${this.idMesa}`;
