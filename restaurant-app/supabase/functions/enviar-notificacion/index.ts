@@ -43,7 +43,7 @@ async function obtenerAccessToken(serviceAccount: any): Promise<string> {
   if (!response.ok) {
     throw new Error(`Error obteniendo token de Google: ${await response.text()}`);
   }
-
+  
   const data = await response.json();
   return data.access_token;
 }

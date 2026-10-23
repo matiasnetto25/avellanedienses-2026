@@ -28,11 +28,30 @@ export interface EstadoVisual {
   icono: string;
 }
 
+
 const ESTADOS_PEDIDO: Record<EstadoPedido, EstadoVisual> = {
-  pendiente_confirmacion: { tono: 'espera', texto: 'Por confirmar', icono: 'time-outline' },
-  confirmado: { tono: 'listo', texto: 'Confirmado', icono: 'checkmark-circle-outline' },
-  rechazado: { tono: 'rechazo', texto: 'Rechazado', icono: 'close-circle-outline' },
+  pendiente_confirmacion: {
+    tono: 'espera',
+    texto: 'Por confirmar',
+    icono: 'time-outline',
+  },
+  confirmado: {
+    tono: 'listo',
+    texto: 'Confirmado',
+    icono: 'checkmark-circle-outline',
+  },
+  rechazado: {
+    tono: 'rechazo',
+    texto: 'Rechazado',
+    icono: 'close-circle-outline',
+  },
+  entregado: {
+    tono: 'listo',
+    texto: 'Entregado',
+    icono: 'checkmark-circle-outline',
+  },
 };
+
 
 const ESTADOS_ITEM: Record<EstadoItem, EstadoVisual> = {
   pendiente: { tono: 'espera', texto: 'Pendiente', icono: 'time-outline' },

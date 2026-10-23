@@ -1,11 +1,19 @@
-<ion-content class="densidad-compacta" [fullscreen]="true" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+
+<ion-content
+  class="densidad-compacta"
+  [fullscreen]="true"
+  appAlturaDisponible
+  [margenAltura]="0"
+  [descontarBarraGestos]="false"
+>
   <div class="pantalla">
     <app-encabezado-perfil
       [saludo]="'Hola, ' + (perfil()?.nombre ?? '')"
       titulo="MOZO"
       [nombre]="perfil()?.nombre ?? ''"
       [foto]="perfil()?.foto ?? null"
-      [resumen]="resumen()" />
+      [resumen]="resumen()"
+    />
 
     @if (!cargando()) {
       @if (todoEnOrden()) {
@@ -13,17 +21,26 @@
           [recuadro]="true"
           icono="checkmark-done-outline"
           titulo="Todo en orden por ahora"
-          frase="Cuando haya algo para resolver, va a aparecer acá." />
+          frase="Cuando haya algo para resolver, va a aparecer acá."
+        />
       } @else {
         <div class="bloques">
+          <!-- PEDIDOS POR CONFIRMAR -->
           @if (porConfirmar() > 0) {
             <section>
               <div class="bloque-encabezado">
                 <h2 class="bloque-titulo">
-                  Pedidos por confirmar <span class="bloque-contador num">{{ porConfirmar() }}</span>
+                  Pedidos por confirmar
+                  <span class="bloque-contador num">
+                    {{ porConfirmar() }}
+                  </span>
                 </h2>
-                <a class="ver-todos" routerLink="/mozo/pedidos">Ver todos</a>
+
+                <a class="ver-todos" routerLink="/mozo/pedidos">
+                  Ver todos
+                </a>
               </div>
+
               <div class="filas">
                 @for (pedido of pedidos(); track pedido.id) {
                   <app-fila-pedido [pedido]="pedido" />
@@ -32,25 +49,109 @@
             </section>
           }
 
+          <!-- CONSULTAS SIN RESPONDER -->
           @if (consultasSinResponder() > 0) {
             <section>
               <div class="bloque-encabezado">
                 <h2 class="bloque-titulo">
-                  Consultas sin responder <span class="bloque-contador num">{{ consultasSinResponder() }}</span>
+                  Consultas sin responder
+                  <span class="bloque-contador num">
+                    {{ consultasSinResponder() }}
+                  </span>
                 </h2>
-                <a class="ver-todos" routerLink="/mozo/consultas">Ver todos</a>
+
+                <a class="ver-todos" routerLink="/mozo/consultas">
+                  Ver todos
+                </a>
               </div>
+
               <div class="filas">
                 @for (consulta of consultas(); track consulta.solicitud_id) {
-                  <button type="button" class="tarjeta fila-consulta" (click)="abrirConsulta(consulta)">
+                  <button
+                    type="button"
+                    class="tarjeta fila-consulta"
+                    (click)="abrirConsulta(consulta)"
+                  >
                     <span class="fila-consulta-arriba">
-                      <span class="mesa">Mesa {{ consulta.numero_mesa }}</span>
+                      <span class="mesa">
+                        Mesa {{ consulta.numero_mesa }}
+                      </span>
+
                       @if (consulta.ultimo_created_at) {
-                        <span class="hora num">{{ consulta.ultimo_created_at | date: 'HH:mm' }}</span>
+                        <span class="hora num">
+                          {{ consulta.ultimo_created_at | date: 'HH:mm' }}
+                        </span>
                       }
                     </span>
-                    <span class="cita">«{{ consulta.ultimo_texto }}»</span>
+
+                    <span class="cita">
+                      «{{ consulta.ultimo_texto }}»
+                    </span>
                   </button>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- PEDIDOS LISTOS PARA ENTREGAR -->
+          @if (cantidadListos() > 0) {
+            <section>
+              <div class="bloque-encabezado">
+                <h2 class="bloque-titulo">
+                  Listos para entregar
+                  <span class="bloque-contador num">
+                    {{ cantidadListos() }}
+                  </span>
+                </h2>
+
+                <a class="ver-todos" routerLink="/mozo/pedidos">
+                  Ver pedidos
+                </a>
+              </div>
+
+              <div class="filas">
+                @for (pedido of pedidosListos(); track pedido.id) {
+                  <article class="tarjeta pedido-listo">
+                    <div class="linea-principal">
+                      <span class="mesa">
+                        Mesa {{ pedido.numeroMesa }}
+                      </span>
+
+                      <span class="estado-listo">
+                        <ion-icon name="checkmark-circle-outline" />
+                        Listo
+                      </span>
+                    </div>
+
+                    <ul class="productos">
+                      @for (item of pedido.items; track item.menuId) {
+                        <li>
+                          <span class="num">{{ item.cantidad }} ×</span>
+                          {{ item.nombre }}
+                        </li>
+                      }
+                    </ul>
+
+                    <p class="linea-secundaria">
+                      Todos los productos están listos para entregar.
+                    </p>
+
+                    <!-- ACCIÓN DEL MOZO -->
+                    <button
+                      type="button"
+                      class="boton-entregar"
+                      [disabled]="entregandoPedidoId() !== null"
+                      (click)="entregarPedido(pedido.id)"
+                    >
+                      @if (entregandoPedidoId() === pedido.id) {
+                        <ion-icon name="hourglass-outline" />
+                        Entregando...
+                      } @else {
+                        <ion-icon name="checkmark-done-outline" />
+                        Entregar pedido
+                      }
+                    </button>
+                  </article>
                 }
               </div>
             </section>

@@ -1,3 +1,4 @@
+
 <ion-content class="densidad-compacta" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
   <div class="pantalla">
     <app-encabezado-perfil
@@ -18,37 +19,61 @@
           @for (bloque of bloques(); track bloque.titulo) {
             <section>
               <h2 class="bloque-titulo">
-                {{ bloque.titulo }} <span class="bloque-contador num">{{ bloque.cantidad }}</span>
+                {{ bloque.titulo }}
+                <span class="bloque-contador num">{{ bloque.cantidad }}</span>
               </h2>
+
               <div class="grupos">
-              @for (grupo of bloque.grupos; track grupo.pedidoId) {
-                <div class="tarjeta">
-                  <h3 class="grupo-titulo">Mesa {{ grupo.numeroMesa }}</h3>
-                  <p class="grupo-fecha num">{{ grupo.fecha | date: 'dd/MM/yyyy · HH:mm' }}</p>
-                  @for (item of grupo.items; track item.id) {
-                    <div class="fila">
-                      @if (item.foto) {
-                        <img class="fila-miniatura" [src]="item.foto" alt="" loading="lazy" />
-                      } @else {
-                        <span class="fila-miniatura"></span>
-                      }
-                      <p class="fila-nombre">
-                        {{ item.nombre }} <span class="fila-cantidad num">×{{ item.cantidad }}</span>
-                      </p>
-                      <app-chip-estado [estado]="estadoItem(item.estado)" />
-                    </div>
-                  }
-                  @if (bloque.estado === 'pendiente') {
-                    <ion-button
-                      class="boton-empezar"
-                      expand="block"
-                      [disabled]="enviando() !== null"
-                      (click)="empezar(grupo)">
-                      Empezar a preparar
-                    </ion-button>
-                  }
-                </div>
-              }
+                @for (grupo of bloque.grupos; track grupo.pedidoId) {
+                  <div class="tarjeta">
+                    <h3 class="grupo-titulo">Mesa {{ grupo.numeroMesa }}</h3>
+                    <p class="grupo-fecha num">
+                      {{ grupo.fecha | date: 'dd/MM/yyyy · HH:mm' }}
+                    </p>
+
+                    @for (item of grupo.items; track item.id) {
+                      <div class="fila">
+                        @if (item.foto) {
+                          <img
+                            class="fila-miniatura"
+                            [src]="item.foto"
+                            alt=""
+                            loading="lazy"
+                          />
+                        } @else {
+                          <span class="fila-miniatura"></span>
+                        }
+
+                        <p class="fila-nombre">
+                          {{ item.nombre }}
+                          <span class="fila-cantidad num">×{{ item.cantidad }}</span>
+                        </p>
+
+                        <app-chip-estado [estado]="estadoItem(item.estado)" />
+
+                        @if (item.estado === 'en_preparacion') {
+                          <ion-button
+                            class="boton-listo"
+                            size="small"
+                            [disabled]="itemEnviando() !== null || enviando() !== null"
+                            (click)="marcarListo(item)">
+                            {{ itemEnviando() === item.id ? 'Guardando…' : 'Marcar listo' }}
+                          </ion-button>
+                        }
+                      </div>
+                    }
+
+                    @if (bloque.estado === 'pendiente') {
+                      <ion-button
+                        class="boton-empezar"
+                        expand="block"
+                        [disabled]="enviando() !== null || itemEnviando() !== null"
+                        (click)="empezar(grupo)">
+                        {{ enviando() === grupo.pedidoId ? 'Iniciando…' : 'Empezar a preparar' }}
+                      </ion-button>
+                    }
+                  </div>
+                }
               </div>
             </section>
           }

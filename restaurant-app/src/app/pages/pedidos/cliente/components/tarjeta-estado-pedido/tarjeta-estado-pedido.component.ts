@@ -1,18 +1,33 @@
 import { Component, computed, input, output } from '@angular/core';
 import { IonButton, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkCircleOutline, closeCircleOutline, receiptOutline, timeOutline } from 'ionicons/icons';
+import {
+  checkmarkCircleOutline,
+  closeCircleOutline,
+  receiptOutline,
+  timeOutline,
+} from 'ionicons/icons';
 import { EstadoPedido, Pedido } from '../../../../../core/models/pedido.model';
 import { estadoPedido } from '../../../../../core/utils/estado-visual';
 import { ChipEstadoComponent } from '../../../../../shared/components/chip-estado/chip-estado.component';
 
-const TEXTOS: Record<EstadoPedido, { titulo: string; frase: string }> = {
+const TEXTOS: Partial<Record<EstadoPedido, { titulo: string; frase: string }>> = {
   pendiente_confirmacion: {
     titulo: 'El mozo está revisando tu pedido',
     frase: 'Cuando lo confirme, pasa a la cocina y a la barra.',
   },
-  confirmado: { titulo: 'Tu pedido está confirmado', frase: 'Ya pasó a la cocina y a la barra.' },
-  rechazado: { titulo: 'El mozo rechazó tu pedido', frase: '' },
+  confirmado: {
+    titulo: 'Tu pedido está confirmado',
+    frase: 'Ya pasó a la cocina y a la barra.',
+  },
+  rechazado: {
+    titulo: 'El mozo rechazó tu pedido',
+    frase: '',
+  },
+  entregado: {
+    titulo: '¡Tu pedido fue entregado!',
+    frase: 'Esperamos que disfrutes tu pedido.',
+  },
 };
 
 @Component({
@@ -33,17 +48,37 @@ export class TarjetaEstadoPedidoComponent {
 
   readonly titulo = computed(() => {
     const pedido = this.pedido();
-    return pedido ? TEXTOS[pedido.estado].titulo : 'Todavía no pediste';
+    if (!pedido) return 'Todavía no pediste';
+
+    return (
+      TEXTOS[pedido.estado]?.titulo ??
+      'Estado de tu pedido'
+    );
   });
 
   readonly frase = computed(() => {
     const pedido = this.pedido();
-    if (!pedido) return 'Elegí del menú y enviá tu pedido al mozo.';
-    if (pedido.estado === 'rechazado') return `Motivo: ${pedido.motivoRechazo ?? ''}`;
-    return TEXTOS[pedido.estado].frase;
+
+    if (!pedido) {
+      return 'Elegí del menú y enviá tu pedido al mozo.';
+    }
+
+    if (pedido.estado === 'rechazado') {
+      return `Motivo: ${pedido.motivoRechazo ?? ''}`;
+    }
+
+    return (
+      TEXTOS[pedido.estado]?.frase ??
+      'Consultá el estado de tu pedido con el mozo.'
+    );
   });
 
   constructor() {
-    addIcons({ receiptOutline, timeOutline, checkmarkCircleOutline, closeCircleOutline });
+    addIcons({
+      receiptOutline,
+      timeOutline,
+      checkmarkCircleOutline,
+      closeCircleOutline,
+    });
   }
 }

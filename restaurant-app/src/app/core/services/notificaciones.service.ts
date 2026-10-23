@@ -65,61 +65,110 @@ export class NotificacionesService {
    * justo después de auth.restaurarSesion()). Pide permiso, se registra
    * en FCM/APNs y deja armados los listeners para app abierta y cerrada.
    */
-  async inicializar(): Promise<void> {
-    if (this.inicializado) return;
-    this.inicializado = true;
+  
+async inicializar(): Promise<void> {
+  if (this.inicializado) return;
+  this.inicializado = true;
 
-    try {
-      let permiso = await PushNotifications.checkPermissions();
-      if (permiso.receive === 'prompt') {
-        permiso = await PushNotifications.requestPermissions();
-      }
-      if (permiso.receive !== 'granted') {
-        console.warn('Permiso de notificaciones push no otorgado.');
-        return;
-      }
+  try {
+    // 1. Verificamos los permisos de notificaciones push.
+    let permiso = await PushNotifications.checkPermissions();
 
-      await this.crearCanalDePush();
-      await PushNotifications.register();
-      await this.prepararAvisosDelSistema();
-
-      // Se dispara UNA sola vez, cuando el SO nos da el token del
-      // dispositivo — normalmente antes de que exista sesión todavía.
-      PushNotifications.addListener('registration', (token: Token) => {
-        this.ultimoToken = token.value;
-        this.asignarTokenDelDispositivo(token.value);
-      });
-
-      PushNotifications.addListener('registrationError', (error) => {
-        console.error('Error registrando para push notifications:', error);
-      });
-
-      // APP ABIERTA (foreground): el sistema operativo NO muestra la
-      // notificación solo — hay que mostrarla nosotros manualmente. Se
-      // muestra solo la notificación del sistema (banner arriba, queda en la
-      // bandeja). El aviso azul dentro de la app queda como respaldo: solo
-      // aparece si no se pudo mostrar la del sistema (por ejemplo, sin permiso).
-      PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-        const ruta = notification.data?.['ruta'] as string | undefined;
-
-        const texto = [notification.title, notification.body].filter(Boolean).join(': ');
-        void this.mostrarNotificacionDelSistema(notification.title, notification.body, ruta).then((mostrada) => {
-          if (!mostrada) void this.mostrarToastPush(texto || 'Tenés una notificación nueva.', ruta);
-        });
-      });
-
-      // APP CERRADA o en segundo plano: el usuario tocó la notificación
-      // desde la bandeja del sistema. Acá navegamos a donde corresponda.
-      PushNotifications.addListener('pushNotificationActionPerformed', (accion: ActionPerformed) => {
-        const ruta = accion.notification.data?.['ruta'] as string | undefined;
-        if (ruta) {
-          this.router.navigateByUrl(ruta);
-        }
-      });
-    } catch (error) {
-      console.error('Error inicializando push notifications:', error);
+    if (permiso.receive === 'prompt') {
+      permiso = await PushNotifications.requestPermissions();
     }
+
+    if (permiso.receive !== 'granted') {
+      console.warn('Permiso de notificaciones push no otorgado.');
+      return;
+    }
+
+    // 2. Creamos el canal de notificaciones de Android.
+    await this.crearCanalDePush();
+
+    // 3. Registramos los listeners ANTES de solicitar el registro.
+    await PushNotifications.addListener(
+      'registration',
+      (token: Token) => {
+        console.log('Token push recibido correctamente.');
+
+        this.ultimoToken = token.value;
+
+        void this.asignarTokenDelDispositivo(token.value);
+      }
+    );
+
+    await PushNotifications.addListener(
+      'registrationError',
+      (error) => {
+        console.error(
+          'Error registrando para push notifications:',
+          error
+        );
+      }
+    );
+
+    // 4. Escuchamos las notificaciones cuando la app está abierta.
+    await PushNotifications.addListener(
+      'pushNotificationReceived',
+      (notification: PushNotificationSchema) => {
+        const ruta = notification.data?.['ruta'] as
+          | string
+          | undefined;
+
+        const texto = [
+          notification.title,
+          notification.body
+        ]
+          .filter(Boolean)
+          .join(': ');
+
+        void this.mostrarNotificacionDelSistema(
+          notification.title,
+          notification.body,
+          ruta
+        ).then((mostrada) => {
+          if (!mostrada) {
+            void this.mostrarToastPush(
+              texto || 'Tenés una notificación nueva.',
+              ruta
+            );
+          }
+        });
+      }
+    );
+
+    // 5. Escuchamos cuando el usuario toca una notificación.
+    await PushNotifications.addListener(
+      'pushNotificationActionPerformed',
+      (accion: ActionPerformed) => {
+        const ruta = accion.notification.data?.['ruta'] as
+          | string
+          | undefined;
+
+        if (ruta) {
+          void this.router.navigateByUrl(ruta);
+        }
+      }
+    );
+
+    // 6. Preparamos las notificaciones locales para mostrar
+    // avisos del sistema cuando la app está abierta.
+    await this.prepararAvisosDelSistema();
+
+    // 7. Finalmente registramos el dispositivo en FCM.
+    await PushNotifications.register();
+
+  } catch (error) {
+    console.error(
+      'Error inicializando push notifications:',
+      error
+    );
+
+    // Permitimos reintentar la inicialización si falló.
+    this.inicializado = false;
   }
+}
 
   /**
    * Crea el canal de máxima importancia que usa FCM con la app cerrada (el
@@ -600,6 +649,18 @@ export class NotificacionesService {
       this.notificarEmpleados(`Nuevo pedido · Mesa ${numeroMesa}`, destino.cuerpo, destino.puestos, destino.ruta);
     }
   }
+
+  
+  /** Todos los productos del pedido están listos → mozos (punto 18). */
+  async avisarPedidoListo(numeroMesa: number): Promise<void> {
+    await this.notificarEmpleados(
+      `Pedido listo · Mesa ${numeroMesa}`,
+      'Todos los productos del pedido están listos para entregar.',
+      ['mozo'],
+      '/mozo/pedidos'
+    );
+  }
+
 
   /** El mozo confirma el pedido → cliente de la estadía (punto 14). */
   avisarPedidoConfirmado(clienteId: string, mesaId: string): void {

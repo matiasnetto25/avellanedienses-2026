@@ -89,6 +89,17 @@ export interface ResultadoPreparacion extends ResultadoOperacion {
   mesaId?: string;
 }
 
+export interface ResultadoItemListo {
+  ok: boolean;
+  pedidoId: string;
+  itemListo: boolean;
+  pedidoCompleto: boolean;
+  notificacionNueva: boolean;
+  clienteId: string | null;
+  mesaId: string | null;
+  numeroMesa: number | null;
+}
+
 export interface ResultadoConfirmacion extends ResultadoOperacion {
 
   /** Para las push al cliente, a cocina y a bar (punto 14, issue 03). */
@@ -226,6 +237,58 @@ export class PedidosService {
       .map((fila) => this.aPedido(fila))
       .filter((pedido) => pedido.items.length > 0);
   }
+
+  
+  /**
+   * Pedidos confirmados que ya se pueden entregar al cliente.
+   * Solo devuelve pedidos con productos y todos sus ítems en estado "listo".
+   */
+  async listarPedidosListosParaEntregar(): Promise<Pedido[] | null> {
+    const { data, error } = await this.supabase.client
+      .from(TABLA_PEDIDOS)
+      .select(SELECT_PEDIDO)
+      .eq('estado', 'confirmado')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error listando pedidos listos para entregar:', error);
+      return null;
+    }
+
+    return (data as unknown as PedidoFila[])
+      .map((fila) => this.aPedido(fila))
+      .filter(
+        (pedido) =>
+          pedido.items.length > 0 &&
+          pedido.items.every((item) => item.estado === 'listo')
+      );
+  }
+
+  
+
+async entregarPedido(pedidoId: string): Promise<string | null> {
+  const { data, error } = await this.supabase.client.rpc(
+    'entregar_pedido',
+    { p_pedido_id: pedidoId }
+  );
+
+  if (error) {
+    console.error('Error al entregar el pedido:', error);
+    return error.message;
+  }
+
+  if (
+    !data ||
+    typeof data !== 'object' ||
+    !('ok' in data) ||
+    data.ok !== true
+  ) {
+    return 'No se pudo confirmar la entrega del pedido.';
+  }
+
+  return null;
+}
+
 
   // ===== Creación =====
 
@@ -496,6 +559,38 @@ export class PedidosService {
     } catch (error: unknown) {
       console.error('Error inesperado empezando la preparación:', error);
       return { ok: false, mensaje: 'No se pudo empezar la preparación. Revisá tu conexión.' };
+    }
+  }
+
+    /**
+   * Marca un producto como listo (punto 18).
+   * Supabase valida el empleado, el sector y si el pedido quedó completo.
+   */
+  async marcarItemListo(itemId: string): Promise<ResultadoItemListo> {
+    try {
+      const { data, error } = await this.supabase.client.rpc(
+        'marcar_item_listo',
+        { p_item_id: itemId }
+      );
+
+      if (error) {
+        console.error('Error al marcar el producto como listo:', error);
+
+        if (error.code === '42501') {
+          throw new Error('No tenés permiso para finalizar este producto.');
+        }
+
+        throw new Error('No se pudo marcar el producto como listo.');
+      }
+
+      if (!data || typeof data !== 'object' || !('ok' in data)) {
+        throw new Error('Supabase devolvió una respuesta inesperada.');
+      }
+
+      return data as ResultadoItemListo;
+    } catch (error: unknown) {
+      console.error('Error en marcarItemListo:', error);
+      throw error;
     }
   }
 

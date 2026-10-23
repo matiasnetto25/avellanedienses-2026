@@ -7,7 +7,13 @@ import { Producto } from './producto.model';
  */
 
 /** Los puntos 16 en adelante suman estados (en preparación, listo, etc.). */
-export type EstadoPedido = 'pendiente_confirmacion' | 'rechazado' | 'confirmado';
+
+export type EstadoPedido =
+  | 'pendiente_confirmacion'
+  | 'rechazado'
+  | 'confirmado'
+  | 'entregado';
+
 export type EstadoItem = 'pendiente' | 'en_preparacion' | 'listo';
 export type SectorItem = 'cocina' | 'bar';
 
