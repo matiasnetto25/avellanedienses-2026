@@ -1,0 +1,77 @@
+@if (resultados().total === 0) {
+  <app-estado-vacio
+    icono="star-outline"
+    titulo="Todavía no hay encuestas"
+    frase="Cuando los clientes las completen, vas a ver acá cómo nos calificaron." />
+} @else {
+  <div
+    #pista
+    class="pista"
+    [class.pista--vertical]="esVertical()"
+    (scroll)="alDeslizar()"
+    [attr.aria-roledescription]="esVertical() ? null : 'carrusel'"
+    aria-label="Resultados de las encuestas"
+  >
+    @for (pantalla of pantallas(); track pantalla.titulo; let i = $index) {
+      <section
+        class="tarjeta pantalla-grafico"
+        aria-roledescription="gráfico"
+        [attr.aria-label]="(i + 1) + ' de ' + pantallas().length + ': ' + pantalla.titulo"
+        [attr.aria-hidden]="esVertical() ? null : i !== actual()"
+      >
+        <header class="cabecera">
+          @if (esVertical()) {
+            <span class="posicion">Gráfico {{ i + 1 }} de {{ pantallas().length }}</span>
+          }
+          <h2 class="titulo">{{ pantalla.titulo }}</h2>
+          <p class="frase">{{ pantalla.frase }}</p>
+        </header>
+        <div class="area-grafico">
+          <app-grafico [config]="pantalla.config" [descripcion]="pantalla.descripcion" />
+        </div>
+        <p class="total">{{ totalTexto() }}</p>
+        @if (esVertical() && i < pantallas().length - 1) {
+          <p class="siguiente" aria-hidden="true">
+            <ion-icon name="chevron-down-outline" />
+            Deslizá para ver el siguiente gráfico
+          </p>
+        }
+      </section>
+    }
+  </div>
+
+  @if (!esVertical()) {
+  <nav class="navegacion" aria-label="Cambiar de gráfico">
+    <ion-button
+      class="accion-secundaria flecha"
+      aria-label="Gráfico anterior"
+      [disabled]="actual() === 0"
+      (click)="irA(actual() - 1)"
+    >
+      <ion-icon slot="icon-only" name="chevron-back-outline" aria-hidden="true" />
+    </ion-button>
+
+    <div class="puntos">
+      @for (pantalla of pantallas(); track pantalla.titulo; let i = $index) {
+        <button
+          type="button"
+          class="punto"
+          [class.punto--actual]="i === actual()"
+          [attr.aria-label]="'Ver gráfico ' + (i + 1) + ' de ' + pantallas().length + ': ' + pantalla.titulo"
+          [attr.aria-current]="i === actual() ? 'true' : null"
+          (click)="irA(i)"
+        ></button>
+      }
+    </div>
+
+    <ion-button
+      class="accion-secundaria flecha"
+      aria-label="Gráfico siguiente"
+      [disabled]="actual() === pantallas().length - 1"
+      (click)="irA(actual() + 1)"
+    >
+      <ion-icon slot="icon-only" name="chevron-forward-outline" aria-hidden="true" />
+    </ion-button>
+  </nav>
+  }
+}

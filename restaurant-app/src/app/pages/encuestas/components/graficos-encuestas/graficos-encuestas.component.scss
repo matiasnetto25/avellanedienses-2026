@@ -1,0 +1,177 @@
+/* Llena el alto que le da la pantalla: el gráfico se estira y los controles quedan abajo.
+   Quien lo usa tiene que darle un alto fijo (no solo mínimo). */
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: var(--espacio-3);
+}
+
+/* app-estado-vacio mide todo el alto disponible por su cuenta: acá se ajusta
+   al alto del carrusel, así no suma scroll al padding de la pantalla. */
+app-estado-vacio {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ----- Carrusel: una pantalla por gráfico, con scroll-snap ----- */
+
+.pista {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.pantalla-grafico {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 100%;
+  gap: var(--espacio-3);
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* ----- Vertical: uno abajo del otro, cada uno del alto de la pista ----- */
+
+.pista--vertical {
+  flex-direction: column;
+  gap: var(--espacio-3);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior-x: auto;
+  overscroll-behavior-y: contain;
+}
+
+.posicion {
+  font-size: var(--texto-micro);
+  font-weight: var(--peso-medio);
+  letter-spacing: var(--tracking-etiqueta);
+  text-transform: uppercase;
+  color: var(--color-texto-terciario);
+}
+
+.siguiente {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-1);
+  margin: 0;
+  font-size: var(--texto-micro);
+  color: var(--color-texto-terciario);
+
+  ion-icon {
+    font-size: 16px;
+  }
+}
+
+/* .tarjeta + .tarjeta suma margen arriba; en el carrusel van lado a lado
+   y en vertical los separa el gap. */
+.pantalla-grafico + .pantalla-grafico {
+  margin-top: 0;
+}
+
+.cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+}
+
+.titulo {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-size: var(--texto-subtitulo);
+  font-weight: var(--peso-regular);
+  color: var(--color-texto);
+}
+
+.frase {
+  margin: 0;
+  font-size: var(--texto-etiqueta);
+  color: var(--color-texto-secundario);
+}
+
+/* Chart.js mide este contenedor: necesita posición relativa y un alto acotado
+   (lo da quien usa el componente, con un alto fijo). */
+.area-grafico {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.total {
+  margin: 0;
+  font-size: var(--texto-etiqueta);
+  color: var(--color-texto-terciario);
+  text-align: center;
+}
+
+/* ----- Navegación: anterior, puntos y siguiente ----- */
+
+.navegacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+}
+
+/* Flechas redondas de 44 px: con texto, en un celular no entraban junto a los puntos. */
+ion-button.flecha {
+  --padding-start: 0;
+  --padding-end: 0;
+  flex-shrink: 0;
+  width: var(--alto-toque-minimo);
+  height: var(--alto-toque-minimo);
+  margin: 0;
+}
+
+.puntos {
+  display: flex;
+  justify-content: center;
+  flex: 1;
+}
+
+/* Se ve un punto de 8 px; la zona tocable es de 28 × 44 px. */
+.punto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: var(--alto-toque-minimo);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radio-pildora);
+    background: var(--color-borde-control);
+    transition: width var(--mov-rapido) var(--mov-curva), background var(--mov-rapido) var(--mov-curva);
+  }
+
+  &--actual::before {
+    width: 20px;
+    background: var(--color-accion);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-foco);
+    outline-offset: -4px;
+    border-radius: var(--radio-sm);
+  }
+}

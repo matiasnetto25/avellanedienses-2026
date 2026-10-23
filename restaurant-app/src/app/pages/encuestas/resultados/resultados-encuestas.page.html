@@ -1,0 +1,30 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/cliente/inicio" text="" />
+    </ion-buttons>
+    <ion-title>Resultados de las encuestas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="densidad-amplia" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+  <div class="pantalla">
+    @if (!cargando()) {
+      @if (fallo()) {
+        <app-estado-vacio
+          icono="cloud-offline-outline"
+          titulo="No se pudieron cargar los resultados"
+          frase="Revisá tu conexión y volvé a entrar." />
+      } @else if (resultados(); as r) {
+        <!-- Con cero encuestas, el propio carrusel muestra el estado vacío. -->
+        <app-graficos-encuestas [resultados]="r" />
+      }
+    }
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <app-barra-acciones>
+    <ion-button class="accion-principal" expand="block" (click)="volverAlInicio()">Volver al inicio</ion-button>
+  </app-barra-acciones>
+</ion-footer>

@@ -27,13 +27,7 @@
             </div>
           </div>
 
-          <section class="tarjeta encuestas">
-            <h2 class="titulo-seccion">Encuestas anteriores</h2>
-            <app-estado-vacio
-              icono="star-outline"
-              titulo="Todavía no hay encuestas"
-              frase="Cuando los clientes las completen, vas a ver acá cómo nos calificaron." />
-          </section>
+          <ng-container [ngTemplateOutlet]="accesoResultados" />
         </div>
       }
 
@@ -55,6 +49,9 @@
               </div>
             </div>
           </div>
+
+          <!-- QR de ingreso (puntos 9 y 22): ve los resultados, pero no carga una encuesta. -->
+          <ng-container [ngTemplateOutlet]="accesoResultados" />
         </div>
       }
 
@@ -96,10 +93,44 @@
             </span>
             <ion-icon name="chevron-forward-outline" class="chevron" aria-hidden="true" />
           </button>
+
+          <!-- Punto 20: una encuesta por estadía. Completada, lleva a los resultados. -->
+          @if (encuestaHabilitada()) {
+            @if (encuestaCompletada()) {
+              <button type="button" class="tarjeta tarjeta-acceso" (click)="verResultadosEncuestas()">
+                <ion-icon name="stats-chart-outline" aria-hidden="true" />
+                <span class="texto">
+                  <span class="titulo-acceso">Encuesta de satisfacción</span>
+                  <span class="descripcion">Ya completaste la encuesta. Mirá los resultados.</span>
+                </span>
+                <ion-icon name="chevron-forward-outline" class="chevron" aria-hidden="true" />
+              </button>
+            } @else {
+              <button type="button" class="tarjeta tarjeta-acceso" (click)="abrirEncuesta()">
+                <ion-icon name="star-outline" aria-hidden="true" />
+                <span class="texto">
+                  <span class="titulo-acceso">Encuesta de satisfacción</span>
+                  <span class="descripcion">Contanos cómo fue tu visita.</span>
+                </span>
+                <ion-icon name="chevron-forward-outline" class="chevron" aria-hidden="true" />
+              </button>
+            }
+          }
         </div>
       }
     }
   }
+
+  <ng-template #accesoResultados>
+    <button type="button" class="tarjeta tarjeta-acceso" (click)="verResultadosEncuestas()">
+      <ion-icon name="stats-chart-outline" aria-hidden="true" />
+      <span class="texto">
+        <span class="titulo-acceso">Ver resultados de las encuestas</span>
+        <span class="descripcion">Mirá cómo nos calificaron otros clientes.</span>
+      </span>
+      <ion-icon name="chevron-forward-outline" class="chevron" aria-hidden="true" />
+    </button>
+  </ng-template>
   </div>
 </ion-content>
 

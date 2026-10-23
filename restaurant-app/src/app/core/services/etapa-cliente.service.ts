@@ -36,6 +36,16 @@ export class EtapaClienteService {
     const etapa = this._etapa();
     return etapa?.tipo === 'estadia' && !!etapa.pedido && pedidoConfirmado(etapa.pedido.estado);
   });
+  /**
+   * La encuesta de satisfacción (punto 20) se habilita, por ahora, igual que
+   * los juegos: con el pedido confirmado. La consigna la habilita recién
+   * cuando el cliente recibe el pedido (punto 19): cuando exista ese estado,
+   * cambiar esta regla (y la política encuestas_insert_cliente).
+   */
+  readonly encuestaHabilitada = computed(() => {
+    const etapa = this._etapa();
+    return etapa?.tipo === 'estadia' && !!etapa.pedido && pedidoConfirmado(etapa.pedido.estado);
+  });
 
   /** Lo marca el inicio. Ya no se usa para avisar: los cambios de etapa los avisa la push nativa. */
   mirandoInicio = false;
