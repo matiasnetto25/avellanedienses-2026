@@ -36,9 +36,9 @@ const ESTADOS_PEDIDO: Record<EstadoPedido, EstadoVisual> = {
     icono: 'time-outline',
   },
   confirmado: {
-    tono: 'listo',
-    texto: 'Confirmado',
-    icono: 'checkmark-circle-outline',
+    tono: 'en-curso',
+    texto: 'En preparación',
+    icono: 'flame-outline',
   },
   rechazado: {
     tono: 'rechazo',
@@ -54,6 +54,11 @@ const ESTADOS_PEDIDO: Record<EstadoPedido, EstadoVisual> = {
     tono: 'listo',
     texto: 'Entregado',
     icono: 'checkmark-circle-outline',
+  },
+  cuenta_pedida: {
+    tono: 'espera',
+    texto: 'Cuenta pedida',
+    icono: 'card-outline',
   },
 };
 

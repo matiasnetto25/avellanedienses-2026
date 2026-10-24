@@ -4,6 +4,7 @@ import { addIcons } from 'ionicons';
 import {
   checkmarkCircleOutline,
   closeCircleOutline,
+  flameOutline,
   receiptOutline,
   timeOutline,
 } from 'ionicons/icons';
@@ -17,8 +18,8 @@ const TEXTOS: Partial<Record<EstadoPedido, { titulo: string; frase: string }>> =
     frase: 'Cuando lo confirme, pasa a la cocina y a la barra.',
   },
   confirmado: {
-    titulo: 'Tu pedido está confirmado',
-    frase: 'Ya pasó a la cocina y a la barra.',
+    titulo: 'Tu pedido está en preparación',
+    frase: 'Ya está en la cocina y la barra.',
   },
   rechazado: {
     titulo: 'El mozo rechazó tu pedido',
@@ -27,6 +28,10 @@ const TEXTOS: Partial<Record<EstadoPedido, { titulo: string; frase: string }>> =
   pendiente_recepcion: {
     titulo: 'Tu pedido ya está en tu mesa',
     frase: 'Confirmá que lo recibiste.',
+  },
+  cuenta_pedida: {
+    titulo: 'Pediste la cuenta',
+    frase: 'El mozo ya fue avisado y te la acerca enseguida.',
   },
   entregado: {
     titulo: '¡Tu pedido fue entregado!',
@@ -85,6 +90,7 @@ export class TarjetaEstadoPedidoComponent {
       timeOutline,
       checkmarkCircleOutline,
       closeCircleOutline,
+      flameOutline,
     });
   }
 }

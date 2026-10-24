@@ -4,7 +4,7 @@ import { ClienteActualService } from './cliente-actual.service';
 import { PedidosService } from './pedidos.service';
 import { SolicitudesMesaService } from './solicitudes-mesa.service';
 import { MiSolicitud, SolicitudConMesa, tieneMesa } from '../models/solicitud-mesa.model';
-import { Pedido, pedidoConfirmado } from '../models/pedido.model';
+import { Pedido, pedidoConfirmado, pedidoEntregado } from '../models/pedido.model';
 
 // 'cuenta-pedida' (punto 21) todavía no se emite:
 // | { tipo: 'cuenta-pedida'; solicitud: MiSolicitud; pedido: Pedido }
@@ -37,14 +37,13 @@ export class EtapaClienteService {
     return etapa?.tipo === 'estadia' && !!etapa.pedido && pedidoConfirmado(etapa.pedido.estado);
   });
   /**
-   * La encuesta de satisfacción (punto 20) se habilita, por ahora, igual que
-   * los juegos: con el pedido confirmado. La consigna la habilita recién
-   * cuando el cliente recibe el pedido (punto 19): cuando exista ese estado,
-   * cambiar esta regla (y la política encuestas_insert_cliente).
+   * La encuesta de satisfacción (punto 20) está oculta hasta que el cliente
+   * recibe el pedido (punto 19): estado 'entregado' o posterior. La misma
+   * regla la aplica la política encuestas_insert_cliente.
    */
   readonly encuestaHabilitada = computed(() => {
     const etapa = this._etapa();
-    return etapa?.tipo === 'estadia' && !!etapa.pedido && pedidoConfirmado(etapa.pedido.estado);
+    return etapa?.tipo === 'estadia' && !!etapa.pedido && pedidoEntregado(etapa.pedido.estado);
   });
 
   /** Lo marca el inicio. Ya no se usa para avisar: los cambios de etapa los avisa la push nativa. */

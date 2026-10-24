@@ -74,6 +74,20 @@
         <div class="etapa">
           <app-tarjeta-estado-pedido [pedido]="e.pedido" (revisar)="irAlMenu()" (confirmarRecepcion)="confirmarRecepcion(e.pedido)" />
 
+          <!-- Punto 21: con el pedido entregado, el cliente puede pedir la cuenta. -->
+          @if (e.pedido?.estado === 'entregado') {
+            <ion-button
+              expand="block"
+              size="large"
+              class="boton-cuenta"
+              [disabled]="pidiendoCuenta()"
+              (click)="pedirCuenta(e.pedido!)"
+            >
+              <ion-icon slot="start" name="card-outline" aria-hidden="true" />
+              {{ pidiendoCuenta() ? 'Pidiendo la cuenta…' : 'Pedir la cuenta' }}
+            </ion-button>
+          }
+
           @if (e.pedido && e.pedido.estado !== 'rechazado') {
             <button type="button" class="tarjeta tarjeta-acceso" (click)="verPedido()">
               <ion-icon name="receipt-outline" aria-hidden="true" />

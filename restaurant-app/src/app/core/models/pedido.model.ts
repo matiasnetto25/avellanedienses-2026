@@ -15,7 +15,9 @@ export type EstadoPedido =
   /** Punto 19: el mozo lo llevó a la mesa y espera que el cliente confirme. */
   | 'pendiente_recepcion'
   /** Punto 19: lo pone solo el cliente, al confirmar que lo recibió. */
-  | 'entregado';
+  | 'entregado'
+  /** Punto 21: el cliente pidió la cuenta y espera al mozo. */
+  | 'cuenta_pedida';
 
 export type EstadoItem = 'pendiente' | 'en_preparacion' | 'listo';
 export type SectorItem = 'cocina' | 'bar';
@@ -115,6 +117,15 @@ export interface ItemComanda {
  */
 export function pedidoConfirmado(estado: EstadoPedido): boolean {
   return estado !== 'pendiente_confirmacion' && estado !== 'rechazado';
+}
+
+/**
+ * El cliente ya recibió el pedido (punto 19): habilita la encuesta de
+ * satisfacción (punto 20). Los estados posteriores a la entrega (la cuenta
+ * pedida, y los que sumen los puntos 21 y 22) también cuentan.
+ */
+export function pedidoEntregado(estado: EstadoPedido): boolean {
+  return estado === 'entregado' || estado === 'cuenta_pedida';
 }
 
 /** Suma de precio por cantidad. La usan PedidosService y CarritoService (barra de la carta, issue 04). */

@@ -312,6 +312,32 @@ export class PedidosService {
   }
 
   /**
+   * El cliente pide la cuenta (punto 21): de 'entregado' a 'cuenta_pedida'.
+   * El filtro por estado impide pedirla dos veces o con el pedido sin
+   * entregar. Devuelve la mesa para la push a los mozos.
+   */
+  async pedirCuenta(pedidoId: string): Promise<ResultadoOperacion & { numeroMesa?: number }> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ estado: 'cuenta_pedida' })
+        .eq('id', pedidoId)
+        .eq('estado', 'entregado')
+        .select('solicitud:solicitudes_mesa ( mesa ( numero_mesa ) )');
+      if (error) {
+        console.error('Error pidiendo la cuenta:', error);
+        return { ok: false, mensaje: 'No se pudo pedir la cuenta. Probá de nuevo.' };
+      }
+      const fila = (data as unknown as { solicitud: { mesa: { numero_mesa: number } } }[])[0];
+      if (!fila) return { ok: false, mensaje: 'Solo podés pedir la cuenta cuando ya recibiste tu pedido.' };
+      return { ok: true, numeroMesa: fila.solicitud.mesa.numero_mesa };
+    } catch (error: unknown) {
+      console.error('Error inesperado pidiendo la cuenta:', error);
+      return { ok: false, mensaje: 'No se pudo pedir la cuenta. Revisá tu conexión.' };
+    }
+  }
+
+  /**
    * El cliente avisa que todavía no recibió el pedido (punto 19): vuelve de
    * 'pendiente_recepcion' a 'confirmado', y el mozo lo ve otra vez en
    * «Listos para entregar». Devuelve la mesa para la push a los mozos.

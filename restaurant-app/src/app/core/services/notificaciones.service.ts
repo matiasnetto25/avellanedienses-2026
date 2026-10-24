@@ -665,8 +665,8 @@ async inicializar(): Promise<void> {
   /** El mozo confirma el pedido → cliente de la estadía (punto 14). */
   avisarPedidoConfirmado(clienteId: string, mesaId: string): void {
     this.notificarCliente(
-      'Tu pedido fue confirmado',
-      'Ya lo están preparando.',
+      'Tu pedido está en preparación',
+      'Ya empezó a prepararse.',
       clienteId,
       `/mesa/${mesaId}/estado-pedido`
     );
@@ -682,6 +682,16 @@ async inicializar(): Promise<void> {
       'Por favor, confirmá que lo recibiste.',
       clienteId,
       `/mesa/${mesaId}/estado-pedido`
+    );
+  }
+
+  /** El cliente pide la cuenta → todos los mozos (punto 21). */
+  avisarCuentaPedida(numeroMesa: number): void {
+    this.notificarEmpleados(
+      `Mesa ${numeroMesa} pidió la cuenta`,
+      'El cliente está esperando la cuenta.',
+      ['mozo'],
+      '/mozo/pedidos'
     );
   }
 

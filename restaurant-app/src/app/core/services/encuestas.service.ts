@@ -66,7 +66,7 @@ export class EncuestasService {
         return { ok: false, mensaje: 'Ya completaste la encuesta de esta visita.' };
       }
       if (error.code === CODIGO_RLS) {
-        return { ok: false, mensaje: 'La encuesta se habilita cuando el mozo confirma tu pedido.' };
+        return { ok: false, mensaje: 'La encuesta se habilita cuando confirmás que recibiste tu pedido.' };
       }
       if (error.code === CODIGO_CHECK) {
         return { ok: false, mensaje: 'Revisá las respuestas de la encuesta.' };
