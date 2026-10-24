@@ -665,8 +665,8 @@ async inicializar(): Promise<void> {
   /** El mozo confirma el pedido → cliente de la estadía (punto 14). */
   avisarPedidoConfirmado(clienteId: string, mesaId: string): void {
     this.notificarCliente(
-      'Tu pedido fue confirmado',
-      'Ya lo están preparando.',
+      'Tu pedido está en preparación',
+      'Ya empezó a prepararse.',
       clienteId,
       `/mesa/${mesaId}/estado-pedido`
     );

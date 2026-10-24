@@ -4,6 +4,7 @@ import { addIcons } from 'ionicons';
 import {
   checkmarkCircleOutline,
   closeCircleOutline,
+  flameOutline,
   receiptOutline,
   timeOutline,
 } from 'ionicons/icons';
@@ -17,8 +18,8 @@ const TEXTOS: Partial<Record<EstadoPedido, { titulo: string; frase: string }>> =
     frase: 'Cuando lo confirme, pasa a la cocina y a la barra.',
   },
   confirmado: {
-    titulo: 'Tu pedido está confirmado',
-    frase: 'Ya pasó a la cocina y a la barra.',
+    titulo: 'Tu pedido está en preparación',
+    frase: 'Ya está en la cocina y la barra.',
   },
   rechazado: {
     titulo: 'El mozo rechazó tu pedido',
@@ -85,6 +86,7 @@ export class TarjetaEstadoPedidoComponent {
       timeOutline,
       checkmarkCircleOutline,
       closeCircleOutline,
+      flameOutline,
     });
   }
 }
