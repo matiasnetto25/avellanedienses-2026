@@ -3,7 +3,11 @@ import { Auth } from './auth';
 import { SolicitudesMesaService } from './solicitudes-mesa.service';
 import { FilaListaEspera } from '../models/solicitud-mesa.model';
 
-/** Una sola suscripción de Realtime para la lista del metre y el contador de su pestaña. Incluye a los clientes en espera, con mesa asignada y ya vinculados. */
+/**
+ * Una sola suscripción de Realtime para la lista del metre y el contador de su pestaña.
+ * `filas` trae también a los clientes con mesa asignada o ya vinculados (los usa el admin);
+ * la lista del metre muestra solo a los que están en espera (`enEspera`).
+ */
 @Injectable({ providedIn: 'root' })
 export class ListaEsperaService {
   private readonly solicitudesMesa = inject(SolicitudesMesaService);
@@ -12,10 +16,6 @@ export class ListaEsperaService {
   readonly filas = this._filas.asReadonly();
   /** Esperando que el metre les asigne mesa: es lo que cuenta la pestaña. */
   readonly enEspera = computed(() => this._filas().filter(f => f.estado === 'en_espera').length);
-  /** Con mesa asignada, todavía sin escanear su QR. */
-  readonly porVincular = computed(() => this._filas().filter(f => f.estado === 'aceptado').length);
-  /** Ya escanearon el QR de su mesa. */
-  readonly vinculados = computed(() => this._filas().filter(f => f.estado === 'vinculado').length);
   readonly cargada = signal(false);
 
   private desuscribir: (() => void) | null = null;

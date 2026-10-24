@@ -59,7 +59,8 @@ export class ListaEsperaPage implements OnInit {
   // TODO(issue 26): "Metre" o "Maître" en pantalla.
   readonly titulo = ETIQUETA_PUESTO['metre'].toUpperCase();
 
-  readonly filas = this.listaEspera.filas;
+  /** Solo los que esperan mesa: con mesa asignada o ya en la mesa dejan de ser tarea del metre. */
+  readonly filas = computed(() => this.listaEspera.filas().filter(f => f.estado === 'en_espera'));
   readonly procesandoId = signal<string | null>(null);
 
   // Hoja «Asignar mesa»
@@ -78,12 +79,7 @@ export class ListaEsperaPage implements OnInit {
 
   readonly resumen = computed(() => {
     const enEspera = this.listaEspera.enEspera();
-    const porVincular = this.listaEspera.porVincular();
-    const vinculados = this.listaEspera.vinculados();
-    const cifras = [enEspera > 0 ? `${enEspera} en espera` : 'Nadie en espera'];
-    if (porVincular > 0) cifras.push(`${porVincular} por escanear`);
-    if (vinculados > 0) cifras.push(`${vinculados} en mesa`);
-    return cifras;
+    return [enEspera > 0 ? `${enEspera} en espera` : 'Nadie en espera'];
   });
 
   async ngOnInit(): Promise<void> {

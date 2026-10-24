@@ -79,6 +79,7 @@ const ESTADOS_SOLICITUD_MESA: Record<EstadoSolicitudMesa, EstadoVisual> = {
   aceptado: { tono: 'en-curso', texto: 'Mesa asignada', icono: 'sync-outline' },
   vinculado: { tono: 'listo', texto: 'En la mesa', icono: 'checkmark-circle-outline' },
   rechazado: { tono: 'rechazo', texto: 'Rechazada', icono: 'close-circle-outline' },
+  finalizado: { tono: 'listo', texto: 'Visita terminada', icono: 'checkmark-circle-outline' },
 };
 
 const ESTADOS_EN_ESPERA: Record<EstadoEnEspera, EstadoVisual> = {

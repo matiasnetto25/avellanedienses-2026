@@ -87,6 +87,41 @@ export class SolicitudesMesaService {
   }
 
   /**
+   * Termina la estadía (punto 22): con el pago ya confirmado, el cliente
+   * escaneó el QR de su mesa. Marca la solicitud como finalizada y libera
+   * la mesa. Primero la solicitud: si falla, no se toca la mesa. Los
+   * filtros por estado reemplazan a RLS, que está desactivado en la base.
+   */
+  async finalizarEstadia(solicitudId: string, mesaId: string): Promise<ResultadoOperacion> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from('solicitudes_mesa')
+        .update({ estado: 'finalizado' })
+        .eq('id', solicitudId)
+        .eq('estado', 'vinculado')
+        .select('id');
+      if (error) {
+        console.error('Error finalizando la estadía:', error);
+        return { ok: false, mensaje: 'No se pudo terminar la visita. Probá de nuevo.' };
+      }
+      if (!data?.length) return { ok: false, mensaje: 'Tu visita ya estaba terminada.' };
+
+      const { error: errorMesa } = await this.supabase.client
+        .from('mesa')
+        .update({ disponibilidad: 'Libre' })
+        .eq('id', mesaId);
+      if (errorMesa) {
+        console.error('Error liberando la mesa:', errorMesa);
+        return { ok: false, mensaje: 'Terminaste la visita, pero no se pudo liberar la mesa. Avisale al mozo.' };
+      }
+      return { ok: true };
+    } catch (error: unknown) {
+      console.error('Error inesperado finalizando la estadía:', error);
+      return { ok: false, mensaje: 'No se pudo terminar la visita. Revisá tu conexión.' };
+    }
+  }
+
+  /**
    * Avisa cada vez que cambia la solicitud del cliente: apenas el metre le
    * asigna mesa o la rechaza, Supabase Realtime empuja el cambio y se vuelve a
    * leer. Un sondeo cada 30 segundos cubre el caso de que el canal se corte.

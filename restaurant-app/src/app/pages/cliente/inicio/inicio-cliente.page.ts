@@ -17,6 +17,8 @@ import {
 } from 'ionicons/icons';
 import { AlertController } from '@ionic/angular';
 import { AvisosService } from '../../../core/services/avisos.service';
+import { QrService } from '../../../core/services/qr.service';
+import { SolicitudesMesaService } from '../../../core/services/solicitudes-mesa.service';
 import { EncuestasService } from '../../../core/services/encuestas.service';
 import { NotificacionesService } from '../../../core/services/notificaciones.service';
 import { PedidosService } from '../../../core/services/pedidos.service';
@@ -67,7 +69,11 @@ export class InicioClientePage implements OnInit {
   // De @ionic/angular (no de /standalone): igual que ModalController en los avisos.
   private readonly alertController = inject(AlertController);
 
+  private readonly qr = inject(QrService);
+  private readonly solicitudesMesa = inject(SolicitudesMesaService);
+
   readonly pidiendoCuenta = signal(false);
+  readonly terminandoVisita = signal(false);
 
   readonly perfil = signal<PerfilActual | null>(null);
   readonly etapa = this.etapaCliente.etapa;
@@ -171,6 +177,57 @@ qrCodeOutline,
   /** Punto 19: vuelve a abrir el aviso para confirmar que recibió el pedido. */
   confirmarRecepcion(pedido: Pedido | null): void {
     if (pedido) void this.avisoRecepcion.mostrar(pedido);
+  }
+
+  /**
+   * Punto 22: con el pago confirmado, el cliente escanea el QR de SU mesa
+   * para terminar la visita. Eso libera la mesa. Después de un mensaje de
+   * agradecimiento, vuelve al principio (escanear el QR de ingreso).
+   */
+  async terminarVisita(): Promise<void> {
+    const etapa = this.etapa();
+    if (this.terminandoVisita() || etapa?.tipo !== 'estadia' || etapa.pedido?.estado !== 'pagado') return;
+
+    this.terminandoVisita.set(true);
+    try {
+      const lectura = await this.qr.escanearQrMesa();
+      if (!lectura.ok) {
+        if (!lectura.cancelado) await this.avisos.error(lectura.mensaje ?? 'No se pudo escanear el código.');
+        return;
+      }
+      if (lectura.mesaId !== etapa.solicitud.mesa_id) {
+        await this.avisos.error('Ese QR es de otra mesa. Escaneá el QR de tu mesa.');
+        return;
+      }
+
+      this.loading.mostrar();
+      let resultado;
+      try {
+        resultado = await this.solicitudesMesa.finalizarEstadia(etapa.solicitud.id, etapa.solicitud.mesa_id);
+      } finally {
+        this.loading.ocultar();
+      }
+      if (!resultado.ok) {
+        await this.avisos.error(resultado.mensaje ?? 'No se pudo terminar la visita. Probá de nuevo.');
+        return;
+      }
+
+      await this.agradecerVisita();
+      await this.etapaCliente.refrescar();
+    } finally {
+      this.terminandoVisita.set(false);
+    }
+  }
+
+  private async agradecerVisita(): Promise<void> {
+    const alerta = await this.alertController.create({
+      header: '¡Muchas gracias por tu visita!',
+      message: 'Esperamos que hayas disfrutado la experiencia. ¡Te esperamos pronto!',
+      buttons: [{ text: 'Cerrar', role: 'confirm' }],
+      backdropDismiss: false,
+    });
+    await alerta.present();
+    await alerta.onDidDismiss();
   }
 
   /** Punto 21: la cuenta con el detalle y la propina por QR. */

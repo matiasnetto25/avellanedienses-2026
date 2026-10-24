@@ -35,25 +35,15 @@
             <app-chip-estado [estado]="estadoSolicitudMesa(fila.estado)" />
           </div>
 
-          @switch (fila.estado) {
-            @case ('en_espera') {
-              <p class="nota">Esperando que le asignes una mesa.</p>
-              <div class="acciones">
-                <ion-button class="accion-destructiva accion-fila" [disabled]="procesandoId() === fila.id" (click)="rechazar(fila)">
-                  Rechazar
-                </ion-button>
-                <ion-button class="accion-secundaria accion-fila" [disabled]="procesandoId() === fila.id" (click)="asignar(fila)">
-                  Asignar mesa
-                </ion-button>
-              </div>
-            }
-            @case ('aceptado') {
-              <p class="nota">Esperando que escanee el QR de la mesa.</p>
-            }
-            @case ('vinculado') {
-              <p class="nota nota--ok">Ya escaneó el QR y está en su mesa.</p>
-            }
-          }
+          <p class="nota">Esperando que le asignes una mesa.</p>
+          <div class="acciones">
+            <ion-button class="accion-destructiva accion-fila" [disabled]="procesandoId() === fila.id" (click)="rechazar(fila)">
+              Rechazar
+            </ion-button>
+            <ion-button class="accion-secundaria accion-fila" [disabled]="procesandoId() === fila.id" (click)="asignar(fila)">
+              Asignar mesa
+            </ion-button>
+          </div>
         </article>
       }
     </div>

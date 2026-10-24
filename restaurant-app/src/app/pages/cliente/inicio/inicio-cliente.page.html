@@ -87,6 +87,19 @@
             </ion-button>
           }
 
+          <!-- Punto 22: con el pago confirmado, escanear el QR de la mesa termina la visita. -->
+          @if (e.pedido?.estado === 'pagado') {
+            <ion-button
+              expand="block"
+              class="accion-principal"
+              [disabled]="terminandoVisita()"
+              (click)="terminarVisita()"
+            >
+              <ion-icon slot="start" name="qr-code-outline" aria-hidden="true" />
+              {{ terminandoVisita() ? 'Terminando la visita…' : 'Escanear el QR de la mesa y terminar la visita' }}
+            </ion-button>
+          }
+
           @if (e.pedido && e.pedido.estado !== 'rechazado') {
             <button type="button" class="tarjeta tarjeta-acceso" (click)="verPedido()">
               <ion-icon name="receipt-outline" aria-hidden="true" />

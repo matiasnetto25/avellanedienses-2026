@@ -36,6 +36,8 @@ alter table public.pedidos add constraint pedidos_estado_check
 -- Mozo: cuenta_pedida -> pagado, con propina y medio de pago elegidos.
 -- El estado y los datos se repiten en using y with check por la trampa de
 -- las políticas permisivas (using de una + with check de otra).
+drop policy if exists pedidos_update_pago_mozo on public.pedidos;
+
 create policy pedidos_update_pago_mozo
   on public.pedidos
   for update
@@ -66,7 +68,7 @@ create policy pedidos_update_pago_mozo
   );
 
 -- La encuesta sigue disponible con el pedido pagado.
-drop policy encuestas_insert_cliente on public.encuestas;
+drop policy if exists encuestas_insert_cliente on public.encuestas;
 
 create policy encuestas_insert_cliente
   on public.encuestas

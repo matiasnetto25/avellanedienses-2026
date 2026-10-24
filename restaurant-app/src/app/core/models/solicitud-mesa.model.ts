@@ -1,6 +1,6 @@
 import { TipoMesa } from './mesa.model';
 
-export type EstadoSolicitudMesa = 'en_espera' | 'aceptado' | 'rechazado' | 'vinculado';
+export type EstadoSolicitudMesa = 'en_espera' | 'aceptado' | 'rechazado' | 'vinculado' | 'finalizado';
 
 /**
  * La solicitud del cliente. Mientras está 'en_espera' (o 'rechazado') todavía
