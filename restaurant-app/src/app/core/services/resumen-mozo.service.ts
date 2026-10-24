@@ -27,6 +27,7 @@ export class ResumenMozoService {
   private readonly _conversaciones = signal<ConversacionActiva[]>([]);
   private readonly _pedidosListos = signal<Pedido[]>([]);
   private readonly _pedidosEsperandoRecepcion = signal<Pedido[]>([]);
+  private readonly _cuentasPedidas = signal<Pedido[]>([]);
 
   readonly pedidos = this._pedidos.asReadonly();
   readonly conversaciones = this._conversaciones.asReadonly();
@@ -34,6 +35,8 @@ export class ResumenMozoService {
   /** Entregados por el mozo, a la espera de que el cliente confirme (punto 19). */
   readonly pedidosEsperandoRecepcion =
     this._pedidosEsperandoRecepcion.asReadonly();
+  /** Mesas que pidieron la cuenta, con descuento y propina (punto 21). */
+  readonly cuentasPedidas = this._cuentasPedidas.asReadonly();
 
   readonly cantidadListosParaEntregar = computed(
     () => this._pedidosListos().length
@@ -73,6 +76,7 @@ export class ResumenMozoService {
       this.recargarPedidos(),
       this.recargarPedidosListos(),
       this.recargarPedidosEsperandoRecepcion(),
+      this.recargarCuentasPedidas(),
       this.recargarConversaciones(),
     ]);
 
@@ -92,6 +96,7 @@ export class ResumenMozoService {
       this.recargarPedidos(),
       this.recargarPedidosListos(),
       this.recargarPedidosEsperandoRecepcion(),
+      this.recargarCuentasPedidas(),
     ]);
   }
 
@@ -155,6 +160,17 @@ export class ResumenMozoService {
     this._pedidosEsperandoRecepcion.set(pedidos);
   }
 
+  async recargarCuentasPedidas(): Promise<void> {
+    const pedidos = await this.pedidosService.listarPedidosConCuentaPedida();
+
+    if (pedidos === null) {
+      console.error('No se pudieron actualizar las cuentas pedidas.');
+      return;
+    }
+
+    this._cuentasPedidas.set(pedidos);
+  }
+
   detener(): void {
     this.desuscripciones.forEach((cerrar) => cerrar());
     this.desuscripciones = [];
@@ -164,6 +180,7 @@ export class ResumenMozoService {
     this._conversaciones.set([]);
     this._pedidosListos.set([]);
     this._pedidosEsperandoRecepcion.set([]);
+    this._cuentasPedidas.set([]);
 
     this.errorPedidos.set(false);
     this.errorConversaciones.set(false);

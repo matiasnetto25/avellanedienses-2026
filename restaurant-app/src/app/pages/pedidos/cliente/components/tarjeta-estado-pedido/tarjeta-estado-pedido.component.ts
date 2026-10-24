@@ -51,6 +51,8 @@ export class TarjetaEstadoPedidoComponent {
   readonly revisar = output<void>();
   /** Punto 19: el cliente toca «Confirmar recepción» (la pantalla abre el aviso). */
   readonly confirmarRecepcion = output<void>();
+  /** Punto 21: el cliente toca «Ver cuenta» para dejar la propina y ver el detalle. */
+  readonly verCuenta = output<void>();
 
   readonly estado = computed(() => {
     const pedido = this.pedido();
@@ -76,6 +78,12 @@ export class TarjetaEstadoPedidoComponent {
 
     if (pedido.estado === 'rechazado') {
       return `Motivo: ${pedido.motivoRechazo ?? ''}`;
+    }
+
+    if (pedido.estado === 'cuenta_pedida') {
+      return pedido.propinaPorcentaje === null
+        ? 'Falta la propina: escaneá el QR de propina para poder pagar.'
+        : `Propina del ${pedido.propinaPorcentaje} %. Total a pagar: $ ${pedido.totalAPagar.toLocaleString('es-AR')}.`;
     }
 
     return (

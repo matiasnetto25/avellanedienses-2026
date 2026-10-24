@@ -19,6 +19,15 @@ export type EstadoPedido =
   /** Punto 21: el cliente pidió la cuenta y espera al mozo. */
   | 'cuenta_pedida';
 
+/** Los 5 niveles de propina de la consigna (punto 21), del mejor al peor: uno por QR. */
+export const NIVELES_PROPINA: { porcentaje: number; etiqueta: string }[] = [
+  { porcentaje: 20, etiqueta: 'Excelente' },
+  { porcentaje: 15, etiqueta: 'Muy bueno' },
+  { porcentaje: 10, etiqueta: 'Bueno' },
+  { porcentaje: 5, etiqueta: 'Regular' },
+  { porcentaje: 0, etiqueta: 'Malo' },
+];
+
 export type EstadoItem = 'pendiente' | 'en_preparacion' | 'listo';
 export type SectorItem = 'cocina' | 'bar';
 
@@ -87,6 +96,12 @@ export interface Pedido {
   montoDescuento: number;
   /** Total final: subtotal menos descuento. */
   total: number;
+  /** Punto 21: nivel elegido con el QR de propina. null hasta que el cliente escanea. */
+  propinaPorcentaje: number | null;
+  /** Propina sobre el total ya con descuento. 0 mientras no hay propina. */
+  montoPropina: number;
+  /** Lo que paga el cliente: total con descuento más propina. */
+  totalAPagar: number;
   /** Tiempo estimado del pedido. */
   tiempoEstimadoMin: number;
   items: PedidoItem[];

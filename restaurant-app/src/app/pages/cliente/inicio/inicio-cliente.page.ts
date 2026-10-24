@@ -173,6 +173,11 @@ qrCodeOutline,
     if (pedido) void this.avisoRecepcion.mostrar(pedido);
   }
 
+  /** Punto 21: la cuenta con el detalle y la propina por QR. */
+  verCuenta(): void {
+    void this.router.navigate(['/cliente/cuenta']);
+  }
+
   /** Punto 21: el cliente pide la cuenta; el mozo se entera por push. */
   async pedirCuenta(pedido: Pedido): Promise<void> {
     if (this.pidiendoCuenta()) return;
@@ -202,19 +207,22 @@ qrCodeOutline,
     } finally {
       this.pidiendoCuenta.set(false);
     }
-    await this.sugerirEncuesta();
+    // Primero la sugerencia de encuesta (si hace falta) y después la cuenta.
+    const fueALaEncuesta = await this.sugerirEncuesta();
+    if (!fueALaEncuesta) this.verCuenta();
   }
 
   /**
    * Al pedir la cuenta, si la estadía todavía no tiene encuesta, se la
    * sugiere en un modal (punto 20). Si falla la consulta no se muestra: la
-   * encuesta sigue disponible en el inicio.
+   * encuesta sigue disponible en el inicio. Devuelve true si el cliente
+   * aceptó y se lo llevó a la encuesta.
    */
-  private async sugerirEncuesta(): Promise<void> {
+  private async sugerirEncuesta(): Promise<boolean> {
     const etapa = this.etapa();
-    if (etapa?.tipo !== 'estadia') return;
+    if (etapa?.tipo !== 'estadia') return false;
     const resultado = await this.encuestas.estadiaTieneEncuesta(etapa.solicitud.id);
-    if (!resultado.ok || resultado.dato) return;
+    if (!resultado.ok || resultado.dato) return false;
 
     const alerta = await this.alertController.create({
       header: '¿Nos contás cómo fue tu visita?',
@@ -226,7 +234,9 @@ qrCodeOutline,
     });
     await alerta.present();
     const { role } = await alerta.onDidDismiss();
-    if (role === 'confirm') this.abrirEncuesta();
+    if (role !== 'confirm') return false;
+    this.abrirEncuesta();
+    return true;
   }
 
   verPedido(): void {

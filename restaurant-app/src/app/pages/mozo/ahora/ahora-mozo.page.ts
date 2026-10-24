@@ -1,5 +1,5 @@
 
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
@@ -24,6 +24,7 @@ const FILAS_POR_BLOQUE = 3;
   standalone: true,
   imports: [
     DatePipe,
+    DecimalPipe,
     RouterLink,
     IonContent,
     IonIcon,
@@ -70,6 +71,15 @@ export class AhoraMozoPage implements OnInit {
     this.resumenMozo.pedidosEsperandoRecepcion().slice(0, FILAS_POR_BLOQUE)
   );
 
+  // Mesas que pidieron la cuenta (punto 21).
+  readonly cantidadCuentasPedidas = computed(
+    () => this.resumenMozo.cuentasPedidas().length
+  );
+
+  readonly cuentasPedidas = computed(() =>
+    this.resumenMozo.cuentasPedidas().slice(0, FILAS_POR_BLOQUE)
+  );
+
   // Consultas de clientes que esperan respuesta.
   readonly consultasSinResponder =
     this.resumenMozo.consultasSinResponder;
@@ -83,7 +93,8 @@ export class AhoraMozoPage implements OnInit {
       this.porConfirmar() === 0 &&
       this.consultasSinResponder() === 0 &&
       this.cantidadListos() === 0 &&
-      this.cantidadEsperandoRecepcion() === 0
+      this.cantidadEsperandoRecepcion() === 0 &&
+      this.cantidadCuentasPedidas() === 0
   );
 
   readonly resumen = computed(() => {
@@ -110,6 +121,11 @@ export class AhoraMozoPage implements OnInit {
           ? '1 listo para entregar'
           : `${listos} listos para entregar`
       );
+    }
+
+    const cuentas = this.cantidadCuentasPedidas();
+    if (cuentas > 0) {
+      cifras.push(cuentas === 1 ? '1 cuenta pedida' : `${cuentas} cuentas pedidas`);
     }
 
     return cifras;

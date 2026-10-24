@@ -1,0 +1,132 @@
+// Sin reglas en :host: el router de Ionic le pone .ion-page (ver mesa.page.scss).
+
+ion-toolbar {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+}
+
+.cuenta-content {
+  --background: var(--brand-background);
+}
+
+.cuenta-pantalla {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+}
+
+.cuenta-encabezado {
+  margin: 0;
+  font-family: var(--brand-font-logo);
+  font-size: 1.3rem;
+}
+
+.cuenta-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--brand-text) 20%, transparent);
+  background: color-mix(in srgb, var(--brand-text) 5%, var(--brand-background));
+}
+
+// ===== Detalle =====
+
+.cuenta-lineas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cuenta-linea,
+.cuenta-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.cuenta-linea-nombre {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cuenta-linea-importe {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cuenta-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed color-mix(in srgb, var(--brand-text) 30%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.cuenta-fila--descuento {
+  color: var(--ion-color-success-shade);
+}
+
+.cuenta-pendiente {
+  font-weight: 600;
+  color: #8a5a00;
+}
+
+.cuenta-fila--total {
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--brand-text) 30%, transparent);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+// ===== Propina =====
+
+.cuenta-propina--falta {
+  border: 2px solid #c98a12;
+  background: color-mix(in srgb, #f2b33d 20%, var(--brand-background));
+}
+
+.cuenta-propina-nivel {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.cuenta-propina-detalle {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.cuenta-prueba {
+  font-size: 0.9rem;
+
+  summary {
+    cursor: pointer;
+    opacity: 0.8;
+  }
+}
+
+.cuenta-prueba-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.cuenta-pie {
+  margin: 0;
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.8;
+}

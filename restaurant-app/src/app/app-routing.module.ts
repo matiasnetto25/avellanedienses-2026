@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { puestoGuard } from './core/guards/puesto.guard';
 import { clienteGuard } from './core/guards/cliente.guard';
+import { cuentaGuard } from './core/guards/cuenta.guard';
 import { juegosGuard } from './core/guards/juegos.guard';
 import { encuestaGuard } from './core/guards/encuesta.guard';
 import { inicioGuard } from './core/guards/inicio.guard';
@@ -197,6 +198,12 @@ const routes: Routes = [
         // Sin pestaña propia: se entra desde «Mi mesa».
         canActivate: [encuestaGuard],
         loadComponent: () => import('./pages/encuestas/formulario/encuesta.page').then(m => m.EncuestaPage)
+      },
+      {
+        path: 'cuenta',
+        // Punto 21: la cuenta y la propina por QR, solo con la cuenta pedida.
+        canActivate: [cuentaGuard],
+        loadComponent: () => import('./pages/cliente/cuenta/cuenta-cliente.page').then(m => m.CuentaClientePage)
       },
       {
         path: 'resultados-encuestas',

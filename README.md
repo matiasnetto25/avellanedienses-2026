@@ -96,7 +96,9 @@ Capturas tomadas en formato mobile (390 × 844, densidad 2x), recorriendo un flu
 ### 3. QRs de Propina (Nivel de Satisfacción)
 | Excelente (20%) | Muy Bueno (15%) | Bueno (10%) | Regular (5%) | Malo (0%) |
 | :---: | :---: | :---: | :---: | :---: |
-| ![Excelente 20%](https://placehold.co/120x120?text=Excelente+20%25) | ![Muy Bueno 15%](https://placehold.co/120x120?text=Muy+Bueno+15%25) | ![Bueno 10%](https://placehold.co/120x120?text=Bueno+10%25) | ![Regular 5%](https://placehold.co/120x120?text=Regular+5%25) | ![Malo 0%](https://placehold.co/120x120?text=Malo+0%25) |
+| <img src="doc/qr-propina/qr-propina-excelente-20.png" width="150" alt="Excelente 20%"> | <img src="doc/qr-propina/qr-propina-muy-bueno-15.png" width="150" alt="Muy Bueno 15%"> | <img src="doc/qr-propina/qr-propina-bueno-10.png" width="150" alt="Bueno 10%"> | <img src="doc/qr-propina/qr-propina-regular-5.png" width="150" alt="Regular 5%"> | <img src="doc/qr-propina/qr-propina-malo-0.png" width="150" alt="Malo 0%"> |
+
+Cada QR contiene el texto `MERLOT_PROPINA_<porcentaje>` (por ejemplo `MERLOT_PROPINA_20`). Las imágenes están en [`doc/qr-propina/`](doc/qr-propina/).
 
 ---
 

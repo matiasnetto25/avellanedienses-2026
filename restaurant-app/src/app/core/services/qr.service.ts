@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as QRCode from 'qrcode';
+import { NIVELES_PROPINA } from '../models/pedido.model';
 import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 
 /**
@@ -29,6 +30,29 @@ export function leerIdMesa(textoLeido: string): string | null {
   return REGEX_UUID.test(mesaId) ? mesaId : null;
 }
 
+// ===== Formato del QR de propina (punto 21) =====
+// Hay cinco, uno por nivel de satisfacción. Las imágenes están en
+// doc/qr-propina/ y en el README: si cambia el formato, hay que
+// regenerarlas.
+
+const PREFIJO_QR_PROPINA = 'MERLOT_PROPINA_';
+
+/** Contenido del QR de un nivel de propina: MERLOT_PROPINA_<porcentaje>. */
+export function contenidoQrPropina(porcentaje: number): string {
+  return `${PREFIJO_QR_PROPINA}${porcentaje}`;
+}
+
+/** Porcentaje a partir del texto leído del QR, o null si no es uno de los 5 QR de propina. */
+export function leerPropina(textoLeido: string): number | null {
+  const nivel = NIVELES_PROPINA.find((n) => contenidoQrPropina(n.porcentaje) === textoLeido.trim());
+  return nivel ? nivel.porcentaje : null;
+}
+
+/** Etiqueta del nivel («Excelente») para un porcentaje de propina, o null si no es de los 5. */
+export function etiquetaPropina(porcentaje: number | null): string | null {
+  return NIVELES_PROPINA.find((n) => n.porcentaje === porcentaje)?.etiqueta ?? null;
+}
+
 export interface ResultadoEscaneoQr {
   ok: boolean;
   cancelado?: boolean;
@@ -37,6 +61,10 @@ export interface ResultadoEscaneoQr {
 
 export interface ResultadoEscaneoMesa extends ResultadoEscaneoQr {
   mesaId?: string;
+}
+
+export interface ResultadoEscaneoPropina extends ResultadoEscaneoQr {
+  porcentaje?: number;
 }
 
 /** Resultado de la lectura cruda: el texto leído, o por qué no se pudo leer. */
@@ -120,5 +148,17 @@ export class QrService {
       return { ok: false, mensaje: 'Ese código QR no corresponde a una mesa.' };
     }
     return { ok: true, mesaId };
+  }
+
+  /** Escanea uno de los 5 QR de propina y devuelve su porcentaje (ver contenidoQrPropina / leerPropina). */
+  async escanearQrPropina(): Promise<ResultadoEscaneoPropina> {
+    const lectura = await this.escanear([BarcodeFormat.QrCode], 'el QR de propina');
+    if (!lectura.ok) return lectura;
+
+    const porcentaje = leerPropina(lectura.texto);
+    if (porcentaje === null) {
+      return { ok: false, mensaje: 'Ese código QR no es de propina.' };
+    }
+    return { ok: true, porcentaje };
   }
 }

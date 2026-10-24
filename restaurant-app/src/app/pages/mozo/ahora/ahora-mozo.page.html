@@ -123,6 +123,43 @@
             </section>
           }
 
+          <!-- CUENTAS PEDIDAS (punto 21) -->
+          @if (cantidadCuentasPedidas() > 0) {
+            <section>
+              <div class="bloque-encabezado">
+                <h2 class="bloque-titulo">
+                  Cuentas pedidas
+                  <span class="bloque-contador num">
+                    {{ cantidadCuentasPedidas() }}
+                  </span>
+                </h2>
+              </div>
+
+              <div class="filas">
+                @for (pedido of cuentasPedidas(); track pedido.id) {
+                  <article class="tarjeta pedido-listo">
+                    <div class="linea-principal">
+                      <span class="mesa">
+                        Mesa {{ pedido.numeroMesa }}
+                      </span>
+                      <span class="num">
+                        $ {{ pedido.totalAPagar | number: '1.0-0' }}
+                      </span>
+                    </div>
+
+                    <p class="linea-secundaria">
+                      @if (pedido.propinaPorcentaje !== null) {
+                        Propina del {{ pedido.propinaPorcentaje }} %.
+                      } @else {
+                        Propina pendiente: el cliente todavía no escaneó el QR.
+                      }
+                    </p>
+                  </article>
+                }
+              </div>
+            </section>
+          }
+
           <!-- PEDIDOS LISTOS PARA ENTREGAR -->
           @if (cantidadListos() > 0) {
             <section>

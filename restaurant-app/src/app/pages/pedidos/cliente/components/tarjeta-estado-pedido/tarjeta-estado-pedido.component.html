@@ -16,6 +16,12 @@
     <ion-button class="accion-secundaria" expand="block" (click)="revisar.emit()">Revisar pedido</ion-button>
   }
 
+  @if (pedido()?.estado === 'cuenta_pedida') {
+    <ion-button class="accion-secundaria" expand="block" (click)="verCuenta.emit()">
+      {{ pedido()?.propinaPorcentaje === null ? 'Dejar propina' : 'Ver cuenta' }}
+    </ion-button>
+  }
+
   @if (pedido()?.estado === 'pendiente_recepcion') {
     <ion-button class="accion-secundaria" expand="block" (click)="confirmarRecepcion.emit()">Confirmar recepción</ion-button>
   }

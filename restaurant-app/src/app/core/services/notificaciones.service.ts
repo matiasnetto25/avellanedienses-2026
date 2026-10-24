@@ -691,7 +691,7 @@ async inicializar(): Promise<void> {
       `Mesa ${numeroMesa} pidió la cuenta`,
       'El cliente está esperando la cuenta.',
       ['mozo'],
-      '/mozo/pedidos'
+      '/mozo/ahora'
     );
   }
 

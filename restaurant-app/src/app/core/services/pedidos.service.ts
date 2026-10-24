@@ -8,6 +8,7 @@ import {
   EstadoPedido,
   ItemComanda,
   LineaCarrito,
+  NIVELES_PROPINA,
   Pedido,
   PedidoItem,
   SectorItem,
@@ -27,7 +28,7 @@ const TABLA_ITEMS = 'pedido_items';
  * !inner para poder filtrar por su cliente_id y su estado.
  */
 const SELECT_PEDIDO = `
-  id, created_at, solicitud_id, estado, motivo_rechazo,
+  id, created_at, solicitud_id, estado, motivo_rechazo, propina_porcentaje,
   solicitud:solicitudes_mesa!inner (
     cliente_id, mesa_id, estado,
     mesa ( numero_mesa )
@@ -53,6 +54,18 @@ const SELECT_COMANDA = `
 
 /** Estados de pedido cuyos ítems ven cocina y bar. Los puntos 16 y 17 suman los suyos. */
 const ESTADOS_EN_COMANDAS: EstadoPedido[] = ['confirmado'];
+
+/**
+ * Propina sobre el total ya con descuento (punto 21). Mismo redondeo que
+ * el descuento. Sin propina elegida, el total a pagar es el total.
+ */
+function calcularPropina(
+  total: number,
+  propinaPorcentaje: number | null
+): Pick<Pedido, 'montoPropina' | 'totalAPagar'> {
+  const montoPropina = Math.round((total * (propinaPorcentaje ?? 0)) / 100);
+  return { montoPropina, totalAPagar: total + montoPropina };
+}
 
 /** Códigos de Postgres que se traducen a mensajes para el cliente. */
 const CODIGO_RLS = '42501';
@@ -116,6 +129,7 @@ interface PedidoFila {
   solicitud_id: string;
   estado: EstadoPedido;
   motivo_rechazo: string | null;
+  propina_porcentaje: number | null;
   solicitud: {
     cliente_id: string;
     mesa_id: string;
@@ -308,6 +322,56 @@ export class PedidosService {
     } catch (error: unknown) {
       console.error('Error inesperado entregando pedido:', error);
       return { ok: false, mensaje: 'No se pudo entregar el pedido. Revisá tu conexión.' };
+    }
+  }
+
+  /**
+   * Pedidos con la cuenta pedida (punto 21), del más viejo al más nuevo,
+   * con el descuento y la propina ya aplicados. null si falló la consulta.
+   */
+  async listarPedidosConCuentaPedida(): Promise<Pedido[] | null> {
+    const { data, error } = await this.supabase.client
+      .from(TABLA_PEDIDOS)
+      .select(SELECT_PEDIDO)
+      .eq('estado', 'cuenta_pedida')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error listando pedidos con la cuenta pedida:', error);
+      return null;
+    }
+
+    const pedidos = (data as unknown as PedidoFila[]).map((fila) => this.aPedido(fila));
+    return Promise.all(pedidos.map((pedido) => this.aplicarDescuento(pedido)));
+  }
+
+  /**
+   * El cliente deja (o cambia) la propina leyendo un QR de propina
+   * (punto 21). Solo con la cuenta pedida: el filtro por estado también
+   * frena el cambio una vez que el pedido pasó a otro estado.
+   */
+  async fijarPropina(pedidoId: string, porcentaje: number): Promise<ResultadoOperacion> {
+    if (!NIVELES_PROPINA.some((nivel) => nivel.porcentaje === porcentaje)) {
+      return { ok: false, mensaje: 'Esa propina no es válida.' };
+    }
+    try {
+      const { data, error } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ propina_porcentaje: porcentaje })
+        .eq('id', pedidoId)
+        .eq('estado', 'cuenta_pedida')
+        .select('id');
+      if (error) {
+        console.error('Error fijando la propina:', error);
+        return { ok: false, mensaje: 'No se pudo guardar la propina. Probá de nuevo.' };
+      }
+      if (!data?.length) {
+        return { ok: false, mensaje: 'La propina se deja con la cuenta pedida y antes de pagar.' };
+      }
+      return { ok: true };
+    } catch (error: unknown) {
+      console.error('Error inesperado fijando la propina:', error);
+      return { ok: false, mensaje: 'No se pudo guardar la propina. Revisá tu conexión.' };
     }
   }
 
@@ -910,11 +974,13 @@ private async aplicarDescuento(pedido: Pedido): Promise<Pedido> {
     pedido.subtotal * porcentajeDescuento / 100
   );
 
+  const total = pedido.subtotal - montoDescuento;
   return {
     ...pedido,
     porcentajeDescuento,
     montoDescuento,
-    total: pedido.subtotal - montoDescuento,
+    total,
+    ...calcularPropina(total, pedido.propinaPorcentaje),
   };
 }
 
@@ -947,6 +1013,8 @@ private async aplicarDescuento(pedido: Pedido): Promise<Pedido> {
       porcentajeDescuento: 0,
       montoDescuento: 0,
       total: subtotal,
+      propinaPorcentaje: fila.propina_porcentaje,
+      ...calcularPropina(subtotal, fila.propina_porcentaje),
       tiempoEstimadoMin: calcularTiempoEstimado(items.map((item) => item.demoraMin)),
       items,
     };

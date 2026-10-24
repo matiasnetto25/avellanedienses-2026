@@ -72,7 +72,7 @@
 
       @case ('estadia') {
         <div class="etapa">
-          <app-tarjeta-estado-pedido [pedido]="e.pedido" (revisar)="irAlMenu()" (confirmarRecepcion)="confirmarRecepcion(e.pedido)" />
+          <app-tarjeta-estado-pedido [pedido]="e.pedido" (revisar)="irAlMenu()" (confirmarRecepcion)="confirmarRecepcion(e.pedido)" (verCuenta)="verCuenta()" />
 
           <!-- Punto 21: con el pedido entregado, el cliente puede pedir la cuenta. -->
           @if (e.pedido?.estado === 'entregado') {
