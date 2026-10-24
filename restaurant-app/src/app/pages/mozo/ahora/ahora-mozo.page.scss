@@ -218,3 +218,16 @@ app-estado-vacio {
     padding: var(--espacio-3);
   }
 }
+
+// Botones de la cuenta pedida (punto 22): igual que las acciones de un pedido.
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-2);
+
+  ion-button {
+    margin: 0;
+  }
+}

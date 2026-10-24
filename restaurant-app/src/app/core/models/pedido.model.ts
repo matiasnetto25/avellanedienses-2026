@@ -17,7 +17,9 @@ export type EstadoPedido =
   /** Punto 19: lo pone solo el cliente, al confirmar que lo recibió. */
   | 'entregado'
   /** Punto 21: el cliente pidió la cuenta y espera al mozo. */
-  | 'cuenta_pedida';
+  | 'cuenta_pedida'
+  /** Punto 22: el mozo confirmó el pago; el cliente termina la estadía escaneando el QR de su mesa. */
+  | 'pagado';
 
 /** Los 5 niveles de propina de la consigna (punto 21), del mejor al peor: uno por QR. */
 export const NIVELES_PROPINA: { porcentaje: number; etiqueta: string }[] = [
@@ -155,7 +157,7 @@ export function pedidoConfirmado(estado: EstadoPedido): boolean {
  * pedida, y los que sumen los puntos 21 y 22) también cuentan.
  */
 export function pedidoEntregado(estado: EstadoPedido): boolean {
-  return estado === 'entregado' || estado === 'cuenta_pedida';
+  return estado === 'entregado' || estado === 'cuenta_pedida' || estado === 'pagado';
 }
 
 /** Suma de precio por cantidad. La usan PedidosService y CarritoService (barra de la carta, issue 04). */

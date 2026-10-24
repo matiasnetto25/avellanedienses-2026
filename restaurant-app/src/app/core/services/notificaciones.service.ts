@@ -705,6 +705,26 @@ async inicializar(): Promise<void> {
     );
   }
 
+  /** El mozo confirmó un pago → dueño y supervisor (punto 22). */
+  avisarPagoConfirmado(numeroMesa: number, monto: number): void {
+    this.notificarEmpleados(
+      `Pago confirmado en la mesa ${numeroMesa}`,
+      `Se cobraron $ ${monto.toLocaleString('es-AR')}.`,
+      ['dueño', 'supervisor'],
+      '/administracion/ahora'
+    );
+  }
+
+  /** El mozo confirmó el pago → cliente (punto 22): escanea el QR de la mesa para terminar. */
+  avisarPagoConfirmadoCliente(clienteId: string): void {
+    this.notificarCliente(
+      'Tu pago fue confirmado',
+      'Escaneá el QR de tu mesa para terminar tu visita.',
+      clienteId,
+      '/cliente/inicio'
+    );
+  }
+
   /** El mozo rechazó el medio de pago → cliente (punto 21): puede elegir otro. */
   avisarMedioPagoRechazado(clienteId: string): void {
     this.notificarCliente(

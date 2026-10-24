@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonBackButton,
@@ -67,6 +67,12 @@ export class PagoClientePage {
   readonly seleccionado = computed<MedioPago | null>(() => this.pedido()?.medioPago ?? this.eleccion());
 
   constructor() {
+    // Cuando el mozo confirma el pago, el cliente vuelve a «Mi mesa» a terminar la visita.
+    effect(() => {
+      const etapa = this.etapaCliente.etapa();
+      if (etapa?.tipo === 'estadia' && etapa.pedido?.estado === 'pagado') this.volverAlInicio();
+    });
+
     addIcons({ cardOutline, cashOutline, checkmarkCircle, qrCodeOutline });
   }
 

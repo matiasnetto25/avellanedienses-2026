@@ -47,7 +47,8 @@ export class AhoraMozoPage implements OnInit {
   private readonly resumenMozo = inject(ResumenMozoService);
   private readonly alertController = inject(AlertController);
 
-  readonly rechazandoMedioPagoId = signal<string | null>(null);
+  /** La cuenta (pedido) que se está rechazando o confirmando: evita el doble toque. */
+  readonly procesandoCuentaId = signal<string | null>(null);
 
   readonly cargando = signal(true);
   readonly perfil = signal<PerfilActual | null>(null);
@@ -165,7 +166,7 @@ export class AhoraMozoPage implements OnInit {
    * cliente vuelve a poder elegir y recibe una push.
    */
   async rechazarMedioPago(pedido: Pedido): Promise<void> {
-    if (this.rechazandoMedioPagoId() !== null) return;
+    if (this.procesandoCuentaId() !== null) return;
 
     const alerta = await this.alertController.create({
       header: '¿Rechazar el medio de pago?',
@@ -179,13 +180,39 @@ export class AhoraMozoPage implements OnInit {
     const { role } = await alerta.onDidDismiss();
     if (role !== 'confirm') return;
 
-    this.rechazandoMedioPagoId.set(pedido.id);
+    this.procesandoCuentaId.set(pedido.id);
     try {
       await this.resumenMozo.rechazarMedioPago(pedido.id);
     } catch (error: unknown) {
       console.error('Error al rechazar el medio de pago:', error);
     } finally {
-      this.rechazandoMedioPagoId.set(null);
+      this.procesandoCuentaId.set(null);
+    }
+  }
+
+  /** Punto 22: el mozo confirma el pago de la mesa. */
+  async confirmarPago(pedido: Pedido): Promise<void> {
+    if (this.procesandoCuentaId() !== null) return;
+
+    const alerta = await this.alertController.create({
+      header: '¿Confirmar el pago?',
+      message: `Mesa ${pedido.numeroMesa}: $ ${pedido.totalAPagar.toLocaleString('es-AR')} con ${nombreMedioPago(pedido.medioPago)}.`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Confirmar pago', role: 'confirm' },
+      ],
+    });
+    await alerta.present();
+    const { role } = await alerta.onDidDismiss();
+    if (role !== 'confirm') return;
+
+    this.procesandoCuentaId.set(pedido.id);
+    try {
+      await this.resumenMozo.confirmarPago(pedido.id);
+    } catch (error: unknown) {
+      console.error('Error al confirmar el pago:', error);
+    } finally {
+      this.procesandoCuentaId.set(null);
     }
   }
 

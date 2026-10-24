@@ -60,6 +60,11 @@ const ESTADOS_PEDIDO: Record<EstadoPedido, EstadoVisual> = {
     texto: 'Cuenta pedida',
     icono: 'card-outline',
   },
+  pagado: {
+    tono: 'listo',
+    texto: 'Pagado',
+    icono: 'checkmark-circle-outline',
+  },
 };
 
 

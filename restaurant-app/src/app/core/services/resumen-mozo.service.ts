@@ -160,6 +160,24 @@ export class ResumenMozoService {
     this._pedidosEsperandoRecepcion.set(pedidos);
   }
 
+  /** El mozo confirma el pago de una mesa: avisa a dueño/supervisor y al cliente. */
+  async confirmarPago(pedidoId: string): Promise<boolean> {
+    const resultado = await this.pedidosService.confirmarPago(pedidoId);
+
+    if (!resultado.ok) {
+      await this.avisos.error(resultado.mensaje ?? 'No se pudo confirmar el pago.');
+      await this.recargarCuentasPedidas();
+      return false;
+    }
+
+    void this.recargarCuentasPedidas();
+    if (resultado.numeroMesa !== undefined && resultado.totalAPagar !== undefined) {
+      this.notificaciones.avisarPagoConfirmado(resultado.numeroMesa, resultado.totalAPagar);
+    }
+    if (resultado.clienteId) this.notificaciones.avisarPagoConfirmadoCliente(resultado.clienteId);
+    return true;
+  }
+
   /** El mozo rechaza el medio de pago de una mesa; el cliente elige otro y se le avisa por push. */
   async rechazarMedioPago(pedidoId: string): Promise<boolean> {
     const resultado = await this.pedidosService.rechazarMedioPago(pedidoId);

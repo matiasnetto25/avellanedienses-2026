@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, isDevMode, signal } from '@angular/core';
+import { Component, computed, effect, inject, isDevMode, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   IonBackButton,
@@ -65,6 +65,12 @@ export class CuentaClientePage {
   });
 
   constructor() {
+    // Cuando el mozo confirma el pago, el cliente vuelve a «Mi mesa» a terminar la visita.
+    effect(() => {
+      const etapa = this.etapaCliente.etapa();
+      if (etapa?.tipo === 'estadia' && etapa.pedido?.estado === 'pagado') this.volverAlInicio();
+    });
+
     addIcons({ qrCodeOutline });
   }
 

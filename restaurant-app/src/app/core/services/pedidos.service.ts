@@ -413,6 +413,41 @@ export class PedidosService {
   }
 
   /**
+   * El mozo confirma el pago de la mesa (punto 22): de 'cuenta_pedida' a
+   * 'pagado'. Solo con la propina y el medio de pago elegidos: los filtros
+   * también frenan la confirmación doble o con el medio recién rechazado.
+   * Devuelve los datos para las push (cliente y dueño/supervisor).
+   */
+  async confirmarPago(pedidoId: string): Promise<
+    ResultadoOperacion & { clienteId?: string; numeroMesa?: number; totalAPagar?: number }
+  > {
+    try {
+      const pedido = await this.obtener(pedidoId);
+      if (!pedido) return { ok: false, mensaje: 'No se encontró el pedido.' };
+
+      const { data, error } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ estado: 'pagado' })
+        .eq('id', pedidoId)
+        .eq('estado', 'cuenta_pedida')
+        .not('propina_porcentaje', 'is', null)
+        .not('medio_pago', 'is', null)
+        .select('id');
+      if (error) {
+        console.error('Error confirmando el pago:', error);
+        return { ok: false, mensaje: 'No se pudo confirmar el pago. Probá de nuevo.' };
+      }
+      if (!data?.length) {
+        return { ok: false, mensaje: 'Esta cuenta ya no se puede confirmar: cambió el medio de pago o ya se pagó.' };
+      }
+      return { ok: true, clienteId: pedido.clienteId, numeroMesa: pedido.numeroMesa, totalAPagar: pedido.totalAPagar };
+    } catch (error: unknown) {
+      console.error('Error inesperado confirmando el pago:', error);
+      return { ok: false, mensaje: 'No se pudo confirmar el pago. Revisá tu conexión.' };
+    }
+  }
+
+  /**
    * El mozo rechaza el medio de pago elegido (punto 21): vuelve a quedar
    * sin elegir y el cliente puede elegir otro. Devuelve el cliente y la
    * mesa para la push.

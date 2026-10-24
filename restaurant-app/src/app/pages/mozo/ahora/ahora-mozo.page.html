@@ -161,13 +161,22 @@
                     </p>
 
                     @if (pedido.medioPago) {
-                      <ion-button
-                        class="accion-destructiva accion-fila"
-                        [disabled]="rechazandoMedioPagoId() === pedido.id"
-                        (click)="rechazarMedioPago(pedido)"
-                      >
-                        Rechazar medio de pago
-                      </ion-button>
+                      <div class="acciones">
+                        <ion-button
+                          class="accion-destructiva accion-fila"
+                          [disabled]="procesandoCuentaId() === pedido.id"
+                          (click)="rechazarMedioPago(pedido)"
+                        >
+                          Rechazar pago
+                        </ion-button>
+                        <ion-button
+                          class="accion-secundaria accion-fila"
+                          [disabled]="procesandoCuentaId() === pedido.id"
+                          (click)="confirmarPago(pedido)"
+                        >
+                          Confirmar pago
+                        </ion-button>
+                      </div>
                     }
                   </article>
                 }

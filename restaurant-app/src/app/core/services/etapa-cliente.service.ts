@@ -41,7 +41,8 @@ export class EtapaClienteService {
       etapa?.tipo === 'estadia' &&
       !!etapa.pedido &&
       pedidoConfirmado(etapa.pedido.estado) &&
-      etapa.pedido.estado !== 'cuenta_pedida'
+      etapa.pedido.estado !== 'cuenta_pedida' &&
+      etapa.pedido.estado !== 'pagado'
     );
   });
   /**
