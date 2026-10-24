@@ -14,9 +14,11 @@ import { Pedido } from '../../../../core/models/pedido.model';
 import { estadoItem, estadoPedido } from '../../../../core/utils/estado-visual';
 import { PedidosService } from '../../../../core/services/pedidos.service';
 import { ClienteActualService } from '../../../../core/services/cliente-actual.service';
+import { NotificacionesService } from '../../../../core/services/notificaciones.service';
 import { AvisosService } from '../../../../core/services/avisos.service';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { AvisoRechazoService } from '../components/aviso-rechazo/aviso-rechazo.service';
+import { AvisoRecepcionService } from '../components/aviso-recepcion/aviso-recepcion.service';
 import { MinutosPipe } from '../../../../shared/pipes/minutos.pipe';
 import { ChipEstadoComponent } from '../../../../shared/components/chip-estado/chip-estado.component';
 
@@ -46,7 +48,10 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
   private readonly avisos = inject(AvisosService);
   private readonly loading = inject(LoadingService);
   private readonly avisoRechazo = inject(AvisoRechazoService);
+  private readonly avisoRecepcion = inject(AvisoRecepcionService);
+  private readonly notificaciones = inject(NotificacionesService);
 
+  readonly confirmandoRecepcion = signal(false);
   readonly estadoPedido = estadoPedido;
   readonly estadoItem = estadoItem;
 
@@ -75,7 +80,27 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
   ionViewDidEnter(): void {
     if (this.cargando()) return;
     const pedido = this.pedido();
-    if (pedido) void this.avisoRechazo.mostrar(pedido);
+    if (pedido) {
+      void this.avisoRechazo.mostrar(pedido);
+      void this.avisoRecepcion.mostrar(pedido);
+    }
+  }
+
+  /** Punto 19: el cliente confirma que recibió el pedido. El cambio de estado llega por Realtime. */
+  async confirmarRecepcion(pedido: Pedido): Promise<void> {
+    if (this.confirmandoRecepcion()) return;
+    this.confirmandoRecepcion.set(true);
+    try {
+      const resultado = await this.pedidos.confirmarRecepcion(pedido.id);
+      if (!resultado.ok) {
+        await this.avisos.error(resultado.mensaje ?? 'No se pudo confirmar la recepción. Probá de nuevo.');
+        return;
+      }
+      this.pedido.set({ ...pedido, estado: 'entregado' });
+      await this.avisos.exito('¡Gracias! Confirmaste la recepción de tu pedido.');
+    } finally {
+      this.confirmandoRecepcion.set(false);
+    }
   }
 
   ngOnDestroy(): void {
@@ -99,6 +124,7 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
         this.escuchar(resultado.dato.id);
         // mostrar() no hace nada si el pedido no está rechazado.
         void this.avisoRechazo.mostrar(resultado.dato);
+        void this.avisoRecepcion.mostrar(resultado.dato);
       }
     } catch (error) {
       console.error('Error cargando el estado del pedido:', error);
@@ -128,7 +154,30 @@ export class EstadoPedidoPage implements OnInit, OnDestroy {
       if (pedido?.estado === 'rechazado' && estadoAnterior !== 'rechazado') {
         void this.avisoRechazo.mostrar(pedido);
       }
+      if (pedido?.estado === 'pendiente_recepcion' && estadoAnterior !== 'pendiente_recepcion') {
+        void this.avisoRecepcion.mostrar(pedido);
+      }
     });
+  }
+
+  /** Punto 19: «Todavía no lo recibí». El pedido vuelve al mozo y se le avisa por push. */
+  async noRecibido(pedido: Pedido): Promise<void> {
+    if (this.confirmandoRecepcion()) return;
+    this.confirmandoRecepcion.set(true);
+    try {
+      const resultado = await this.pedidos.rechazarRecepcion(pedido.id);
+      if (!resultado.ok) {
+        await this.avisos.error(resultado.mensaje ?? 'No se pudo avisar al mozo. Probá de nuevo.');
+        return;
+      }
+      if (resultado.numeroMesa !== undefined) {
+        this.notificaciones.avisarPedidoNoRecibido(resultado.numeroMesa);
+      }
+      this.pedido.set({ ...pedido, estado: 'confirmado' });
+      await this.avisos.exito('Le avisamos al mozo que todavía no recibiste tu pedido.');
+    } finally {
+      this.confirmandoRecepcion.set(false);
+    }
   }
 
   reintentar(): void {

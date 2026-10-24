@@ -672,6 +672,29 @@ async inicializar(): Promise<void> {
     );
   }
 
+  /**
+   * El mozo entrega el pedido → cliente de la estadía (punto 19). La ruta
+   * abre «Estado de mi pedido», donde está el botón para confirmar.
+   */
+  avisarPedidoEntregado(clienteId: string, mesaId: string): void {
+    this.notificarCliente(
+      'Tu pedido ya está en tu mesa',
+      'Por favor, confirmá que lo recibiste.',
+      clienteId,
+      `/mesa/${mesaId}/estado-pedido`
+    );
+  }
+
+  /** El cliente dice que todavía no recibió el pedido → mozos (punto 19). */
+  avisarPedidoNoRecibido(numeroMesa: number): void {
+    this.notificarEmpleados(
+      `Mesa ${numeroMesa}: todavía no recibió el pedido`,
+      'El cliente avisó que no le llegó. Volvé a entregarlo.',
+      ['mozo'],
+      '/mozo/pedidos'
+    );
+  }
+
   /** Cocina o bar empieza a preparar → cliente de la estadía (punto 16). */
   avisarPreparacionIniciada(clienteId: string, mesaId: string, sector: SectorItem): void {
     this.notificarCliente(

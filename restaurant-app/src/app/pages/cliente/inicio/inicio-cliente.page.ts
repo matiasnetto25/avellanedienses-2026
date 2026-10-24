@@ -23,7 +23,9 @@ import { AlturaDisponibleDirective } from '../../../shared/directives/altura-dis
 import { BarraAccionesComponent } from '../../../shared/components/barra-acciones/barra-acciones.component';
 import { ChipEstadoComponent } from '../../../shared/components/chip-estado/chip-estado.component';
 import { EncabezadoPerfilComponent } from '../../../shared/components/encabezado-perfil/encabezado-perfil.component';
+import { Pedido } from '../../../core/models/pedido.model';
 import { AvisoRechazoService } from '../../pedidos/cliente/components/aviso-rechazo/aviso-rechazo.service';
+import { AvisoRecepcionService } from '../../pedidos/cliente/components/aviso-recepcion/aviso-recepcion.service';
 import { TarjetaEstadoPedidoComponent } from '../../pedidos/cliente/components/tarjeta-estado-pedido/tarjeta-estado-pedido.component';
 
 type AccionPrincipal = 'escanear-entrada' | 'escanear-mesa' | 'ver-menu';
@@ -52,6 +54,7 @@ export class InicioClientePage implements OnInit {
   private readonly perfilActual = inject(PerfilActualService);
   private readonly etapaCliente = inject(EtapaClienteService);
   private readonly avisoRechazo = inject(AvisoRechazoService);
+  private readonly avisoRecepcion = inject(AvisoRecepcionService);
   private readonly encuestas = inject(EncuestasService);
 
   readonly perfil = signal<PerfilActual | null>(null);
@@ -105,7 +108,10 @@ export class InicioClientePage implements OnInit {
     });
 
     effect(() => {
-      if (this.etapaCliente.enEstadia()) void this.avisoRechazo.vigilar();
+      if (this.etapaCliente.enEstadia()) {
+        void this.avisoRechazo.vigilar();
+        void this.avisoRecepcion.vigilar();
+      }
     });
 
     // Cuando se habilita la encuesta o cambia la estadía, consulta si ya la completó.
@@ -147,6 +153,11 @@ export class InicioClientePage implements OnInit {
   /** La pestaña Menú es la misma carta con la que se pide. */
   irAlMenu(): void {
     if (this.etapa()?.tipo === 'estadia') this.router.navigate(['/cliente/menu']);
+  }
+
+  /** Punto 19: vuelve a abrir el aviso para confirmar que recibió el pedido. */
+  confirmarRecepcion(pedido: Pedido | null): void {
+    if (pedido) void this.avisoRecepcion.mostrar(pedido);
   }
 
   verPedido(): void {

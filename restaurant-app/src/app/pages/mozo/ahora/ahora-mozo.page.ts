@@ -61,6 +61,15 @@ export class AhoraMozoPage implements OnInit {
     this.resumenMozo.pedidosListos().slice(0, FILAS_POR_BLOQUE)
   );
 
+  // Pedidos entregados que esperan la confirmación del cliente (punto 19).
+  readonly cantidadEsperandoRecepcion = computed(
+    () => this.resumenMozo.pedidosEsperandoRecepcion().length
+  );
+
+  readonly pedidosEsperandoRecepcion = computed(() =>
+    this.resumenMozo.pedidosEsperandoRecepcion().slice(0, FILAS_POR_BLOQUE)
+  );
+
   // Consultas de clientes que esperan respuesta.
   readonly consultasSinResponder =
     this.resumenMozo.consultasSinResponder;
@@ -73,7 +82,8 @@ export class AhoraMozoPage implements OnInit {
     () =>
       this.porConfirmar() === 0 &&
       this.consultasSinResponder() === 0 &&
-      this.cantidadListos() === 0
+      this.cantidadListos() === 0 &&
+      this.cantidadEsperandoRecepcion() === 0
   );
 
   readonly resumen = computed(() => {

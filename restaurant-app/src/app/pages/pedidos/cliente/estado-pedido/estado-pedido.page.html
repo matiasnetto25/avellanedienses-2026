@@ -66,6 +66,32 @@
             </span>
           </div>
         }
+        @case ('pendiente_recepcion') {
+          <div class="estado-etiqueta estado-etiqueta--confirmado">
+            <span class="estado-etiqueta-texto">
+              Tu pedido ya está en tu mesa
+            </span>
+            <span class="estado-etiqueta-detalle">
+              Confirmá que lo recibiste.
+            </span>
+            <ion-button
+              expand="block"
+              class="estado-boton"
+              [disabled]="confirmandoRecepcion()"
+              (click)="confirmarRecepcion(p)"
+            >
+              {{ confirmandoRecepcion() ? 'Confirmando…' : 'Recibí mi pedido' }}
+            </ion-button>
+            <ion-button
+              expand="block"
+              fill="clear"
+              [disabled]="confirmandoRecepcion()"
+              (click)="noRecibido(p)"
+            >
+              Todavía no lo recibí
+            </ion-button>
+          </div>
+        }
         @default {
           <div class="estado-etiqueta">
             <span class="estado-etiqueta-texto">

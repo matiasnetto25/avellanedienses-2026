@@ -15,4 +15,8 @@
   @if (pedido()?.estado === 'rechazado') {
     <ion-button class="accion-secundaria" expand="block" (click)="revisar.emit()">Revisar pedido</ion-button>
   }
+
+  @if (pedido()?.estado === 'pendiente_recepcion') {
+    <ion-button class="accion-secundaria" expand="block" (click)="confirmarRecepcion.emit()">Confirmar recepción</ion-button>
+  }
 </div>

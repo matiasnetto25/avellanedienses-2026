@@ -4,6 +4,7 @@ import { NotificacionesService } from './core/services/notificaciones.service';
 import { LoadingService } from './core/services/loading.service';
 import { BarraEstadoService } from './core/services/barra-estado.service';
 import { AvisoRechazoService } from './pages/pedidos/cliente/components/aviso-rechazo/aviso-rechazo.service';
+import { AvisoRecepcionService } from './pages/pedidos/cliente/components/aviso-recepcion/aviso-recepcion.service';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +16,7 @@ export class AppComponent implements OnInit {
   private readonly auth = inject(Auth);
   private readonly notificaciones = inject(NotificacionesService);
   private readonly avisoRechazo = inject(AvisoRechazoService);
+  private readonly avisoRecepcion = inject(AvisoRecepcionService);
   private readonly barraEstado = inject(BarraEstadoService);
   readonly loading = inject(LoadingService);
 
@@ -35,5 +37,9 @@ export class AppComponent implements OnInit {
     // 3) Si es un cliente con mesa, avisa en cualquier pantalla cuando el
     //    mozo rechaza su pedido (punto 13). Sin await: no demora el arranque.
     void this.avisoRechazo.vigilar();
+
+    // 4) Igual con la entrega (punto 19): pide confirmar la recepción del
+    //    pedido en cualquier pantalla, también si ya estaba esperando.
+    void this.avisoRecepcion.vigilar();
   }
 }

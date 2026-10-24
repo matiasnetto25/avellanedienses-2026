@@ -119,6 +119,9 @@ Deno.serve(async (req: Request) => {
             message: {
               token,
               notification: { title: titulo, body: mensaje },
+              // Prioridad alta: llega al instante aunque la app esté cerrada
+              // y el celular en reposo (Doze).
+              android: { priority: 'HIGH' },
               data,
             },
           }),
