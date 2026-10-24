@@ -1,0 +1,56 @@
+// Contenido del modal. La ventana (.aviso-recepcion-modal) está en
+// global.scss, porque el modal lo abre un servicio y no una página.
+
+.aviso {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 20px 20px;
+  box-sizing: border-box;
+  color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+}
+
+.aviso-titulo {
+  margin: 0;
+  font-family: var(--brand-font-logo);
+  font-size: 1.5rem;
+  color: var(--brand-accent);
+}
+
+.aviso-mesa {
+  margin: 4px 0 20px;
+  font-size: 1.05rem;
+  opacity: 0.8;
+}
+
+.aviso-detalle {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.4;
+}
+
+.aviso-confirmar {
+  height: 56px;
+  margin: 24px 0 0;
+  --border-radius: 12px;
+  --background: var(--brand-accent);
+  --background-activated: var(--brand-ruby-red);
+  --color: var(--brand-floral-white);
+  font-family: var(--brand-font-subtitle);
+  font-size: 1.1rem;
+  text-transform: none;
+  font-weight: 600;
+}
+
+.aviso-cerrar {
+  margin-top: 8px;
+  padding: 14px;
+  border: none;
+  background: transparent;
+  color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}

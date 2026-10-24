@@ -3,6 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Auth } from './auth';
 import { AvisosService } from './avisos.service';
 import { ConsultasService } from './consultas.service';
+import { NotificacionesService } from './notificaciones.service';
 import { PedidosService } from './pedidos.service';
 import { Pedido } from '../models/pedido.model';
 import {
@@ -20,14 +21,19 @@ export class ResumenMozoService {
   private readonly pedidosService = inject(PedidosService);
   private readonly consultas = inject(ConsultasService);
   private readonly avisos = inject(AvisosService);
+  private readonly notificaciones = inject(NotificacionesService);
 
   private readonly _pedidos = signal<Pedido[]>([]);
   private readonly _conversaciones = signal<ConversacionActiva[]>([]);
   private readonly _pedidosListos = signal<Pedido[]>([]);
+  private readonly _pedidosEsperandoRecepcion = signal<Pedido[]>([]);
 
   readonly pedidos = this._pedidos.asReadonly();
   readonly conversaciones = this._conversaciones.asReadonly();
   readonly pedidosListos = this._pedidosListos.asReadonly();
+  /** Entregados por el mozo, a la espera de que el cliente confirme (punto 19). */
+  readonly pedidosEsperandoRecepcion =
+    this._pedidosEsperandoRecepcion.asReadonly();
 
   readonly cantidadListosParaEntregar = computed(
     () => this._pedidosListos().length
@@ -66,6 +72,7 @@ export class ResumenMozoService {
     await Promise.all([
       this.recargarPedidos(),
       this.recargarPedidosListos(),
+      this.recargarPedidosEsperandoRecepcion(),
       this.recargarConversaciones(),
     ]);
 
@@ -84,6 +91,7 @@ export class ResumenMozoService {
     await Promise.all([
       this.recargarPedidos(),
       this.recargarPedidosListos(),
+      this.recargarPedidosEsperandoRecepcion(),
     ]);
   }
 
@@ -106,11 +114,13 @@ export class ResumenMozoService {
    * solamente cuando la operación tuvo éxito.
    */
   async entregarPedido(pedidoId: string): Promise<boolean> {
-    const mensajeError =
-      await this.pedidosService.entregarPedido(pedidoId);
+    const resultado = await this.pedidosService.entregar(pedidoId);
 
-    if (mensajeError !== null) {
-      await this.avisos.error(mensajeError);
+    if (!resultado.ok) {
+      await this.avisos.error(
+        resultado.mensaje ?? 'No se pudo entregar el pedido.'
+      );
+      await this.recargarPedidosActualizados();
       return false;
     }
 
@@ -118,8 +128,31 @@ export class ResumenMozoService {
     this._pedidosListos.update((lista) =>
       lista.filter((pedido) => pedido.id !== pedidoId)
     );
+    void this.recargarPedidosEsperandoRecepcion();
+
+    // Push al cliente: llega con la app abierta, en segundo plano o cerrada.
+    if (resultado.clienteId && resultado.mesaId) {
+      this.notificaciones.avisarPedidoEntregado(
+        resultado.clienteId,
+        resultado.mesaId
+      );
+    }
 
     return true;
+  }
+
+  async recargarPedidosEsperandoRecepcion(): Promise<void> {
+    const pedidos =
+      await this.pedidosService.listarPedidosEsperandoRecepcion();
+
+    if (pedidos === null) {
+      console.error(
+        'No se pudieron actualizar los pedidos esperando recepción.'
+      );
+      return;
+    }
+
+    this._pedidosEsperandoRecepcion.set(pedidos);
   }
 
   detener(): void {
@@ -130,6 +163,7 @@ export class ResumenMozoService {
     this._pedidos.set([]);
     this._conversaciones.set([]);
     this._pedidosListos.set([]);
+    this._pedidosEsperandoRecepcion.set([]);
 
     this.errorPedidos.set(false);
     this.errorConversaciones.set(false);

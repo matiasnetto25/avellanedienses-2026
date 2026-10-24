@@ -45,6 +45,11 @@ const ESTADOS_PEDIDO: Record<EstadoPedido, EstadoVisual> = {
     texto: 'Rechazado',
     icono: 'close-circle-outline',
   },
+  pendiente_recepcion: {
+    tono: 'espera',
+    texto: 'Esperando tu confirmación',
+    icono: 'time-outline',
+  },
   entregado: {
     tono: 'listo',
     texto: 'Entregado',

@@ -1,0 +1,19 @@
+<div class="aviso">
+  <h2 class="aviso-titulo">Tu pedido ya está en tu mesa</h2>
+  <p class="aviso-mesa">Mesa {{ numeroMesa }}</p>
+
+  <p class="aviso-detalle">Por favor, confirmá que lo recibiste.</p>
+
+  <ion-button
+    expand="block"
+    class="aviso-confirmar"
+    [disabled]="confirmando()"
+    (click)="confirmar()"
+  >
+    {{ confirmando() ? 'Confirmando…' : 'Recibí mi pedido' }}
+  </ion-button>
+
+  <button type="button" class="aviso-cerrar" [disabled]="confirmando()" (click)="noRecibido()">
+    Todavía no lo recibí
+  </button>
+</div>

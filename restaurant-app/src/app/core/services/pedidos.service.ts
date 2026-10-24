@@ -238,7 +238,25 @@ export class PedidosService {
       .filter((pedido) => pedido.items.length > 0);
   }
 
-  
+  /**
+   * Pedidos que el mozo ya llevó a la mesa y esperan que el cliente
+   * confirme la recepción (punto 19). null si falló la consulta.
+   */
+  async listarPedidosEsperandoRecepcion(): Promise<Pedido[] | null> {
+    const { data, error } = await this.supabase.client
+      .from(TABLA_PEDIDOS)
+      .select(SELECT_PEDIDO)
+      .eq('estado', 'pendiente_recepcion')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error listando pedidos esperando recepción:', error);
+      return null;
+    }
+
+    return (data as unknown as PedidoFila[]).map((fila) => this.aPedido(fila));
+  }
+
   /**
    * Pedidos confirmados que ya se pueden entregar al cliente.
    * Solo devuelve pedidos con productos y todos sus ítems en estado "listo".
@@ -264,30 +282,86 @@ export class PedidosService {
       );
   }
 
-  
-
-async entregarPedido(pedidoId: string): Promise<string | null> {
-  const { data, error } = await this.supabase.client.rpc(
-    'entregar_pedido',
-    { p_pedido_id: pedidoId }
-  );
-
-  if (error) {
-    console.error('Error al entregar el pedido:', error);
-    return error.message;
+  /**
+   * El mozo lleva el pedido a la mesa (punto 19): pasa de 'confirmado' a
+   * 'pendiente_recepcion' y queda esperando que el cliente confirme. Sin
+   * RPC: el filtro por estado hace que, si otro mozo ya lo entregó, no
+   * se actualice ninguna fila. Devuelve los datos para la push al cliente.
+   */
+  async entregar(pedidoId: string): Promise<ResultadoRechazo> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ estado: 'pendiente_recepcion' })
+        .eq('id', pedidoId)
+        .eq('estado', 'confirmado')
+        .select('solicitud:solicitudes_mesa ( cliente_id, mesa_id )');
+      if (error) {
+        console.error('Error entregando pedido:', error);
+        // Falló el with check: algún producto todavía no está listo.
+        if (error.code === CODIGO_RLS) return { ok: false, mensaje: 'Todos los productos tienen que estar listos para entregar.' };
+        return { ok: false, mensaje: 'No se pudo entregar el pedido. Probá de nuevo.' };
+      }
+      const fila = (data as unknown as { solicitud: { cliente_id: string; mesa_id: string } }[])[0];
+      if (!fila) return { ok: false, mensaje: 'Este pedido ya fue entregado por otro mozo.' };
+      return { ok: true, clienteId: fila.solicitud.cliente_id, mesaId: fila.solicitud.mesa_id };
+    } catch (error: unknown) {
+      console.error('Error inesperado entregando pedido:', error);
+      return { ok: false, mensaje: 'No se pudo entregar el pedido. Revisá tu conexión.' };
+    }
   }
 
-  if (
-    !data ||
-    typeof data !== 'object' ||
-    !('ok' in data) ||
-    data.ok !== true
-  ) {
-    return 'No se pudo confirmar la entrega del pedido.';
+  /**
+   * El cliente avisa que todavía no recibió el pedido (punto 19): vuelve de
+   * 'pendiente_recepcion' a 'confirmado', y el mozo lo ve otra vez en
+   * «Listos para entregar». Devuelve la mesa para la push a los mozos.
+   */
+  async rechazarRecepcion(pedidoId: string): Promise<ResultadoOperacion & { numeroMesa?: number }> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ estado: 'confirmado' })
+        .eq('id', pedidoId)
+        .eq('estado', 'pendiente_recepcion')
+        .select('solicitud:solicitudes_mesa ( mesa ( numero_mesa ) )');
+      if (error) {
+        console.error('Error devolviendo el pedido al mozo:', error);
+        return { ok: false, mensaje: 'No se pudo avisar al mozo. Probá de nuevo.' };
+      }
+      const fila = (data as unknown as { solicitud: { mesa: { numero_mesa: number } } }[])[0];
+      // Sin filas: el pedido ya no esperaba la confirmación (ya lo confirmó o ya volvió).
+      if (!fila) return { ok: false, mensaje: 'Este pedido ya no está esperando tu confirmación.' };
+      return { ok: true, numeroMesa: fila.solicitud.mesa.numero_mesa };
+    } catch (error: unknown) {
+      console.error('Error inesperado devolviendo el pedido al mozo:', error);
+      return { ok: false, mensaje: 'No se pudo avisar al mozo. Revisá tu conexión.' };
+    }
   }
 
-  return null;
-}
+  /**
+   * El cliente confirma que recibió el pedido (punto 19): de
+   * 'pendiente_recepcion' a 'entregado'. Es el único camino al estado
+   * 'entregado'.
+   */
+  async confirmarRecepcion(pedidoId: string): Promise<ResultadoOperacion> {
+    try {
+      // Si ya estaba entregado (confirmó desde otra pantalla) no actualiza
+      // ninguna fila y tampoco es un error.
+      const { error } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ estado: 'entregado' })
+        .eq('id', pedidoId)
+        .eq('estado', 'pendiente_recepcion');
+      if (error) {
+        console.error('Error confirmando la recepción:', error);
+        return { ok: false, mensaje: 'No se pudo confirmar la recepción. Probá de nuevo.' };
+      }
+      return { ok: true };
+    } catch (error: unknown) {
+      console.error('Error inesperado confirmando la recepción:', error);
+      return { ok: false, mensaje: 'No se pudo confirmar la recepción. Revisá tu conexión.' };
+    }
+  }
 
 
   // ===== Creación =====

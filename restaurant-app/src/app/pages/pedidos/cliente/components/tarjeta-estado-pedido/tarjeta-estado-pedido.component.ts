@@ -24,6 +24,10 @@ const TEXTOS: Partial<Record<EstadoPedido, { titulo: string; frase: string }>> =
     titulo: 'El mozo rechazó tu pedido',
     frase: '',
   },
+  pendiente_recepcion: {
+    titulo: 'Tu pedido ya está en tu mesa',
+    frase: 'Confirmá que lo recibiste.',
+  },
   entregado: {
     titulo: '¡Tu pedido fue entregado!',
     frase: 'Esperamos que disfrutes tu pedido.',
@@ -40,6 +44,8 @@ const TEXTOS: Partial<Record<EstadoPedido, { titulo: string; frase: string }>> =
 export class TarjetaEstadoPedidoComponent {
   readonly pedido = input<Pedido | null>(null);
   readonly revisar = output<void>();
+  /** Punto 19: el cliente toca «Confirmar recepción» (la pantalla abre el aviso). */
+  readonly confirmarRecepcion = output<void>();
 
   readonly estado = computed(() => {
     const pedido = this.pedido();

@@ -12,6 +12,9 @@ export type EstadoPedido =
   | 'pendiente_confirmacion'
   | 'rechazado'
   | 'confirmado'
+  /** Punto 19: el mozo lo llevó a la mesa y espera que el cliente confirme. */
+  | 'pendiente_recepcion'
+  /** Punto 19: lo pone solo el cliente, al confirmar que lo recibió. */
   | 'entregado';
 
 export type EstadoItem = 'pendiente' | 'en_preparacion' | 'listo';

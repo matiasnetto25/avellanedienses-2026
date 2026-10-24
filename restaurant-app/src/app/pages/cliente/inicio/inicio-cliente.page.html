@@ -72,7 +72,7 @@
 
       @case ('estadia') {
         <div class="etapa">
-          <app-tarjeta-estado-pedido [pedido]="e.pedido" (revisar)="irAlMenu()" />
+          <app-tarjeta-estado-pedido [pedido]="e.pedido" (revisar)="irAlMenu()" (confirmarRecepcion)="confirmarRecepcion(e.pedido)" />
 
           @if (e.pedido && e.pedido.estado !== 'rechazado') {
             <button type="button" class="tarjeta tarjeta-acceso" (click)="verPedido()">

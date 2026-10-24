@@ -93,6 +93,36 @@
             </section>
           }
 
+          <!-- ENTREGADOS, ESPERANDO QUE EL CLIENTE CONFIRME (punto 19) -->
+          @if (cantidadEsperandoRecepcion() > 0) {
+            <section>
+              <div class="bloque-encabezado">
+                <h2 class="bloque-titulo">
+                  Esperando confirmación del cliente
+                  <span class="bloque-contador num">
+                    {{ cantidadEsperandoRecepcion() }}
+                  </span>
+                </h2>
+              </div>
+
+              <div class="filas">
+                @for (pedido of pedidosEsperandoRecepcion(); track pedido.id) {
+                  <article class="tarjeta pedido-listo">
+                    <div class="linea-principal">
+                      <span class="mesa">
+                        Mesa {{ pedido.numeroMesa }}
+                      </span>
+                    </div>
+
+                    <p class="linea-secundaria">
+                      Entregado. Falta que el cliente confirme que lo recibió.
+                    </p>
+                  </article>
+                }
+              </div>
+            </section>
+          }
+
           <!-- PEDIDOS LISTOS PARA ENTREGAR -->
           @if (cantidadListos() > 0) {
             <section>
