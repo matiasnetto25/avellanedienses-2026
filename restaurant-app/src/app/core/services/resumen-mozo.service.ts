@@ -160,6 +160,21 @@ export class ResumenMozoService {
     this._pedidosEsperandoRecepcion.set(pedidos);
   }
 
+  /** El mozo rechaza el medio de pago de una mesa; el cliente elige otro y se le avisa por push. */
+  async rechazarMedioPago(pedidoId: string): Promise<boolean> {
+    const resultado = await this.pedidosService.rechazarMedioPago(pedidoId);
+
+    if (!resultado.ok) {
+      await this.avisos.error(resultado.mensaje ?? 'No se pudo rechazar el medio de pago.');
+      await this.recargarCuentasPedidas();
+      return false;
+    }
+
+    void this.recargarCuentasPedidas();
+    if (resultado.clienteId) this.notificaciones.avisarMedioPagoRechazado(resultado.clienteId);
+    return true;
+  }
+
   async recargarCuentasPedidas(): Promise<void> {
     const pedidos = await this.pedidosService.listarPedidosConCuentaPedida();
 

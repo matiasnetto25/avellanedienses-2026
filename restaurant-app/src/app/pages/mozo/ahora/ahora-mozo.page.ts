@@ -2,8 +2,11 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { IonButton, IonContent, IonIcon } from '@ionic/angular/standalone';
+// De @ionic/angular (no de /standalone): igual que ModalController en los avisos.
+import { AlertController } from '@ionic/angular';
 
+import { Pedido, nombreMedioPago } from '../../../core/models/pedido.model';
 import { ConversacionActiva } from '../../../core/models/consulta.model';
 import { LoadingService } from '../../../core/services/loading.service';
 import {
@@ -26,6 +29,7 @@ const FILAS_POR_BLOQUE = 3;
     DatePipe,
     DecimalPipe,
     RouterLink,
+    IonButton,
     IonContent,
     IonIcon,
     AlturaDisponibleDirective,
@@ -41,6 +45,9 @@ export class AhoraMozoPage implements OnInit {
   private readonly loading = inject(LoadingService);
   private readonly perfilActual = inject(PerfilActualService);
   private readonly resumenMozo = inject(ResumenMozoService);
+  private readonly alertController = inject(AlertController);
+
+  readonly rechazandoMedioPagoId = signal<string | null>(null);
 
   readonly cargando = signal(true);
   readonly perfil = signal<PerfilActual | null>(null);
@@ -70,6 +77,8 @@ export class AhoraMozoPage implements OnInit {
   readonly pedidosEsperandoRecepcion = computed(() =>
     this.resumenMozo.pedidosEsperandoRecepcion().slice(0, FILAS_POR_BLOQUE)
   );
+
+  readonly nombreMedioPago = nombreMedioPago;
 
   // Mesas que pidieron la cuenta (punto 21).
   readonly cantidadCuentasPedidas = computed(
@@ -149,6 +158,35 @@ export class AhoraMozoPage implements OnInit {
 
   abrirConsulta(conversacion: ConversacionActiva): void {
     this.router.navigate(['/consultas', conversacion.solicitud_id]);
+  }
+
+  /**
+   * Punto 21: el mozo rechaza el medio de pago elegido por la mesa. El
+   * cliente vuelve a poder elegir y recibe una push.
+   */
+  async rechazarMedioPago(pedido: Pedido): Promise<void> {
+    if (this.rechazandoMedioPagoId() !== null) return;
+
+    const alerta = await this.alertController.create({
+      header: '¿Rechazar el medio de pago?',
+      message: `La mesa ${pedido.numeroMesa} va a poder elegir otro medio de pago.`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Rechazar', role: 'confirm' },
+      ],
+    });
+    await alerta.present();
+    const { role } = await alerta.onDidDismiss();
+    if (role !== 'confirm') return;
+
+    this.rechazandoMedioPagoId.set(pedido.id);
+    try {
+      await this.resumenMozo.rechazarMedioPago(pedido.id);
+    } catch (error: unknown) {
+      console.error('Error al rechazar el medio de pago:', error);
+    } finally {
+      this.rechazandoMedioPagoId.set(null);
+    }
   }
 
   /**

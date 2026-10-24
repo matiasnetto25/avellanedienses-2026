@@ -78,8 +78,7 @@
           @if (e.pedido?.estado === 'entregado') {
             <ion-button
               expand="block"
-              size="large"
-              class="boton-cuenta"
+              class="accion-principal"
               [disabled]="pidiendoCuenta()"
               (click)="pedirCuenta(e.pedido!)"
             >

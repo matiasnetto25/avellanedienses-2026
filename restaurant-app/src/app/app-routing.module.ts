@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { puestoGuard } from './core/guards/puesto.guard';
 import { clienteGuard } from './core/guards/cliente.guard';
+import { pagoGuard } from './core/guards/pago.guard';
 import { cuentaGuard } from './core/guards/cuenta.guard';
 import { juegosGuard } from './core/guards/juegos.guard';
 import { encuestaGuard } from './core/guards/encuesta.guard';
@@ -204,6 +205,12 @@ const routes: Routes = [
         // Punto 21: la cuenta y la propina por QR, solo con la cuenta pedida.
         canActivate: [cuentaGuard],
         loadComponent: () => import('./pages/cliente/cuenta/cuenta-cliente.page').then(m => m.CuentaClientePage)
+      },
+      {
+        path: 'pago',
+        // Punto 21: medios de pago, con la cuenta pedida y la propina elegida.
+        canActivate: [pagoGuard],
+        loadComponent: () => import('./pages/cliente/pago/pago-cliente.page').then(m => m.PagoClientePage)
       },
       {
         path: 'resultados-encuestas',

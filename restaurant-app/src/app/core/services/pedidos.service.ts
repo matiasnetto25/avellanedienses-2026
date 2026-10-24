@@ -8,6 +8,8 @@ import {
   EstadoPedido,
   ItemComanda,
   LineaCarrito,
+  MEDIOS_PAGO,
+  MedioPago,
   NIVELES_PROPINA,
   Pedido,
   PedidoItem,
@@ -28,7 +30,7 @@ const TABLA_ITEMS = 'pedido_items';
  * !inner para poder filtrar por su cliente_id y su estado.
  */
 const SELECT_PEDIDO = `
-  id, created_at, solicitud_id, estado, motivo_rechazo, propina_porcentaje,
+  id, created_at, solicitud_id, estado, motivo_rechazo, propina_porcentaje, medio_pago,
   solicitud:solicitudes_mesa!inner (
     cliente_id, mesa_id, estado,
     mesa ( numero_mesa )
@@ -56,15 +58,11 @@ const SELECT_COMANDA = `
 const ESTADOS_EN_COMANDAS: EstadoPedido[] = ['confirmado'];
 
 /**
- * Propina sobre el total ya con descuento (punto 21). Mismo redondeo que
- * el descuento. Sin propina elegida, el total a pagar es el total.
+ * Propina sobre el subtotal, SIN el descuento del juego (punto 21). Mismo
+ * redondeo que el descuento. Sin propina elegida, el monto es 0.
  */
-function calcularPropina(
-  total: number,
-  propinaPorcentaje: number | null
-): Pick<Pedido, 'montoPropina' | 'totalAPagar'> {
-  const montoPropina = Math.round((total * (propinaPorcentaje ?? 0)) / 100);
-  return { montoPropina, totalAPagar: total + montoPropina };
+function calcularMontoPropina(subtotal: number, propinaPorcentaje: number | null): number {
+  return Math.round((subtotal * (propinaPorcentaje ?? 0)) / 100);
 }
 
 /** Códigos de Postgres que se traducen a mensajes para el cliente. */
@@ -130,6 +128,7 @@ interface PedidoFila {
   estado: EstadoPedido;
   motivo_rechazo: string | null;
   propina_porcentaje: number | null;
+  medio_pago: MedioPago | null;
   solicitud: {
     cliente_id: string;
     mesa_id: string;
@@ -372,6 +371,73 @@ export class PedidosService {
     } catch (error: unknown) {
       console.error('Error inesperado fijando la propina:', error);
       return { ok: false, mensaje: 'No se pudo guardar la propina. Revisá tu conexión.' };
+    }
+  }
+
+  /**
+   * El cliente elige cómo va a pagar (punto 21). Una vez elegido no se
+   * puede cambiar: solo si el mozo lo rechaza (rechazarMedioPago) vuelve a
+   * quedar sin elegir. Solo con la cuenta pedida y la propina ya elegida. Devuelve la mesa para la push a los mozos.
+   */
+  async fijarMedioPago(
+    pedidoId: string,
+    medio: MedioPago
+  ): Promise<ResultadoOperacion & { numeroMesa?: number }> {
+    if (!MEDIOS_PAGO.some((m) => m.id === medio)) {
+      return { ok: false, mensaje: 'Ese medio de pago no es válido.' };
+    }
+    try {
+      const { data, error } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ medio_pago: medio })
+        .eq('id', pedidoId)
+        .eq('estado', 'cuenta_pedida')
+        .not('propina_porcentaje', 'is', null)
+        .is('medio_pago', null)
+        .select('solicitud:solicitudes_mesa ( mesa ( numero_mesa ) )');
+      if (error) {
+        console.error('Error fijando el medio de pago:', error);
+        return { ok: false, mensaje: 'No se pudo guardar el medio de pago. Probá de nuevo.' };
+      }
+      const fila = (data as unknown as { solicitud: { mesa: { numero_mesa: number } } }[])[0];
+      if (!fila) {
+        return { ok: false, mensaje: 'Ya elegiste el medio de pago, o falta elegir la propina.' };
+      }
+      return { ok: true, numeroMesa: fila.solicitud.mesa.numero_mesa };
+    } catch (error: unknown) {
+      console.error('Error inesperado fijando el medio de pago:', error);
+      return { ok: false, mensaje: 'No se pudo guardar el medio de pago. Revisá tu conexión.' };
+    }
+  }
+
+  /**
+   * El mozo rechaza el medio de pago elegido (punto 21): vuelve a quedar
+   * sin elegir y el cliente puede elegir otro. Devuelve el cliente y la
+   * mesa para la push.
+   */
+  async rechazarMedioPago(
+    pedidoId: string
+  ): Promise<ResultadoOperacion & { clienteId?: string; numeroMesa?: number }> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from(TABLA_PEDIDOS)
+        .update({ medio_pago: null })
+        .eq('id', pedidoId)
+        .eq('estado', 'cuenta_pedida')
+        .not('medio_pago', 'is', null)
+        .select('solicitud:solicitudes_mesa ( cliente_id, mesa ( numero_mesa ) )');
+      if (error) {
+        console.error('Error rechazando el medio de pago:', error);
+        return { ok: false, mensaje: 'No se pudo rechazar el medio de pago. Probá de nuevo.' };
+      }
+      const fila = (
+        data as unknown as { solicitud: { cliente_id: string; mesa: { numero_mesa: number } } }[]
+      )[0];
+      if (!fila) return { ok: false, mensaje: 'Esa mesa no tiene un medio de pago para rechazar.' };
+      return { ok: true, clienteId: fila.solicitud.cliente_id, numeroMesa: fila.solicitud.mesa.numero_mesa };
+    } catch (error: unknown) {
+      console.error('Error inesperado rechazando el medio de pago:', error);
+      return { ok: false, mensaje: 'No se pudo rechazar el medio de pago. Revisá tu conexión.' };
     }
   }
 
@@ -975,12 +1041,14 @@ private async aplicarDescuento(pedido: Pedido): Promise<Pedido> {
   );
 
   const total = pedido.subtotal - montoDescuento;
+  const montoPropina = calcularMontoPropina(pedido.subtotal, pedido.propinaPorcentaje);
   return {
     ...pedido,
     porcentajeDescuento,
     montoDescuento,
     total,
-    ...calcularPropina(total, pedido.propinaPorcentaje),
+    montoPropina,
+    totalAPagar: total + montoPropina,
   };
 }
 
@@ -1014,7 +1082,9 @@ private async aplicarDescuento(pedido: Pedido): Promise<Pedido> {
       montoDescuento: 0,
       total: subtotal,
       propinaPorcentaje: fila.propina_porcentaje,
-      ...calcularPropina(subtotal, fila.propina_porcentaje),
+      montoPropina: calcularMontoPropina(subtotal, fila.propina_porcentaje),
+      totalAPagar: subtotal + calcularMontoPropina(subtotal, fila.propina_porcentaje),
+      medioPago: fila.medio_pago,
       tiempoEstimadoMin: calcularTiempoEstimado(items.map((item) => item.demoraMin)),
       items,
     };

@@ -695,6 +695,26 @@ async inicializar(): Promise<void> {
     );
   }
 
+  /** El cliente eligió cómo va a pagar → mozos (punto 21). */
+  avisarMedioPago(numeroMesa: number, medioPago: string): void {
+    this.notificarEmpleados(
+      `Mesa ${numeroMesa} va a pagar`,
+      `Medio de pago elegido: ${medioPago}.`,
+      ['mozo'],
+      '/mozo/ahora'
+    );
+  }
+
+  /** El mozo rechazó el medio de pago → cliente (punto 21): puede elegir otro. */
+  avisarMedioPagoRechazado(clienteId: string): void {
+    this.notificarCliente(
+      'El mozo rechazó tu medio de pago',
+      'Elegí otro medio de pago para pagar tu cuenta.',
+      clienteId,
+      '/cliente/pago'
+    );
+  }
+
   /** El cliente dice que todavía no recibió el pedido → mozos (punto 19). */
   avisarPedidoNoRecibido(numeroMesa: number): void {
     this.notificarEmpleados(

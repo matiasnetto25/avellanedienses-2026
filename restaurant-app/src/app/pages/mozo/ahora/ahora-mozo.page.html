@@ -150,10 +150,25 @@
                     <p class="linea-secundaria">
                       @if (pedido.propinaPorcentaje !== null) {
                         Propina del {{ pedido.propinaPorcentaje }} %.
+                        @if (nombreMedioPago(pedido.medioPago); as medio) {
+                          Paga con {{ medio }}.
+                        } @else {
+                          Todavía no eligió el medio de pago.
+                        }
                       } @else {
                         Propina pendiente: el cliente todavía no escaneó el QR.
                       }
                     </p>
+
+                    @if (pedido.medioPago) {
+                      <ion-button
+                        class="accion-destructiva accion-fila"
+                        [disabled]="rechazandoMedioPagoId() === pedido.id"
+                        (click)="rechazarMedioPago(pedido)"
+                      >
+                        Rechazar medio de pago
+                      </ion-button>
+                    }
                   </article>
                 }
               </div>

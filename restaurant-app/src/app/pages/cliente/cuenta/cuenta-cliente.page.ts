@@ -84,6 +84,11 @@ export class CuentaClientePage {
     await this.guardarPropina(pedido, porcentaje);
   }
 
+  /** Con la propina elegida, sigue la pantalla de los medios de pago. */
+  irAPagar(): void {
+    void this.router.navigate(['/cliente/pago']);
+  }
+
   volverAlInicio(): void {
     void this.router.navigateByUrl(this.rutaInicio);
   }

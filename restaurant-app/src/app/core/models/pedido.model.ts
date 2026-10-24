@@ -28,6 +28,19 @@ export const NIVELES_PROPINA: { porcentaje: number; etiqueta: string }[] = [
   { porcentaje: 0, etiqueta: 'Malo' },
 ];
 
+/** Medios de pago que ofrece el restaurante (punto 21). La base tiene la misma lista (pedidos_medio_pago_check). */
+export type MedioPago = 'efectivo' | 'tarjeta' | 'mercado_pago';
+
+export const MEDIOS_PAGO: { id: MedioPago; nombre: string; detalle: string; icono: string }[] = [
+  { id: 'efectivo', nombre: 'Efectivo', detalle: 'Le pagás al mozo en la mesa.', icono: 'cash-outline' },
+  { id: 'tarjeta', nombre: 'Tarjeta', detalle: 'Débito o crédito, con la terminal del mozo.', icono: 'card-outline' },
+  { id: 'mercado_pago', nombre: 'Mercado Pago', detalle: 'Con el QR o el alias que te muestra el mozo.', icono: 'qr-code-outline' },
+];
+
+export function nombreMedioPago(medio: MedioPago | null): string | null {
+  return MEDIOS_PAGO.find((m) => m.id === medio)?.nombre ?? null;
+}
+
 export type EstadoItem = 'pendiente' | 'en_preparacion' | 'listo';
 export type SectorItem = 'cocina' | 'bar';
 
@@ -98,10 +111,12 @@ export interface Pedido {
   total: number;
   /** Punto 21: nivel elegido con el QR de propina. null hasta que el cliente escanea. */
   propinaPorcentaje: number | null;
-  /** Propina sobre el total ya con descuento. 0 mientras no hay propina. */
+  /** Propina sobre el subtotal, sin el descuento del juego. 0 mientras no hay propina. */
   montoPropina: number;
   /** Lo que paga el cliente: total con descuento más propina. */
   totalAPagar: number;
+  /** Punto 21: cómo dice el cliente que va a pagar. null hasta que elige. */
+  medioPago: MedioPago | null;
   /** Tiempo estimado del pedido. */
   tiempoEstimadoMin: number;
   items: PedidoItem[];

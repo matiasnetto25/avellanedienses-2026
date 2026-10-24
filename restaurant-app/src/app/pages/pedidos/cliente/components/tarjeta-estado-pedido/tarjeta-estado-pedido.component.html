@@ -18,7 +18,7 @@
 
   @if (pedido()?.estado === 'cuenta_pedida') {
     <ion-button class="accion-secundaria" expand="block" (click)="verCuenta.emit()">
-      {{ pedido()?.propinaPorcentaje === null ? 'Dejar propina' : 'Ver cuenta' }}
+      Pagar cuenta
     </ion-button>
   }
 

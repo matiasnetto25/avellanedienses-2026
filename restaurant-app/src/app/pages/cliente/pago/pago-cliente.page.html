@@ -1,0 +1,64 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="rutaCuenta" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Pagar</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="pago-content">
+  @if (pedido(); as p) {
+    <div class="pago-pantalla">
+      <section class="pago-total">
+        <span class="pago-total-etiqueta">Mesa {{ p.numeroMesa }} · Total a pagar</span>
+        <span class="pago-total-importe">$ {{ p.totalAPagar | number: '1.0-0' }}</span>
+      </section>
+
+      <h2 class="pago-titulo">{{ p.medioPago ? 'Medio de pago elegido' : '¿Cómo querés pagar?' }}</h2>
+
+      <ul class="pago-medios">
+        @for (medio of medios; track medio.id) {
+          <li>
+            <button
+              type="button"
+              class="pago-medio"
+              [class.pago-medio--elegido]="seleccionado() === medio.id"
+              [disabled]="congelado() || guardando()"
+              (click)="elegir(medio.id)"
+            >
+              <ion-icon [name]="medio.icono" class="pago-medio-icono" aria-hidden="true" />
+              <span class="pago-medio-texto">
+                <span class="pago-medio-nombre">{{ medio.nombre }}</span>
+                <span class="pago-medio-detalle">{{ medio.detalle }}</span>
+              </span>
+              @if (seleccionado() === medio.id) {
+                <ion-icon name="checkmark-circle" class="pago-medio-tilde" aria-hidden="true" />
+              }
+            </button>
+          </li>
+        }
+      </ul>
+
+      @if (congelado()) {
+        <!-- Con el medio elegido la pantalla queda congelada: solo se reabre si el mozo lo rechaza. -->
+        <p class="pago-pie">Pagás con {{ nombreMedioPago(p.medioPago) }}. Esperá al mozo, él va a confirmar tu pago.</p>
+      } @else {
+        <ion-button
+          expand="block"
+          class="accion-principal"
+          [disabled]="!seleccionado() || guardando()"
+          (click)="confirmar(p)"
+        >
+          Confirmar medio de pago
+        </ion-button>
+        <p class="pago-pie">Una vez confirmado no se puede cambiar, salvo que el mozo lo rechace.</p>
+      }
+    </div>
+  } @else {
+    <div class="pago-pantalla">
+      <p class="pago-pie">La cuenta ya no está disponible.</p>
+      <ion-button expand="block" class="accion-principal" (click)="volverAlInicio()">Volver a mi mesa</ion-button>
+    </div>
+  }
+</ion-content>

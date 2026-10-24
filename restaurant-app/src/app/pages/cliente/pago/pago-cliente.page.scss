@@ -1,0 +1,115 @@
+// Sin reglas en :host: el router de Ionic le pone .ion-page (ver mesa.page.scss).
+
+ion-toolbar {
+  --background: var(--brand-background);
+  --color: var(--brand-text);
+}
+
+.pago-content {
+  --background: var(--brand-background);
+}
+
+.pago-pantalla {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  color: var(--brand-text);
+  font-family: var(--brand-font-subtitle);
+}
+
+.pago-total {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--brand-text) 20%, transparent);
+  background: color-mix(in srgb, var(--brand-text) 5%, var(--brand-background));
+}
+
+.pago-total-etiqueta {
+  font-size: 0.95rem;
+  opacity: 0.8;
+}
+
+.pago-total-importe {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pago-titulo {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.pago-medios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pago-medio {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 2px solid color-mix(in srgb, var(--brand-text) 25%, transparent);
+  background: var(--brand-background);
+  color: var(--brand-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.pago-medio--elegido {
+  border-color: var(--ion-color-success);
+  background: color-mix(in srgb, var(--ion-color-success) 12%, var(--brand-background));
+}
+
+.pago-medio-icono {
+  flex-shrink: 0;
+  font-size: 1.8rem;
+}
+
+.pago-medio-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pago-medio-nombre {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.pago-medio-detalle {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.pago-medio-tilde {
+  flex-shrink: 0;
+  font-size: 1.6rem;
+  color: var(--ion-color-success);
+}
+
+.pago-pie {
+  margin: 0;
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.8;
+}

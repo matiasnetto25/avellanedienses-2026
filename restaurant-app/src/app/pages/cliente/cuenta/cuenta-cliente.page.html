@@ -36,7 +36,7 @@
           }
           <div class="cuenta-fila">
             @if (p.propinaPorcentaje !== null) {
-              <span>Propina ({{ p.propinaPorcentaje }} %)</span>
+              <span>Propina ({{ p.propinaPorcentaje }} % del subtotal)</span>
               <span>$ {{ p.montoPropina | number: '1.0-0' }}</span>
             } @else {
               <span>Propina</span>
@@ -61,7 +61,7 @@
           <p class="cuenta-propina-nivel">Falta la propina</p>
           <p class="cuenta-propina-detalle">Para poder pagar, escaneá el QR de propina.</p>
         }
-        <ion-button expand="block" class="cuenta-boton" [disabled]="guardando()" (click)="escanearPropina(p)">
+        <ion-button expand="block" class="accion-secundaria" [disabled]="guardando()" (click)="escanearPropina(p)">
           <ion-icon slot="start" name="qr-code-outline"></ion-icon>
           {{ p.propinaPorcentaje === null ? 'Escanear QR de propina' : 'Cambiar propina' }}
         </ion-button>
@@ -72,8 +72,7 @@
             <div class="cuenta-prueba-botones">
               @for (nivel of nivelesPropina; track nivel.porcentaje) {
                 <ion-button
-                  size="small"
-                  fill="outline"
+                  class="accion-secundaria accion-fila"
                   [disabled]="guardando()"
                   (click)="simularPropina(p, nivel.porcentaje)"
                 >
@@ -85,12 +84,22 @@
         }
       </section>
 
-      <p class="cuenta-pie">El mozo va a confirmar tu pago.</p>
+      <ion-button
+        expand="block"
+        class="accion-principal"
+        [disabled]="p.propinaPorcentaje === null || guardando()"
+        (click)="irAPagar()"
+      >
+        Ir a pagar
+      </ion-button>
+      @if (p.propinaPorcentaje === null) {
+        <p class="cuenta-pie">Elegí la propina para poder pagar.</p>
+      }
     </div>
   } @else {
     <div class="cuenta-pantalla">
       <p class="cuenta-pie">La cuenta ya no está disponible.</p>
-      <ion-button expand="block" class="cuenta-boton" (click)="volverAlInicio()">Volver a mi mesa</ion-button>
+      <ion-button expand="block" class="accion-principal" (click)="volverAlInicio()">Volver a mi mesa</ion-button>
     </div>
   }
 </ion-content>
