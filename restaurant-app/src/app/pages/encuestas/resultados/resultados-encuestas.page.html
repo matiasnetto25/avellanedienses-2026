@@ -7,7 +7,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="densidad-amplia" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
+<ion-content class="densidad-compacta" appAlturaDisponible [margenAltura]="0" [descontarBarraGestos]="false">
   <div class="pantalla">
     @if (!cargando()) {
       @if (fallo()) {
@@ -16,8 +16,9 @@
           titulo="No se pudieron cargar los resultados"
           frase="Revisá tu conexión y volvé a entrar." />
       } @else if (resultados(); as r) {
-        <!-- Con cero encuestas, el propio carrusel muestra el estado vacío. -->
-        <app-graficos-encuestas [resultados]="r" />
+        <!-- Uno abajo del otro, como en las estadísticas del supervisor. Con cero
+             encuestas, el propio componente muestra el estado vacío. -->
+        <app-graficos-encuestas [resultados]="r" disposicion="vertical" />
       }
     }
   </div>

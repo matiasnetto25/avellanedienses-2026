@@ -22,11 +22,12 @@ import { AlturaDisponibleDirective } from '../../../shared/directives/altura-dis
 import { GraficosEncuestasComponent } from '../components/graficos-encuestas/graficos-encuestas.component';
 
 /**
- * Resultados de las encuestas para el cliente (punto 20, issue 05). La ve
- * cualquier cliente: con la encuesta ya completada, sin mesa o en la lista
- * de espera (QR de ingreso, puntos 9 y 22).
+ * Resultados de las encuestas para el cliente (punto 20, issue 05). Se
+ * ofrecen solo mientras espera en la lista de espera (QR de ingreso, puntos
+ * 9 y 22).
  *
- * Los gráficos van en un carrusel, uno por pantalla (app-graficos-encuestas).
+ * Mismos gráficos y estilo que las estadísticas del supervisor: uno abajo
+ * del otro, con scroll de arriba hacia abajo (app-graficos-encuestas).
  */
 @Component({
   selector: 'app-resultados-encuestas',
