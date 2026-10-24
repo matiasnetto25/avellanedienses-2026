@@ -202,6 +202,31 @@ qrCodeOutline,
     } finally {
       this.pidiendoCuenta.set(false);
     }
+    await this.sugerirEncuesta();
+  }
+
+  /**
+   * Al pedir la cuenta, si la estadía todavía no tiene encuesta, se la
+   * sugiere en un modal (punto 20). Si falla la consulta no se muestra: la
+   * encuesta sigue disponible en el inicio.
+   */
+  private async sugerirEncuesta(): Promise<void> {
+    const etapa = this.etapa();
+    if (etapa?.tipo !== 'estadia') return;
+    const resultado = await this.encuestas.estadiaTieneEncuesta(etapa.solicitud.id);
+    if (!resultado.ok || resultado.dato) return;
+
+    const alerta = await this.alertController.create({
+      header: '¿Nos contás cómo fue tu visita?',
+      message: 'Antes de irte, completá la encuesta de satisfacción. Te lleva solo un minuto.',
+      buttons: [
+        { text: 'Ahora no', role: 'cancel' },
+        { text: 'Hacer la encuesta', role: 'confirm' },
+      ],
+    });
+    await alerta.present();
+    const { role } = await alerta.onDidDismiss();
+    if (role === 'confirm') this.abrirEncuesta();
   }
 
   verPedido(): void {

@@ -31,10 +31,18 @@ export class EtapaClienteService {
   readonly solicitudRechazada = signal(false);
   readonly posicionEnLista = signal<number | null>(null);
   readonly enEstadia = computed(() => this._etapa()?.tipo === 'estadia');
-  /** Los juegos se habilitan cuando el mozo confirma el pedido (punto 14). */
+  /**
+   * Los juegos se habilitan cuando el mozo confirma el pedido (punto 14) y
+   * se cierran cuando el cliente pide la cuenta (punto 21).
+   */
   readonly juegosHabilitados = computed(() => {
     const etapa = this._etapa();
-    return etapa?.tipo === 'estadia' && !!etapa.pedido && pedidoConfirmado(etapa.pedido.estado);
+    return (
+      etapa?.tipo === 'estadia' &&
+      !!etapa.pedido &&
+      pedidoConfirmado(etapa.pedido.estado) &&
+      etapa.pedido.estado !== 'cuenta_pedida'
+    );
   });
   /**
    * La encuesta de satisfacción (punto 20) está oculta hasta que el cliente
