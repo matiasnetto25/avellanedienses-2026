@@ -106,12 +106,15 @@ export class SolicitudesMesaService {
       }
       if (!data?.length) return { ok: false, mensaje: 'Tu visita ya estaba terminada.' };
 
-      const { error: errorMesa } = await this.supabase.client
+      // .select('id') para saber si el update tocó la fila: con RLS activo y sin
+      // política, Postgres no da error, simplemente no actualiza nada.
+      const { data: mesas, error: errorMesa } = await this.supabase.client
         .from('mesa')
         .update({ disponibilidad: 'Libre' })
-        .eq('id', mesaId);
-      if (errorMesa) {
-        console.error('Error liberando la mesa:', errorMesa);
+        .eq('id', mesaId)
+        .select('id');
+      if (errorMesa || !mesas?.length) {
+        console.error('Error liberando la mesa:', errorMesa ?? 'el update no tocó ninguna fila (¿RLS?)');
         return { ok: false, mensaje: 'Terminaste la visita, pero no se pudo liberar la mesa. Avisale al mozo.' };
       }
       return { ok: true };

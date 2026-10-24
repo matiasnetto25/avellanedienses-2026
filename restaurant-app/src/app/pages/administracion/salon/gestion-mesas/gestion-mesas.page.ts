@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   IonContent,
@@ -61,7 +61,7 @@ import { MesaRow, TIPOS_MESA, etiquetaTipo } from '../../../../core/models/mesa.
   templateUrl: './gestion-mesas.page.html',
   styleUrls: ['./gestion-mesas.page.scss'],
 })
-export class GestionMesasPage implements OnInit {
+export class GestionMesasPage implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly avisos = inject(AvisosService);
   protected readonly camara = inject(CamaraService);
@@ -105,9 +105,20 @@ export class GestionMesasPage implements OnInit {
     });
   }
 
+  private dejarDeObservarMesas: (() => void) | null = null;
+
   async ngOnInit(): Promise<void> {
     void this.perfilActual.obtener().then((perfil) => this.perfil.set(perfil));
+    // Estado de las mesas en tiempo real: una mesa se ocupa o se libera (punto 22) sin tocar nada.
+    // Con una edición en curso no se pisa la lista.
+    this.dejarDeObservarMesas = this.mesasService.observar(() => {
+      if (!this.mesaEnEdicion()) void this.mesasService.listar().then((mesas) => this.mesas.set(mesas));
+    });
     await this.cargarMesas();
+  }
+
+  ngOnDestroy(): void {
+    this.dejarDeObservarMesas?.();
   }
 
   async ionViewWillEnter(): Promise<void> {

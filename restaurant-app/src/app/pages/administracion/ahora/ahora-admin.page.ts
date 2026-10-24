@@ -72,7 +72,13 @@ export class AhoraAdminPage implements OnInit, OnDestroy {
     addIcons({ checkmarkDoneOutline, chevronForwardOutline, restaurantOutline });
   }
 
+  private dejarDeObservarMesas: (() => void) | null = null;
+
   async ngOnInit(): Promise<void> {
+    // Mesas ocupadas y libres en tiempo real.
+    this.dejarDeObservarMesas = this.mesasService.observar(
+      () => void this.mesasService.listar().then((mesas) => this.mesas.set(mesas))
+    );
     this.loading.mostrar();
     try {
       this.pendientes.iniciar();
@@ -96,6 +102,7 @@ export class AhoraAdminPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.dejarDeObservarMesas?.();
     this.dejarDeVigilar();
   }
 

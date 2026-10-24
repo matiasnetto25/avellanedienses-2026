@@ -24,6 +24,23 @@ export class MesasService {
    */
   readonly version = signal(0);
 
+  /**
+   * Avisa cada vez que cambia una mesa (se ocupa, se libera, se crea, se edita
+   * o se borra), para que el salón del dueño y del supervisor se actualice en
+   * vivo. Devuelve la función para dejar de observar (llamarla en ngOnDestroy).
+   * Requiere la tabla en la publicación supabase_realtime (ver la migración
+   * 20261024150000_mesa_realtime.sql).
+   */
+  observar(alCambiar: () => void): () => void {
+    const canal = this.supabase.client
+      .channel(`mesa-${crypto.randomUUID()}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: TABLA_MESA }, () => alCambiar())
+      .subscribe();
+    return () => {
+      void this.supabase.client.removeChannel(canal);
+    };
+  }
+
   async listar(): Promise<MesaRow[]> {
     const { data, error } = await this.supabase.client
       .from(TABLA_MESA)
