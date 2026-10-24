@@ -685,6 +685,16 @@ async inicializar(): Promise<void> {
     );
   }
 
+  /** El cliente pide la cuenta → todos los mozos (punto 21). */
+  avisarCuentaPedida(numeroMesa: number): void {
+    this.notificarEmpleados(
+      `Mesa ${numeroMesa} pidió la cuenta`,
+      'El cliente está esperando la cuenta.',
+      ['mozo'],
+      '/mozo/pedidos'
+    );
+  }
+
   /** El cliente dice que todavía no recibió el pedido → mozos (punto 19). */
   avisarPedidoNoRecibido(numeroMesa: number): void {
     this.notificarEmpleados(

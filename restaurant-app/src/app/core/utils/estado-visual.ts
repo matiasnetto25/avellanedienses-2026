@@ -55,6 +55,11 @@ const ESTADOS_PEDIDO: Record<EstadoPedido, EstadoVisual> = {
     texto: 'Entregado',
     icono: 'checkmark-circle-outline',
   },
+  cuenta_pedida: {
+    tono: 'espera',
+    texto: 'Cuenta pedida',
+    icono: 'card-outline',
+  },
 };
 
 

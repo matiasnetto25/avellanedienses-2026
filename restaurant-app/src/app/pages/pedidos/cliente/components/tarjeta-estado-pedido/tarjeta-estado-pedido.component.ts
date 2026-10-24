@@ -29,6 +29,10 @@ const TEXTOS: Partial<Record<EstadoPedido, { titulo: string; frase: string }>> =
     titulo: 'Tu pedido ya está en tu mesa',
     frase: 'Confirmá que lo recibiste.',
   },
+  cuenta_pedida: {
+    titulo: 'Pediste la cuenta',
+    frase: 'El mozo ya fue avisado y te la acerca enseguida.',
+  },
   entregado: {
     titulo: '¡Tu pedido fue entregado!',
     frase: 'Esperamos que disfrutes tu pedido.',

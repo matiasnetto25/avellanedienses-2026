@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { IonButton, IonContent, IonFooter, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
+  cardOutline,
   chatbubblesOutline,
   chevronForwardOutline,
   closeCircleOutline,
@@ -14,7 +15,11 @@ import {
   syncOutline,
   timeOutline,
 } from 'ionicons/icons';
+import { AlertController } from '@ionic/angular';
+import { AvisosService } from '../../../core/services/avisos.service';
 import { EncuestasService } from '../../../core/services/encuestas.service';
+import { NotificacionesService } from '../../../core/services/notificaciones.service';
+import { PedidosService } from '../../../core/services/pedidos.service';
 import { EtapaClienteService } from '../../../core/services/etapa-cliente.service';
 import { LoadingService } from '../../../core/services/loading.service';
 import { PerfilActual, PerfilActualService } from '../../../core/services/perfil-actual.service';
@@ -56,6 +61,13 @@ export class InicioClientePage implements OnInit {
   private readonly avisoRechazo = inject(AvisoRechazoService);
   private readonly avisoRecepcion = inject(AvisoRecepcionService);
   private readonly encuestas = inject(EncuestasService);
+  private readonly pedidos = inject(PedidosService);
+  private readonly avisos = inject(AvisosService);
+  private readonly notificaciones = inject(NotificacionesService);
+  // De @ionic/angular (no de /standalone): igual que ModalController en los avisos.
+  private readonly alertController = inject(AlertController);
+
+  readonly pidiendoCuenta = signal(false);
 
   readonly perfil = signal<PerfilActual | null>(null);
   readonly etapa = this.etapaCliente.etapa;
@@ -96,7 +108,8 @@ export class InicioClientePage implements OnInit {
 
   constructor() {
     addIcons({
-      qrCodeOutline,
+      cardOutline,
+qrCodeOutline,
       starOutline,
       statsChartOutline,
       timeOutline,
@@ -158,6 +171,37 @@ export class InicioClientePage implements OnInit {
   /** Punto 19: vuelve a abrir el aviso para confirmar que recibió el pedido. */
   confirmarRecepcion(pedido: Pedido | null): void {
     if (pedido) void this.avisoRecepcion.mostrar(pedido);
+  }
+
+  /** Punto 21: el cliente pide la cuenta; el mozo se entera por push. */
+  async pedirCuenta(pedido: Pedido): Promise<void> {
+    if (this.pidiendoCuenta()) return;
+    const alerta = await this.alertController.create({
+      header: '¿Pedir la cuenta?',
+      message: 'Le vamos a avisar al mozo que querés pagar.',
+      buttons: [
+        { text: 'Todavía no', role: 'cancel' },
+        { text: 'Pedir la cuenta', role: 'confirm' },
+      ],
+    });
+    await alerta.present();
+    const { role } = await alerta.onDidDismiss();
+    if (role !== 'confirm') return;
+
+    this.pidiendoCuenta.set(true);
+    try {
+      const resultado = await this.pedidos.pedirCuenta(pedido.id);
+      if (!resultado.ok) {
+        await this.avisos.error(resultado.mensaje ?? 'No se pudo pedir la cuenta. Probá de nuevo.');
+        return;
+      }
+      if (resultado.numeroMesa !== undefined) {
+        this.notificaciones.avisarCuentaPedida(resultado.numeroMesa);
+      }
+      await this.avisos.exito('Pediste la cuenta. El mozo ya fue avisado.');
+    } finally {
+      this.pidiendoCuenta.set(false);
+    }
   }
 
   verPedido(): void {
