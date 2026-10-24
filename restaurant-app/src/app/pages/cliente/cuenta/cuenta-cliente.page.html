@@ -56,17 +56,26 @@
           <p class="cuenta-propina-nivel">
             {{ etiquetaPropina(p.propinaPorcentaje) }} · {{ p.propinaPorcentaje }} %
           </p>
-          <p class="cuenta-propina-detalle">Si querés, podés cambiarla escaneando otro QR.</p>
+          @if (p.medioPago) {
+            <p class="cuenta-propina-detalle">La propina ya no se puede cambiar: elegiste cómo pagar.</p>
+          } @else {
+            <p class="cuenta-propina-detalle">Si querés, podés cambiarla escaneando otro QR.</p>
+          }
         } @else {
           <p class="cuenta-propina-nivel">Falta la propina</p>
           <p class="cuenta-propina-detalle">Para poder pagar, escaneá el QR de propina.</p>
         }
-        <ion-button expand="block" class="accion-secundaria" [disabled]="guardando()" (click)="escanearPropina(p)">
+        <ion-button
+          expand="block"
+          class="accion-secundaria"
+          [disabled]="guardando() || !!p.medioPago"
+          (click)="escanearPropina(p)"
+        >
           <ion-icon slot="start" name="qr-code-outline"></ion-icon>
           {{ p.propinaPorcentaje === null ? 'Escanear QR de propina' : 'Cambiar propina' }}
         </ion-button>
 
-        @if (modoPrueba) {
+        @if (modoPrueba && !p.medioPago) {
           <details class="cuenta-prueba">
             <summary>Modo de prueba (sin cámara)</summary>
             <div class="cuenta-prueba-botones">

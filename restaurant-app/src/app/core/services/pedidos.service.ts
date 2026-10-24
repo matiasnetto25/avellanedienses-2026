@@ -346,8 +346,9 @@ export class PedidosService {
 
   /**
    * El cliente deja (o cambia) la propina leyendo un QR de propina
-   * (punto 21). Solo con la cuenta pedida: el filtro por estado también
-   * frena el cambio una vez que el pedido pasó a otro estado.
+   * (punto 21). Solo con la cuenta pedida y mientras no haya medio de
+   * pago elegido: los filtros frenan el cambio una vez que el cliente eligió
+   * cómo pagar (si el mozo rechaza el medio, vuelve a poder cambiarla).
    */
   async fijarPropina(pedidoId: string, porcentaje: number): Promise<ResultadoOperacion> {
     if (!NIVELES_PROPINA.some((nivel) => nivel.porcentaje === porcentaje)) {
@@ -359,13 +360,14 @@ export class PedidosService {
         .update({ propina_porcentaje: porcentaje })
         .eq('id', pedidoId)
         .eq('estado', 'cuenta_pedida')
+        .is('medio_pago', null)
         .select('id');
       if (error) {
         console.error('Error fijando la propina:', error);
         return { ok: false, mensaje: 'No se pudo guardar la propina. Probá de nuevo.' };
       }
       if (!data?.length) {
-        return { ok: false, mensaje: 'La propina se deja con la cuenta pedida y antes de pagar.' };
+        return { ok: false, mensaje: 'La propina no se puede cambiar una vez elegido el medio de pago.' };
       }
       return { ok: true };
     } catch (error: unknown) {
